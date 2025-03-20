@@ -1,0 +1,15 @@
+shiny
+shinydashboard
+shinyWidgets
+DT
+tidyverse
+RColorBrewer
+ggrepel
+shinycssloaders
+dplyr
+tidyr
+shinyalert
+visNetwork
+waiter
+plotly
+upsetjs
