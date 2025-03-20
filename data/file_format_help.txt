@@ -1,0 +1,27 @@
+<div style="text-align: left;">
+  <h3>Instructions:</h3>
+  <p>Upload a file using a term from the list below preceded by <b>#</b>.</p>
+  <p>On the next line, include the list of elements separated by a comma (<b>,</b>).</p>
+
+  <h4>List of terms:</h4>
+  <ul>
+    <li>GENE_SYMBOL (e.g., "A2ML1")</li>
+    <li>GENE_ENTREZ_ID (e.g., "144568")</li>
+    <li>PHENOTYPES_ID (e.g., "HP:0000118")</li>
+    <li>DISEASES_ID (e.g., "OMIM:166722" or "ORPHA:2343")</li>
+    <li>GO_ID (e.g., "GO:0004866")</li>
+  </ul>
+
+  <h4>File example:</h4>
+  <pre>
+# GENE_SYMBOL
+A2ML1,BRCA1,TP53
+# GENE_ENTREZ_ID
+144568,672,7157
+# PHENOTYPES_ID
+HP:0000118,HP:0004322,HP:0012443
+# DISEASES_ID
+OMIM:166722,ORPHA:2343,OMIM:605543
+# GO_ID
+GO:0004866,GO:0005576,GO:0008150</pre>
+</div>
