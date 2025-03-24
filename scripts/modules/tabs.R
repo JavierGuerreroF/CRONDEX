@@ -19,7 +19,10 @@ generic_picker_input <- function(id,label,choices,subtext = NULL,style=NULL){
       size = 10,
       `dropdown-auto-width` = TRUE,
       `actions-box` = TRUE,
-      `live-search` = TRUE), 
+      `live-search` = TRUE,
+      `dropup-auto` = TRUE,
+      `container` = "body"
+      ), 
     multiple = TRUE,
     
     choicesOpt = list(

@@ -265,13 +265,24 @@ ui_dash <- dashboardPage(
     this.style.transform = 'scale(1)';
   }
 ")),
+    
 
 
 
 
      # waiter end -----
+# dropdown menu
+  #   tags$head(
+  #     tags$style(HTML("
+  #   .dropdown-menu {
+  #     max-width: 100vw !important;
+  #     overflow-x: auto !important;
+  #     right: auto !important;
+  #     left: 0 !important;
+  #   }
+  # "))
+  #   ),
 
- 
     
     # hoglight sidebar: 
 
@@ -370,8 +381,8 @@ ui_dash <- dashboardPage(
         background-color: #2C3E50;  /* Dark footer */
         color: white;
         text-align: center;
-        padding: 10px;
-        font-size: 0.9em;
+        padding: 5px;
+        font-size: 0.8em;
         font-family: Arial, sans-serif;
         z-index: 1000;
       }
@@ -916,12 +927,15 @@ server <- function(input, output, session) {
         # gene_information$gene_ontology
       tables$table_kegg_pathways <- if(is.null(gene_information$kegg_pathways)){data.frame()}else{gene_information$kegg_pathways}
     }else if(vals$database_size == length(genes_database)){
+      proteins_ncbi_ids_list <- names(vals$gene_database_filtered)
       
       vals$proteins_list <- all_tables_list_precomputed$all_protein_list
       
       tables$table_phenotypes <- all_tables_list_precomputed$all_table_phenotypes_freqs
       tables$table_diseases <- all_tables_list_precomputed$all_table_diseases_freqs
-      tables$table_diseases_HPO <- all_tables_list_precomputed$all_table_diseases_HPO_freqs
+      # tables$table_diseases_HPO <- all_tables_list_precomputed$all_table_diseases_HPO_freqs
+      tables$table_diseases_HPO <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"diseases_HPO")
+      
       tables$table_gene_ontology <- all_tables_list_precomputed$all_table_gene_ontology_freqs
       tables$table_kegg_pathways <- all_tables_list_precomputed$all_table_kegg_pathways_freqs
       
@@ -1328,7 +1342,7 @@ output$table_phenotypes <- renderDataTable({
           fluidRow(
             align = "center",
             actionButton(
-              "highlight_sidebar", "🔍 Start a Search",
+              "highlight_sidebar", "🔍 Where to Search?",
               style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
             )
           ),
@@ -2247,7 +2261,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             column(6,
                    sliderInput(
                      inputId = "threshold_jaccard_neighborhood",
-                     label = "Threshold Jaccard",
+                     label = "Threshold distance (Jaccard)",
                      min = 0,
                      max = 1,
                      value = c(0.4,1)
@@ -2522,7 +2536,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             generic_picker_input("gene_ontology_subset_selection","Gene Ontology",gene_ontology_subset_selection_CHOICES,
                                                  gene_ontology_subset_selection_SUBTEXT,style = gene_ontology_subset_selection_style)
                      ),
-                     
+                  
                      
                      # generic_picker_input("phenotype_subset_selection","Phenotypes",phenotype_subset_selection_CHOICES,phenotype_subset_selection_SUBTEXT),
                      # generic_picker_input("disease_subset_selection","Diseases",disease_subset_selection_CHOICES,disease_subset_selection_SUBTEXT),
@@ -2631,7 +2645,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             fluidRow(
               align = "center",
               actionButton(
-                "highlight_sidebar", "🔍 Start a Search",
+                "highlight_sidebar", "🔍 Where to Search?",
                 style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
               )
             ),
@@ -3048,7 +3062,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                         switchInput(
                           inputId = "euler_plot_interactive",
                           label = "Interactive", 
-                          value = T,
+                          value = F,
                           labelWidth = "180px",
                           onStatus = "warning"
                         ),
@@ -3061,7 +3075,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                         condition = "input.euler_plot_interactive == false",
                         fluidRow(
                           align = "left",
-                          h3("Euler plot"),
+                          # h3("Euler plot"),
                           fluidRow(
                             # align = "center",
                             column(3,
@@ -3903,7 +3917,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           fluidRow(
             align = "center",
             actionButton(
-              "highlight_sidebar", "🔍 Start a Search",
+              "highlight_sidebar", "🔍 Where to Search?",
               style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
             )
           ),
@@ -4755,8 +4769,12 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       
       output$network_datatable <- renderDataTable({
+        
+        network_data_to_DT_renamed <- network_data_to_DT %>%
+          rename(`distance (Jaccard)` = Jaccard)
+        
         datatable(
-          network_data_to_DT,
+          network_data_to_DT_renamed,
           rownames = F,
           options = list(
             scrollX = TRUE,
@@ -4775,7 +4793,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           solidHeader = T,
           status = "warning",
           # fluidRow(
-          uiOutput("columns_selection_ui"),
+          # uiOutput("columns_selection_ui"),
           dataTableOutput("network_datatable")
           # )
         )
@@ -5091,15 +5109,87 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
         
+        cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
+        print(str(all_phenotypes_df))
+        # # Definir la jerarquía con etiquetas 'children' y 'parent'
+        all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
+       
+    
+        
+        plot_hierarchy_bar <- function(df) {
+          # Define custom colors
+          custom_colors <- c("children" = "orange", "parent" = "steelblue")
+          
+          df %>%
+            count(hierarchy) %>%
+            ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
+            geom_bar(stat = "identity") +
+            scale_fill_manual(values = custom_colors) +
+            labs(
+              # title = "Count of 'children' vs 'parent'",
+                 x = "Hierarchy level",
+                 y = "Count") +
+            theme_minimal() +
+            theme(
+              axis.title = element_text(size = 16),
+              axis.text = element_text(size = 14),
+              plot.title = element_text(size = 18, face = "bold"),
+              legend.position = "none"
+            )
+        }
+        
+        plot_hierarchy_pie <- function(df) {
+          # Define custom colors
+          custom_colors <- c("children" = "orange", "parent" = "steelblue")
+          
+          df %>%
+            count(hierarchy) %>%
+            mutate(prop = n / sum(n),
+                   label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
+            ggplot(aes(x = "", y = prop, fill = hierarchy)) +
+            geom_bar(stat = "identity", width = 1) +
+            coord_polar("y") +
+            geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
+            scale_fill_manual(values = custom_colors) +
+            # labs(title = "Proportion of 'children' and 'parent'") +
+            theme_void() +
+            theme(
+              plot.title = element_text(size = 18, face = "bold"),
+              legend.position = "none"
+            )
+        }
+        
+        
+        hierarchy_proportions_funciont <- plot_hierarchy_bar
+        
         table_gen1_only <- data.frame(
           hpo_id = phenotypes_gen1_only,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
+          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
+          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
         table_intersection <- data.frame(
           hpo_id = phenotypes_intersect,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
+          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
+          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
+        
         table_gen2_only <- data.frame(
           hpo_id = phenotypes_gen2_only,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
+          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
+          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
+        
+        ## plots parent children proportion
+        output$plot_gen1_only <- renderPlot({
+          hierarchy_proportions_funciont(table_gen1_only)
+        })
+        
+        output$plot_intersection <- renderPlot({
+          hierarchy_proportions_funciont(table_intersection)
+        })
+        
+        output$plot_gen2_only <- renderPlot({
+          hierarchy_proportions_funciont(table_gen2_only)
+        })
+        
+        
         
         
         # 6. Render tables in the server
@@ -5111,7 +5201,11 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             options = list(
               scrollX = TRUE
             )
-          ) 
+          )  %>% formatStyle(
+                'hierarchy',  # Esta es la columna con los valores de categorización
+                target = 'row',
+                backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+              )
           
         })
         
@@ -5122,7 +5216,11 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             options = list(
               scrollX = TRUE
             )
-          ) 
+          ) %>% formatStyle(
+            'hierarchy',  # Esta es la columna con los valores de categorización
+            target = 'row',
+            backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+          )
           
         })
         
@@ -5133,7 +5231,11 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             options = list(
               scrollX = TRUE
             )
-          ) 
+          ) %>% formatStyle(
+            'hierarchy',  # Esta es la columna con los valores de categorización
+            target = 'row',
+            backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+          )
           
         })
         
@@ -5184,7 +5286,36 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                        plotOutput("eulerPlot_edge")
               ),
               # plotOutput("eulerPlot_edge"),
-
+              box(
+                title = HTML("Children/parent proportion"),
+                width = NULL,
+                solidHeader = TRUE,
+                collapsible = TRUE,
+                collapsed = TRUE,  # Starts collapsed
+                status = "warning",
+                fluidRow(
+                  column(
+                    width = 4,
+                    h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+                    # plotOutput("plot_gen1_only")
+                    # ui.R o dentro de tu fluidPage()
+                    plotOutput("plot_gen1_only", width = "400px", height = "500px")
+                    
+                  ),
+                  column(
+                    width = 4,
+                    h5("Intersection of Phenotypes"),
+                    plotOutput("plot_intersection", width = "400px", height = "500px")
+                  ),
+                  column(
+                    width = 4,
+                    h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+                    plotOutput("plot_gen2_only", width = "400px", height = "500px")
+                  )
+                )
+                
+              ),
+              
               # --- Three tables side by side ---
               fluidRow(
                 column(
