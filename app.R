@@ -158,11 +158,28 @@ ui_dash <- dashboardPage(
   title =  website_name,
   skin="yellow",
   dashboardHeader(
-    # title = website_name,
-    title = span(tagList(icon("brain"), website_name)),
-    
+    title = span(tagList(
+      tags$img(
+        src = "yellow-brain.svg",
+        height = "45px",  # Ajusta el tamaño según tu gusto
+        style = "margin-right: 10px;"  # Espacio entre la imagen y el texto
+      ),
+      # website_name
+      tags$strong(
+        website_name,
+        style = "font-size: 20px; font-weight: bold; color: #ffffff;"
+      )
+      
+    )),
     titleWidth = sideWidth
   ),
+  
+  # dashboardHeader(
+  #   # title = website_name,
+  #   title = span(tagList(icon("brain"), website_name)),
+  #   
+  #   titleWidth = sideWidth
+  # ),
   dashboardSidebar(
     collapsed = F,
     width = sideWidth,
@@ -175,7 +192,11 @@ ui_dash <- dashboardPage(
     use_waiter(),
     
     waiterShowOnLoad(
-      color = "#333333",
+      # color = "#666464",
+      color = "#5f62a1",
+      
+      # color = "#333333",
+      
 
       html = tagList(
         # 🌟 CROND Logo with Fade-in Animation
@@ -198,18 +219,36 @@ ui_dash <- dashboardPage(
 
         tags$br(),
         # Mensaje con fade-in
+      #   tags$div(
+      #     id = "welcomeMessage",
+      #     style = "
+      #   opacity: 0;
+      #   color: white;
+      #   font-size: 2em;
+      #   text-align: center;
+      #   transition: opacity 2s ease;
+      # ",
+      #     "Welcome to ",
+      #     tags$span(style = "color: #e3b009;", "CROND!")
+      #   ),
         tags$div(
           id = "welcomeMessage",
           style = "
-        opacity: 0;
-        color: white;
-        font-size: 2em;
-        text-align: center;
-        transition: opacity 2s ease;
-      ",
+    opacity: 0;
+    color: white;
+    font-size: 2em;
+    text-align: center;
+    transition: opacity 2s ease;
+    text-shadow: 
+      -1px -1px 0 #000,  
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000;
+  ",
           "Welcome to ",
           tags$span(style = "color: #e3b009;", "CROND!")
         ),
+        
         tags$br(),
 
         # Botón con estilo “fancy”
@@ -576,7 +615,7 @@ server <- function(input, output, session) {
                      tags$li(strong("🧠 Gene Expression:"),
                              " Expression profiles across tissues and cell types: ",
                              tags$ul(
-                               tags$li("🔹 ", tags$strong("Spatial Expression:"), " Allen Brain Atlas RNA-seq dataset."),
+                               tags$li("🔹 ", tags$strong("Brain Tissue Expression:"), " Allen Brain Atlas RNA-seq dataset."),
                                tags$li("🔹 ", tags$strong("Cellular Expression:"), " Data from the Brain RNA-Seq database.")
                              )
                      ),
@@ -1108,7 +1147,10 @@ server <- function(input, output, session) {
         datatable(
           mean_expression_by_ontology,
           rownames = F,
+          extensions = 'Buttons',
           options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
             scrollX = TRUE
           )
         ) %>% formatStyle('mean_expression',
@@ -1182,7 +1224,10 @@ datatable_custom <- function(table){
       table,
       filter = "top",
       rownames = F,
+      extensions = 'Buttons',
       options = list(
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = TRUE
       )
     ) %>% formatStyle('Freq',
@@ -1195,7 +1240,10 @@ datatable_custom <- function(table){
       table,
       filter = "top",
       rownames = F,
+      extensions = 'Buttons',
       options = list(
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = TRUE
       )
     )
@@ -2533,7 +2581,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             generic_picker_input("pathway_subset_selection","Pathways",pathway_subset_selection_CHOICES,pathway_subset_selection_SUBTEXT),
                      ),
                      column(3,
-                            generic_picker_input("gene_ontology_subset_selection","Gene Ontology",gene_ontology_subset_selection_CHOICES,
+                            left_picker_input("gene_ontology_subset_selection","Gene Ontology",gene_ontology_subset_selection_CHOICES,
                                                  gene_ontology_subset_selection_SUBTEXT,style = gene_ontology_subset_selection_style)
                      ),
                   
@@ -3526,7 +3574,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     datatable(
       tables$df_summary,
       rownames = F,
+      extensions = 'Buttons',
       options = list(
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = T
         # autoWidth = TRUE,
         # columnDefs = list(list(width = '50px', targets = "_all"))
@@ -3541,7 +3592,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         tables$clinvar_variants_filtered,
         filter = "top",
         rownames = F,
+        extensions = 'Buttons',
         options = list(
+          dom = 'Bfrtip',
+          buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
           scrollX = TRUE
         )
       )
@@ -4242,7 +4296,48 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   output$comparison_text  <- renderUI({
     
     if(length(vals$diseases_selected) < 1){
-      h4("No diseases selected")
+      # h4("No diseases selected")
+      
+      tagList(
+      
+          # Spacing for a clean layout
+          br(), br(),
+          
+          # 📢 Title: No Diseases Selected
+          fluidRow(
+            align = "center",
+            column(12,
+                   div(style = "text-align: center;",
+                       tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+                       h1("No Diseases Selected", style = "color: #e74c3c; font-size: 2.5em;"),
+                       h3("Please select two different diseases using the filters in the left sidebar.", style = "color: #555;")
+                   )
+            )
+          ),
+          
+          br(),
+          
+          # 📌 Information about the Comparison Tab
+          fluidRow(
+            align = "left",
+            column(12,
+                   div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+                       h3("🧬 Compare Diseases Based on Gene Annotations"),
+                       p("This tab will allow you to compare two diseases based on the annotations of their associated genes."),
+                       tags$ul(
+                         tags$li("🔹 Visualize shared and unique gene functions between two conditions."),
+                         tags$li("🔹 Explore enriched pathways and phenotypes for each disease."),
+                         tags$li("🔹 Evaluate molecular similarities and differences at a glance."),
+                         tags$li("🔹 Gain insights into potential shared mechanisms or therapeutic targets.")
+                       )
+                   )
+            )
+          ),
+          
+          br()
+        
+        
+      )
     }else if(length(vals$diseases_selected) == 1 ){
       h4("Only one disease selected")
       
@@ -4776,7 +4871,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         datatable(
           network_data_to_DT_renamed,
           rownames = F,
+          extensions = 'Buttons',
           options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
             scrollX = TRUE,
             pageLength = 25
           )
@@ -5198,7 +5296,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           datatable(
             table_gen1_only,
             rownames = F,
+            extensions = 'Buttons',
             options = list(
+              dom = 'Bfrtip',
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
               scrollX = TRUE
             )
           )  %>% formatStyle(
@@ -5213,7 +5314,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           datatable(
             table_intersection,
             rownames = F,
+            extensions = 'Buttons',
             options = list(
+              dom = 'Bfrtip',
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
               scrollX = TRUE
             )
           ) %>% formatStyle(
@@ -5228,7 +5332,10 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           datatable(
             table_gen2_only,
             rownames = F,
+            extensions = 'Buttons',
             options = list(
+              dom = 'Bfrtip',
+              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
               scrollX = TRUE
             )
           ) %>% formatStyle(
