@@ -20,11 +20,38 @@ generic_picker_input <- function(id,label,choices,subtext = NULL,style=NULL){
       `dropdown-auto-width` = TRUE,
       `actions-box` = TRUE,
       `live-search` = TRUE,
-      `dropup-auto` = TRUE,
-      `container` = "body"
+      `dropup-auto` = TRUE
+      
+      # `container` = ".subset-selection"
+      
       ), 
+     # Ancho del input en sí (no del dropdown)
     multiple = TRUE,
     
+    choicesOpt = list(
+      subtext = subtext,
+      style = style
+      
+    )
+  )
+}
+
+left_picker_input <- function(id,label,choices,subtext = NULL,style=NULL){
+  pickerInput(
+    inputId = id,
+    label = label, 
+    choices = choices,
+    options = list(
+      size = 10,
+      `dropdown-auto-width` = TRUE,
+      `actions-box` = TRUE,
+      `live-search` = TRUE,
+      `dropup-auto` = TRUE,
+      `container` = ".content-wrapper"
+      
+    ), 
+    # Ancho del input en sí (no del dropdown)
+    multiple = TRUE,
     choicesOpt = list(
       subtext = subtext,
       style = style
