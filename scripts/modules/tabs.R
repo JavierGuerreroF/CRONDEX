@@ -1,4 +1,4 @@
-############## TABS FILE
+############## TAB FILE
 # main tab module
 
 print("Loading tabs.R ...")
@@ -135,12 +135,20 @@ input_list_pathways_style <- rep("color: black",nrow(input_list_pathways))
 
 sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                    shinyjs::useShinyjs(),
-                                   menuItem(" Database presentation",tabName = "cover_tab",icon=icon("brain",lib = "font-awesome")),
-                                   menuItem(" Main information",tabName = "main_tab",icon=icon("database",lib = "font-awesome")),
-                                   menuItem(" Plots",tabName = "plots_tab",icon=icon("bar-chart",lib = "font-awesome")),
-                                   menuItem(" Variants",tabName = "variants_tab",icon=icon("dna",lib = "font-awesome")),
-                                   menuItem(" Compare",tabName = "compare_tab",icon=icon("code-compare",lib = "font-awesome")),
-                                   menuItem(" Network",tabName = "network_tab",icon=icon("circle-nodes",lib = "font-awesome")),
+                                   # menuItem("   - Database presentation",tabName = "cover_tab",icon=icon("brain",lib = "font-awesome")),
+                                   # menuItem("   - Main information",tabName = "main_tab",icon=icon("database",lib = "font-awesome")),
+                                   # menuItem("   - Gene Set Visualizer",tabName = "plots_tab",icon=icon("bar-chart",lib = "font-awesome")),
+                                   # menuItem("   - Variants",tabName = "variants_tab",icon=icon("dna",lib = "font-awesome")),
+                                   # menuItem("   - Compare Diseases",tabName = "compare_tab",icon=icon("code-compare",lib = "font-awesome")),
+                                   # menuItem("   - Network",tabName = "network_tab",icon=icon("circle-nodes",lib = "font-awesome")),
+                                   # 
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Main information"), tabName = "main_tab", icon = icon("database", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Gene Set Visualizer"), tabName = "plots_tab", icon = icon("bar-chart", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Variants"), tabName = "variants_tab", icon = icon("dna", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Compare Diseases"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome")),
                                    
                                    
                                    hr(),
@@ -331,7 +339,20 @@ network_tab <- tabItem(tabName = "network_tab",
                      
 )
 
-
+gpt_tab <- tabItem(tabName = "gpt_tab",
+                       
+                       fluidRow(
+                         column(12,
+                                shinycssloaders::withSpinner(
+                                  uiOutput("gpt_info"),
+                                  type = 6, color = "#f39c12", size = 1
+                                )
+                         )
+                       )
+                       
+                       
+                       
+)
 print("tabs.R loaded")
 
 ############## TABS FILE

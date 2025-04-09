@@ -37,6 +37,7 @@ print("Scripts loaded")
 
 # load data
 genes_database <- readRDS("data/genes_database.rds")
+print(genes_database[[1]])
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
 # print(cat("\033[32mGENES DATABASE NEW\033[0m\n"))
@@ -145,7 +146,7 @@ $(document).on("shiny:connected", function(){
 # print("sidebar menu loaded")
 
 # GLOBAL VARIABLES
-sideWidth <- 300
+sideWidth <- 325
 
 
 # UI 
@@ -191,91 +192,91 @@ ui_dash <- dashboardPage(
     
     use_waiter(),
     
-    waiterShowOnLoad(
-      # color = "#666464",
-      color = "#5f62a1",
-      
-      # color = "#333333",
-      
-
-      html = tagList(
-        # 🌟 CROND Logo with Fade-in Animation
-        
-        
-        tags$div(
-          id = "logoContainer",
-          style = "
-        text-align: center;
-        opacity: 1; /* Initially hidden */
-        transition: opacity 2s ease;
-      ",
-          tags$img(
-            src = "yellow-brain.svg",
-            width = "180px",
-            style = "margin-top: 20px;"
-          )
-        ),
-        
-
-        tags$br(),
-        # Mensaje con fade-in
-      #   tags$div(
-      #     id = "welcomeMessage",
-      #     style = "
-      #   opacity: 0;
-      #   color: white;
-      #   font-size: 2em;
-      #   text-align: center;
-      #   transition: opacity 2s ease;
-      # ",
-      #     "Welcome to ",
-      #     tags$span(style = "color: #e3b009;", "CROND!")
-      #   ),
-        tags$div(
-          id = "welcomeMessage",
-          style = "
-    opacity: 0;
-    color: white;
-    font-size: 2em;
-    text-align: center;
-    transition: opacity 2s ease;
-    text-shadow: 
-      -1px -1px 0 #000,  
-       1px -1px 0 #000,
-      -1px  1px 0 #000,
-       1px  1px 0 #000;
-  ",
-          "Welcome to ",
-          tags$span(style = "color: #e3b009;", "CROND!")
-        ),
-        
-        tags$br(),
-
-        # Botón con estilo “fancy”
-        actionButton(
-          "continueBtn", "Go to the database",
-          style = "
-        /* En lugar de display:none, usamos visibility y opacity para la animación */
-        visibility: hidden;
-        opacity: 0;
-        margin-top: 20px;
-
-        background: linear-gradient(45deg, #f39c12, #e3b009);
-        border: none;
-        border-radius: 25px;
-        color: white;
-        padding: 10px 20px;
-        font-size: 1.2em;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-
-        /* Transición para animar opacidad y escalado */
-        transition: opacity 0.6s ease, transform 0.6s ease;
-        transform: scale(0.8);
-      "
-        )
-      )
-    ),
+  #   waiterShowOnLoad(
+  #     # color = "#666464",
+  #     color = "#5f62a1",
+  #     
+  #     # color = "#333333",
+  #     
+  # 
+  #     html = tagList(
+  #       # 🌟 CROND Logo with Fade-in Animation
+  #       
+  #       
+  #       tags$div(
+  #         id = "logoContainer",
+  #         style = "
+  #       text-align: center;
+  #       opacity: 1; /* Initially hidden */
+  #       transition: opacity 2s ease;
+  #     ",
+  #         tags$img(
+  #           src = "yellow-brain.svg",
+  #           width = "180px",
+  #           style = "margin-top: 20px;"
+  #         )
+  #       ),
+  #       
+  # 
+  #       tags$br(),
+  #       # Mensaje con fade-in
+  #     #   tags$div(
+  #     #     id = "welcomeMessage",
+  #     #     style = "
+  #     #   opacity: 0;
+  #     #   color: white;
+  #     #   font-size: 2em;
+  #     #   text-align: center;
+  #     #   transition: opacity 2s ease;
+  #     # ",
+  #     #     "Welcome to ",
+  #     #     tags$span(style = "color: #e3b009;", "CROND!")
+  #     #   ),
+  #       tags$div(
+  #         id = "welcomeMessage",
+  #         style = "
+  #   opacity: 0;
+  #   color: white;
+  #   font-size: 2em;
+  #   text-align: center;
+  #   transition: opacity 2s ease;
+  #   text-shadow: 
+  #     -1px -1px 0 #000,  
+  #      1px -1px 0 #000,
+  #     -1px  1px 0 #000,
+  #      1px  1px 0 #000;
+  # ",
+  #         "Welcome to ",
+  #         tags$span(style = "color: #e3b009;", "CROND!")
+  #       ),
+  #       
+  #       tags$br(),
+  # 
+  #       # Botón con estilo “fancy”
+  #       actionButton(
+  #         "continueBtn", "Go to the database",
+  #         style = "
+  #       /* En lugar de display:none, usamos visibility y opacity para la animación */
+  #       visibility: hidden;
+  #       opacity: 0;
+  #       margin-top: 20px;
+  # 
+  #       background: linear-gradient(45deg, #f39c12, #e3b009);
+  #       border: none;
+  #       border-radius: 25px;
+  #       color: white;
+  #       padding: 10px 20px;
+  #       font-size: 1.2em;
+  #       cursor: pointer;
+  #       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  # 
+  #       /* Transición para animar opacidad y escalado */
+  #       transition: opacity 0.6s ease, transform 0.6s ease;
+  #       transform: scale(0.8);
+  #     "
+  #       )
+  #     )
+  #   ),
 
 
     # Script para manejar la aparición con setTimeout
@@ -368,7 +369,92 @@ ui_dash <- dashboardPage(
   ")),
     
   
-  
+tags$head(
+  tags$style(HTML("
+
+    body {
+      font-size: 17px !important;
+    }
+    
+    p {
+      font-size: 17px !important;
+    }
+    
+   /* Ajuste específico para pickerInput */
+      .bootstrap-select .dropdown-toggle {
+        font-size: 17px !important;
+      }
+
+      .bootstrap-select .dropdown-menu li a {
+        font-size: 17px !important;
+      }
+
+    "))
+),
+
+
+# sidebar height
+
+# tags$head(
+#   tags$style(HTML("
+#         .main-header .navbar {
+#           min-height: 80px !important;
+#         }
+#         .main-header .logo {
+#           height: 40px !important;
+#           line-height: 40px !important;
+#         }
+#         .main-header .navbar-custom-menu > .navbar-nav > li > a {
+#           padding-top: 10px !important;
+#           padding-bottom: 10px !important;
+#         }
+#       "))
+# ),
+# tags$head(
+#   tags$style(HTML("
+#                 .main-header .logo {
+#            height: 56px !important;
+#            line-height: 40px !important;
+#          }
+#      
+#       "))
+# ),
+tags$head(
+  tags$style(HTML("
+.main-header .navbar {
+          max-height: 50px !important;
+        }
+      "))
+),
+
+
+# h1 {
+#   font-size: 24px !important;
+# }
+# 
+# h2 {
+#   font-size: 24px !important;
+# }
+# 
+# h3 {
+#   font-size: 24px !important;
+# }
+# 
+# h4 {
+#   font-size: 24px !important;
+# }
+# 
+# h5 {
+#   font-size: 24px !important;
+# }
+# span {
+#   font-size: 16px !important;
+# }
+# 
+# div {
+#   font-size: 16px !important;
+# }
+
     # highlifht end
     
     # footer start
@@ -453,11 +539,15 @@ ui_dash <- dashboardPage(
     tags$footer(
       class = "footer",
       
-      "© 2024 Guerrero-Flores, J. All rights reserved. | ",
-      tags$a(href = "https://www.biotoclin.org/", "More Information"),
-      " | Version 2.2 | Licensed under MIT License | ",
+      # "© 2024 Guerrero-Flores, J. All rights reserved. | ",
+      # tags$a(href = "https://www.biotoclin.org/", "More Information"),
+      # " | Version 2.2 | Licensed under MIT License | ",
       
-   
+      " Version 2.2 | ",
+      tags$a(href = "https://www.biotoclin.org/", "More Information"),
+      " | Licensed under MIT License | ",
+      
+      
       tags$span(class = "footer-icons",
                 tags$a(href = "https://github.com/yourgithub", target = "_blank",
                        tags$i(class = "fab fa-github")),  
@@ -502,7 +592,8 @@ ui_dash <- dashboardPage(
       variants_tab,
       plots_tab,
       compare_tab,
-      network_tab
+      network_tab,
+      gpt_tab
     ),
     
     
@@ -584,9 +675,9 @@ server <- function(input, output, session) {
                div(
                  style = "margin: 10px;",
                  h1("CROND", style = "color: #f39c12; font-family: Tahoma, sans-serif; font-size: 2.8em;"),
-                 h3(strong("ChROmatin and NeuroDevelopmental Disorder Protein Database")),
+                 h3(strong("ChROmatin and NeuroDevelopmental Disorder Protein Explorer")),
                  p(style = "font-size: 1.2em;",
-                   "CROND is a specialized database integrating proteins associated with chromatin and their role in neurodevelopmental disorders. 
+                   "CROND is a specialized web portal integrating proteins associated with chromatin and their role in neurodevelopmental disorders. 
                  It provides tools to explore genes, functional annotations, and their impact on human health.")
                )
         )
@@ -744,6 +835,7 @@ server <- function(input, output, session) {
       size = "m",
       title = "Input file format information",
       text = file_format_help,
+      closeOnClickOutside = T,
       html = T,
       type = "info"
     )
@@ -1360,12 +1452,13 @@ output$table_phenotypes <- renderDataTable({
             column(12,
                    div(style = "text-align: center;",
                        tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
-                       h1("No Data Available", style = "color: #e74c3c; font-size: 2.5em;"),
+                       h1("No Data Available", style = "color: #993232; font-size: 2.5em;"),
                        h3("Please perform a search using the filters in the left sidebar.", style = "color: #555;")
                    )
             )
           ),
-          
+          #993232
+          # original red e74c3c new red 993232
           br(),
           
           # 📌 Instructions for the User
@@ -2664,7 +2757,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
               column(12,
                      div(style = "text-align: center;",
                          tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
-                         h1("Not Enough Data Available", style = "color: #e74c3c; font-size: 2.5em;"),
+                         h1("Not Enough Data Available", style = "color: #993232; font-size: 2.5em;"),
                          h3("Please perform a search using the filters in the left sidebar to generate plots.", style = "color: #555;")
                      )
               )
@@ -3942,7 +4035,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             column(12,
                    div(style = "text-align: center;",
                        tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
-                       h1("Not Enough Data Available", style = "color: #e74c3c; font-size: 2.5em;"),
+                       h1("Not Enough Data Available", style = "color: #993232; font-size: 2.5em;"),
                        h3("Please perform a search using the filters in the left sidebar to see genetic variants.", style = "color: #555;")
                    )
             )
@@ -3996,69 +4089,176 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         width = 12,
         solidHeader = FALSE,
         collapsible = FALSE,
-        fluidRow(align = "center", h3("Select 2 diseases to compare.")),
         
+        
+        
+        # Título principal estilizado
         fluidRow(
-          column(5,
-                 
+          column(12, align = "center",
+                 tags$h2(
+                   "🧬 Compare Two Diseases",
+                   style = "font-weight: bold; margin-bottom: 30px;"
+                 )
+          )
+        ),
+        
+        # Selectores de enfermedades y botón
+        fluidRow(
+          column(5, offset = 1,
+                 # pickerInput(
+                 #   inputId = "disease_1_selection",
+                 #   label = tags$span("Gene 1", style = "font-weight: bold; font-size: 16px;"),
+                 #   choices = input_list_genes_CHOICES,
+                 #   options = list(
+                 #     size = 10,
+                 #     `dropdown-auto-width` = TRUE,
+                 #     `actions-box` = TRUE,
+                 #     `live-search` = TRUE
+                 #   ),
+                 #   multiple = FALSE,
+                 #   choicesOpt = list(
+                 #     subtext = input_list_genes$SUBTEXT,
+                 #     style = input_list_genes_style
+                 #   )
+                 # )
                  pickerInput(
                    inputId = "disease_1_selection",
-                   label = "Disease 1", 
+                   label = tags$span("Disease 1", style = "font-weight: bold; font-size: 16px;"),
                    choices = input_list_diseases_CHOICES,
                    options = list(
                      size = 10,
                      `dropdown-auto-width` = TRUE,
                      `actions-box` = TRUE,
-                     `live-search` = TRUE), 
-                   multiple = F,
-                   
+                     `live-search` = TRUE
+                   ),
+                   multiple = FALSE,
                    choicesOpt = list(
                      subtext = input_list_diseases$SUBTEXT,
                      style = input_list_diseases_style
-                     
                    )
-                 ),
-                 
-                 # generic_picker_input("disease_1_selection","Disease 1:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
-                 ),
+                 )
+          ),
+          
           column(5,
+                 # pickerInput(
+                 #   inputId = "disease_2_selection",
+                 #   label = tags$span("Gene 2", style = "font-weight: bold; font-size: 16px;"),
+                 #   choices = input_list_genes_CHOICES,
+                 #   options = list(
+                 #     size = 10,
+                 #     `dropdown-auto-width` = TRUE,
+                 #     `actions-box` = TRUE,
+                 #     `live-search` = TRUE
+                 #   ),
+                 #   multiple = FALSE,
+                 #   choicesOpt = list(
+                 #     subtext = input_list_genes$SUBTEXT,
+                 #     style = input_list_genes_style
+                 #   )
+                 # )
                  
                  pickerInput(
                    inputId = "disease_2_selection",
-                   label = "Disease 2", 
+                   label = tags$span("Disease 2", style = "font-weight: bold; font-size: 16px;"),
                    choices = input_list_diseases_CHOICES,
                    options = list(
                      size = 10,
                      `dropdown-auto-width` = TRUE,
                      `actions-box` = TRUE,
-                     `live-search` = TRUE), 
-                   multiple = F,
-                   
+                     `live-search` = TRUE
+                   ),
+                   multiple = FALSE,
                    choicesOpt = list(
                      subtext = input_list_diseases$SUBTEXT,
                      style = input_list_diseases_style
-                     
                    )
-                 ),
-                 
-                 # generic_picker_input("disease_2_selection","Disease 2:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
-                 ),
-          column(2,
+                 )
+          )
+        ),
+        
+        # Botón centrado
+        fluidRow(
+          column(12, align = "center",
                  actionBttn(
                    inputId = "perform_comparison",
-                   label = "Perform comparison",
-                   style = "unite", 
-                   color = "warning"
+                   label = "🔍 Perform Comparison",
+                   style = "gradient", 
+                   color = "success",
+                   size = "lg"
                  )
-                 
-                 )
+          )
         ),
+        
+        br(),
+        
+        
+        
+        # 
+        # 
+        # fluidRow(align = "center", h3("Select 2 diseases to compare.")),
+        # 
+        # fluidRow(
+        #   column(5,
+        #          
+        #          pickerInput(
+        #            inputId = "disease_1_selection",
+        #            label = "Disease 1", 
+        #            choices = input_list_diseases_CHOICES,
+        #            options = list(
+        #              size = 10,
+        #              `dropdown-auto-width` = TRUE,
+        #              `actions-box` = TRUE,
+        #              `live-search` = TRUE), 
+        #            multiple = F,
+        #            
+        #            choicesOpt = list(
+        #              subtext = input_list_diseases$SUBTEXT,
+        #              style = input_list_diseases_style
+        #              
+        #            )
+        #          ),
+        #          
+        #          # generic_picker_input("disease_1_selection","Disease 1:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
+        #          ),
+        #   column(5,
+        #          
+        #          pickerInput(
+        #            inputId = "disease_2_selection",
+        #            label = "Disease 2", 
+        #            choices = input_list_diseases_CHOICES,
+        #            options = list(
+        #              size = 10,
+        #              `dropdown-auto-width` = TRUE,
+        #              `actions-box` = TRUE,
+        #              `live-search` = TRUE), 
+        #            multiple = F,
+        #            
+        #            choicesOpt = list(
+        #              subtext = input_list_diseases$SUBTEXT,
+        #              style = input_list_diseases_style
+        #              
+        #            )
+        #          ),
+        #          
+        #          # generic_picker_input("disease_2_selection","Disease 2:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
+        #          ),
+        #   column(2,
+        #          actionBttn(
+        #            inputId = "perform_comparison",
+        #            label = "Perform comparison",
+        #            style = "unite", 
+        #            color = "warning"
+        #          )
+        #          
+        #          )
+        # ),
         
         
         
         
         fluidRow(
-          box(title = "Comparison results",
+          box(#title = "Comparison results",
+              title = tags$span("🧪 Comparison Results", style = "font-weight: bold; font-size: 18px;"),
               width = 12,
               solidHeader = FALSE,
               collapsible = FALSE,
@@ -4102,17 +4302,42 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   observe({
     diseases_to_compare <- list()
-    
+
     vals$disease_1_selection <- input$disease_1_selection
     vals$disease_2_selection <- input$disease_2_selection
-    
-    
+  # print("diseases to compare")
+  # print(    vals$disease_2_selection)
+  # print(    vals$disease_1_selection)
+
+    # gene_1_to_compare <- as.character(input$disease_1_selection)
+    # gene_2_to_compare <- as.character(input$disease_2_selection)
+    # print(gene_1_to_compare)
+    # print(gene_2_to_compare)
+    # if(is.null(gene_1_to_compare) || is.null(gene_2_to_compare) || gene_1_to_compare == gene_2_to_compare || length(gene_1_to_compare) == 0 || length(gene_2_to_compare) == 0){
+    #   vals$disease_1_selection <-NULL
+    #   vals$disease_2_selection <-NULL
+    # 
+    # }else{
+    # 
+    # cat("\033[31m\n\nselection------>\033[0m\n")
+    # # print(gene_1_to_compare)
+    # # print(gene_2_to_compare)
+    # #
+    # disease_1_selection <- get_diseases_by_genes(genes_database, gene_1_to_compare)
+    # disease_1_selection <- get_diseases_by_genes(genes_database, gene_2_to_compare)
+    # # print(disease_1_selection)
+    # # print(disease_2_selection)
+    # vals$disease_1_selection <-disease_1_selection
+    # vals$disease_2_selection <-disease_1_selection
+    # }
+
 
   })
   
   
   observeEvent(input$perform_comparison,{
-    print("comparison list")
+    # print("comparison list")
+    cat("\033[31m\n\ncomparison list------>\033[0m\n")
     diseases_to_compare <- list(vals$disease_1_selection, vals$disease_2_selection)
     print(diseases_to_compare)
     
@@ -4160,16 +4385,16 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       cat("\033[31m\n\n------>>\033[0m\n")
       plots_list_results <- plot_comparison(selected_field_by_disease)
       cat("\033[31m<<------\n\n\033[0m\n")
-      
-      # print("plot dimensions")
+      # 
+      # # print("plot dimensions")
+      # # print(plots_list_results$width)
+      # # print(plots_list_results$height)
+      # 
+      # cat("\033[32mCreando plot: \033[0m\n")
+      # print(names(plots_list_results))
       # print(plots_list_results$width)
       # print(plots_list_results$height)
-      
-      cat("\033[32mCreando plot: \033[0m\n")
-      print(names(plots_list_results))
-      print(plots_list_results$width)
-      print(plots_list_results$height)
-      cat("\033[32mPlot creado: \033[0m\n")
+      # cat("\033[32mPlot creado: \033[0m\n")
       # 
       plots_list[[term]]$plot <- plots_list_results$plot
       plots_list[[term]]$width <- plots_list_results$width
@@ -4212,7 +4437,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       comparison_ui_list[[term]] <- result_ui
     }
     print(names(comparison_ui_list))
-    vals$comparison_ui_list <- comparison_ui_list#[c("cellular_expression",  "spatial_expression")]
+    
+    
     print("test")
     
     # print(unlist(unlist(genes_by_disease_database)))
@@ -4234,7 +4460,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     # Text to display
     full_disease_text_list <- c()
-  
+    
     
     
     for(disease in unique(names_genes_by_disease_ordered)){
@@ -4253,6 +4479,71 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     }
     print(full_disease_text_list)
     full_disease_text <- paste0(full_disease_text_list, collapse = "<br>")
+    
+    
+    if(diseases_to_compare[[1]] == diseases_to_compare[[2]]){
+      
+      same_diseases_ui <-tagList(
+        
+        br(), br(),
+        
+        # 📢 Title: Same Disease Selected
+        fluidRow(
+          align = "center",
+          column(12,
+                 div(style = "text-align: center;",
+                     tags$img(src = "icons/warning_icon.svg", width = "150px", style = "opacity: 0.7;"),
+                     h1("Same Disease Selected", style = "color: #cc6600; font-size: 2.5em;"),
+                     h3(
+                       tagList("Please select two ", tags$b("different"), " diseases to perform a comparison."),
+                       style = "color: #555;"
+                     )
+                 )
+          )
+        ),
+        
+        br()
+      )
+      
+      
+      vals$comparison_ui_list <- same_diseases_ui #[c("cellular_expression",  "spatial_expression")]
+    }else if(genes_by_disease[[1]]==genes_by_disease[[2]]){
+      # genes_by_disease[[1]]==genes_by_disease[[2]]
+      # genes_by_disease[[1]]==genes_by_disease[[2]]
+      # genes_by_disease[[1]]==genes_by_disease[[2]]
+      
+      same_genes_ui <-tagList(
+        
+        br(), br(),
+        
+        # 📢 Title: Same Genes Selected
+        fluidRow(
+          align = "center",
+          column(12,
+                 div(style = "text-align: center;",
+                     tags$img(src = "icons/warning_icon.svg", width = "150px", style = "opacity: 0.7;"),
+                     h1("Same Gene in the Diseases Selected", style = "color: #336699; font-size: 2.5em;"),
+                     h3(
+                       tagList("Both diseases are associated with the same gene. Please select diseases with ", tags$b("different"), " gene associations."),
+                       style = "color: #555;"
+                     )
+                 )
+          )
+        ),
+        
+        br()
+      )
+      
+      
+      vals$comparison_ui_list <- same_genes_ui #[c("cellular_expression",  "spatial_expression")]
+
+  }else{
+      vals$comparison_ui_list <- comparison_ui_list#[c("cellular_expression",  "spatial_expression")]
+      
+    }
+
+  
+    
     vals$comparison_text <- full_disease_text
                                    # "</b> and <b>", names(genes_by_disease[2]),"</b> related with <b>",genes_by_disease_database[[2]]$gene_symbol,"</b>")
     print(vals$comparison_text)
@@ -4309,7 +4600,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             column(12,
                    div(style = "text-align: center;",
                        tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
-                       h1("No Diseases Selected", style = "color: #e74c3c; font-size: 2.5em;"),
+                       h1("No Diseases Selected", style = "color: #993232; font-size: 2.5em;"),
                        h3("Please select two different diseases using the filters in the left sidebar.", style = "color: #555;")
                    )
             )
@@ -4339,8 +4630,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
       )
     }else if(length(vals$diseases_selected) == 1 ){
-      h4("Only one disease selected")
-      
+      # h4("Only one disease selected")
+      # br()
     }else{
       h4(HTML(vals$comparison_text))
     }
@@ -4394,25 +4685,53 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   output$network_info <- renderUI({
   tagList(
     fluidRow(
-      column(9,
-             
-             
-             box(title = NULL,
-                 width = NULL,
-                 solidHeader = FALSE,
-                 collapsible = FALSE,
-                 uiOutput("network_ui_ouput")
-                 
-                 # visNetworkOutput("network", width = "100%", height = "1200px")  # Ajustar el tamaño
-                 
-                 
-             )
-             
-      ),
+    
       column(3,
            
              fluidRow(
                align = "center",
+               wellPanel(
+                 
+                 
+                 fluidRow(
+                   align = "left",
+                   
+                   column(12,
+                          
+                          pickerInput(
+                            inputId = "selected_gene_network",
+                            label = tags$span("Genes", style = "font-weight: bold; font-size: 16px;"),
+                            choices = c(
+                              "<i< - Show full network -</i>" = "full_net",  # Opción vacía, marcada visualmente
+                              input_list_genes_CHOICES
+                            ),
+                            options = list(
+                              size = 10,
+                              `dropdown-auto-width` = TRUE,
+                              `live-search` = TRUE
+                            ),
+                            multiple = FALSE,
+                            choicesOpt = list(
+                              content = c(
+                                HTML("<i style='color:gray;'>  - Show full network -</i>"),
+                                input_list_genes$GENE_LABELS_HTML  # ← si ya tienes etiquetas HTML aquí
+                              ),
+                              subtext = c(
+                                "",  # No subtexto para el botón de limpiar
+                                input_list_genes$SUBTEXT
+                              ),
+                              style = c(
+                                "color:gray;",  # Opción de limpiar en gris
+                                input_list_genes_style
+                              )
+                            )
+                          )
+                          
+                          
+                   )
+                 # gene selection
+                 )
+               ),
                wellPanel(
                  # uiOutput("network_metrics"),
                  uiOutput("network_threshold"),
@@ -4492,33 +4811,47 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
          # # ")
          #       )
          #     ),
-         box(
-           title = HTML("<strong>Network Explanation</strong>"),
-           width = NULL,
-           solidHeader = TRUE,
-           collapsible = TRUE,
-           collapsed = TRUE,  # Starts collapsed
-           status = "warning",
-           
-           # Explanation Content
-           HTML("
-                          <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
-                            <p>
-                              <strong>How is the network built?</strong><br>
-                              This network is constructed using the <strong>Jaccard index</strong> to measure 
-                              the similarity among different gene phenotypes. While genes may carry various 
-                              annotations, this analysis focuses strictly on phenotypic abnormalities classified under 
-                              <em>HP:0000118 (Phenotypic abnormality)</em> and all of its descendant terms.
-                            </p>
-                            <p>
-                              <strong>Why focus on phenotypic annotations?</strong><br>
-                              By filtering for phenotype-related annotations, we ensure that the network highlights 
-                              meaningful similarities based on shared clinical or biological traits. This provides 
-                              clearer insights into how genes may be functionally or clinically related.
-                            </p>
-                          </div>
-                        ")
-         ,)
+         fluidRow(
+           align = "center",
+           column(12,
+                  actionBttn(
+                    inputId = "network_explanation",
+                    label = "Network Explanation",
+                    style = "unite",
+                    color = "primary"
+                  )
+                  
+                  )
+         )
+         
+         
+         # box(
+         #   title = HTML("<strong>Network Explanation</strong>"),
+         #   width = NULL,
+         #   solidHeader = TRUE,
+         #   collapsible = TRUE,
+         #   collapsed = TRUE,  # Starts collapsed
+         #   status = "warning",
+         #   
+         #   # Explanation Content
+         #   HTML("
+         #                  <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
+         #                    <p>
+         #                      <strong>How is the network built?</strong><br>
+         #                      This network is constructed using the <strong>Jaccard index</strong> to measure 
+         #                      the similarity among different gene phenotypes. While genes may carry various 
+         #                      annotations, this analysis focuses strictly on phenotypic abnormalities classified under 
+         #                      <em>HP:0000118 (Phenotypic abnormality)</em> and all of its descendant terms.
+         #                    </p>
+         #                    <p>
+         #                      <strong>Why focus on phenotypic annotations?</strong><br>
+         #                      By filtering for phenotype-related annotations, we ensure that the network highlights 
+         #                      meaningful similarities based on shared clinical or biological traits. This provides 
+         #                      clearer insights into how genes may be functionally or clinically related.
+         #                    </p>
+         #                  </div>
+         #                ")
+         # ,)
          
 
              
@@ -4532,6 +4865,21 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
              
              
              
+             
+      ),
+      column(9,
+             
+             
+             box(title = NULL,
+                 width = NULL,
+                 solidHeader = FALSE,
+                 collapsible = FALSE,
+                 uiOutput("network_ui_ouput")
+                 
+                 # visNetworkOutput("network", width = "100%", height = "1200px")  # Ajustar el tamaño
+                 
+                 
+             )
              
       )
     ),
@@ -4548,6 +4896,37 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
  
   })
   
+  # network explanation
+  observeEvent(input$network_explanation,{
+    
+    shinyalert::shinyalert(
+      size = "m",
+      closeOnClickOutside = T,
+      
+      title = "Network information",
+      text =       HTML("
+                          <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
+                            <p>
+                              <strong>How is the network built?</strong><br>
+                              This network is constructed using the <strong>Jaccard index</strong> to measure 
+                              the similarity among different gene phenotypes. While genes may carry various 
+                              annotations, this analysis focuses strictly on phenotypic abnormalities classified under 
+                              <em>HP:0000118 (Phenotypic abnormality)</em> and all of its descendant terms.
+                            </p>
+                            <br>
+                            <p>
+                              <strong>Why focus on phenotypic annotations?</strong><br>
+                              By filtering for phenotype-related annotations, we ensure that the network highlights 
+                              meaningful similarities based on shared clinical or biological traits. This provides 
+                              clearer insights into how genes may be functionally or clinically related.
+                            </p>
+                          </div>
+                        "),
+      html = T,
+      type = "info"
+    )
+    
+  })
   
   observe({
     
@@ -4628,7 +5007,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         column(12,
                div(style = "text-align: center;",
                    tags$img(src = "icons/network_placeholder.svg", width = "180px", style = "opacity: 0.7;"),
-                   h1("Network Not Displayed", style = "color: #e74c3c; font-size: 2.5em;"),
+                   h1("Network Not Displayed", style = "color: #993232; font-size: 2.5em;"),
                    h3("Click on 'Display Network' to generate the graph.", style = "color: #555;")
                )
         )
@@ -4916,10 +5295,16 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     observeEvent(input$display_network,
                   ignoreNULL = TRUE,{
+                    
+                    
+              
+                    
       print("Display network") 
                     
-                    
+      selected_gene <- input$selected_gene_network     
       
+      
+     
       # metric_width <- input$metric_width
       # metric_color <- input$metric_color
 
@@ -4965,6 +5350,100 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # Filtrar los edges basado en el jaccard_index del slider
       filtered_edges <- network_data_to_plot
       # Crear nodos y aristas filtrados
+      network_data_filtered <-  network_data_to_plot
+      
+      cat("\033[32m\n\nnetwork_data_filtered-selected_gene------>\033[0m\n")
+      print(selected_gene)
+      # filtrar por gen
+      if (!is.null(selected_gene) && selected_gene %in% c(network_data_filtered$Columna, network_data_filtered$Fila)) {
+
+        # Vecinos directos (Primer grado)
+        direct_neighbors <- network_data_filtered %>%
+          filter(Columna == selected_gene | Fila == selected_gene) %>%
+          select(Columna, Fila) %>%
+          unlist() %>%
+          unique()
+
+        # Vecinos de segundo grado
+        second_degree_neighbors <- network_data_filtered %>%
+          filter(Columna %in% direct_neighbors | Fila %in% direct_neighbors) %>%
+          select(Columna, Fila) %>%
+          unlist() %>%
+          unique()
+
+        # Unir vecinos directos e indirectos
+        selected_nodes <- unique(c(selected_gene, direct_neighbors, second_degree_neighbors))
+
+        # Filtrar edges para incluir solo conexiones entre estos nodos
+        filtered_edges <- network_data_filtered %>%
+          filter(Columna %in% selected_nodes & Fila %in% selected_nodes)
+
+      } else {
+        cat("\033[33m\n\nfiltered_edges_NOT_in------>\033[0m\n")
+        print(str(network_data_filtered))
+        # filtered_edges <- network_data_filtered[0,]
+        filtered_edges <- network_data_to_plot
+        
+        if(selected_gene=="full_net"){
+          # showNotification("Full network displayed", type = "message")
+          shinyalert::shinyalert(
+            closeOnClickOutside = T,
+            
+            size = "s",
+            # title = "Full network displayed",
+            text = "Full network displayed",
+            html = T,
+            type = "info"
+          )
+          
+        }else{
+          
+          # boolean_selected_gene <- selected_gene %in% c(network_data_filtered$Columna, network_data_filtered$Fila)
+          selected_gene_phenotypes <- genes_database[[selected_gene]]$phenotypes_id
+          print(str(selected_gene_phenotypes))
+        if(length(selected_gene_phenotypes) == 0 || is.null(selected_gene_phenotypes)){
+          print("hello")
+          shinyalert::shinyalert(
+            closeOnClickOutside = T,
+            
+            size = "s",
+            # title = "Full network displayed",
+            text = "HPO has no phenotypes annotated for this gene. <br><strong>Showing full network.</strong>",
+            html = T,
+            type = "error"
+          )
+          
+        }else{
+          print("not hello")
+          shinyalert::shinyalert(
+            closeOnClickOutside = T,
+            
+            size = "s",
+            # title = "Full network displayed",
+            text = "No nodes to display, showing full network. <br><strong>Try using a different threshold.</strong>",
+            html = T,
+            type = "error"
+          )
+          
+          }
+          
+          # showNotification("No nodes to display", type = "error")
+          # shinyalert::shinyalert(
+          #   size = "s",
+          #   # title = "Full network displayed",
+          #   text = "No nodes to display, showing full network",
+          #   html = T,
+          #   type = "error"
+          # )
+          
+        }
+      }
+      # 
+      
+      
+      
+      
+      
       
       # nodes <- data.frame(
       #   id = unique(c(filtered_edges$Columna, filtered_edges$Fila)),  # Identificadores únicos de nodos
@@ -5041,58 +5520,142 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       cat("\033[35m\n\nnodes------>\033[0m\n")
       print(str(nodes))
       
-      
+      vals$selected_gene <- selected_gene
 
-      
-      output$network <- renderVisNetwork({
+      if (!is.null(selected_gene) && selected_gene %in% c(network_data_filtered$Columna, network_data_filtered$Fila)) {
         
-        
-        # Crear la red interactiva con visNetwork
-        
-        network_to_display <- visNetwork(nodes, edges) %>%
+        output$network <- renderVisNetwork({
           
-          visEdges(smooth = FALSE) %>%
-          visNodes(size = 15, color = list(background = "lightblue", border = "darkblue")) %>%
-          visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
-          visInteraction(
+          
+          # Crear la red interactiva con visNetwork
+          
+          network_to_display <- visNetwork(nodes, edges) %>%
             
-            selectConnectedEdges = FALSE,  # Desactiva la selección automática de aristas
-            tooltipDelay = 100,
-                         hover = TRUE,
-                         dragNodes = TRUE,
-                         navigationButtons = TRUE
-          ) %>%  visLayout(randomSeed = 123) %>%
-          visEvents(
-        #     # Evento al hacer clic en un nodo
-        #     selectNode = "function(nodes) {
-        #   if(nodes.nodes.length > 0){
-        #     Shiny.onInputChange('node_clicked', nodes.nodes[0]);
-        #   }
-        # }",
-            # Evento al hacer clic en una arista
-            selectEdge = "function(edges) {
+            visEdges(smooth = FALSE) %>%
+            visNodes(size = 15, 
+                     # color = list(background = "lightblue", border = "darkblue")
+                     color = list(
+                       background = "lightblue",
+                       border = "darkblue",
+                       highlight = list(
+                         background = "#FFA500",    # Fondo del nodo cuando está seleccionado
+                         border = "#8B5A00"           # Borde del nodo cuando está seleccionado
+                       )
+                     )
+            ) %>%
+            visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
+            visInteraction(
+              
+              selectConnectedEdges = FALSE,  # Desactiva la selección automática de aristas
+              tooltipDelay = 100,
+              hover = TRUE,
+              dragNodes = TRUE,
+              navigationButtons = TRUE
+            ) %>%  visLayout(randomSeed = 123) %>%
+            visEvents(
+              #     # Evento al hacer clic en un nodo
+              #     selectNode = "function(nodes) {
+              #   if(nodes.nodes.length > 0){
+              #     Shiny.onInputChange('node_clicked', nodes.nodes[0]);
+              #   }
+              # }",
+              # Evento al hacer clic en una arista
+              selectEdge = "function(edges) {
           if(edges.edges.length > 0){
             Shiny.onInputChange('edge_clicked', edges.edges[0]);
           }
         }"
-          )
-
-        
-        if(input$network_physics == F){
-          network_to_display <- network_to_display %>% visPhysics(enable = F)
-        }else{
+            )%>% visEvents(
+              
+              startStabilizing = paste0(
+                "function() {
+                   this.selectNodes([", vals$selected_gene, "]);
+                 }")
+              
+              #         # Cuando la red ha terminado de "arrancar"
+              #         startStabilizing = "function() {
+              #   // 'this' se refiere a la instancia de la red
+              #   // seleccionamos el nodo 6570
+              #   this.selectNodes([6597]);
+              # }"
+              
+            )
+          
+          
+          # network_physics <- input$network_physics
+          network_physics <- T
+          if(network_physics == F){
+            network_to_display <- network_to_display %>% visPhysics(enable = F)
+          }else{
             network_to_display <- network_to_display %>%  visPhysics(solver = "repulsion",  # 🔹 Usa un modelo de repulsión en vez de fuerza
-                       stabilization = list(enabled = TRUE, 
-                                            iterations = 500
-                                            ),  # Más estabilidad
-                       repulsion = list(nodeDistance = 200, centralGravity = 0.5),  # Ajusta fuerzas
-                       maxVelocity = 5,  # 🔹 Reduce la velocidad del movimiento
-                       timestep = 0.1  # 🔹 Hace la animación más suave
+                                                                     stabilization = list(enabled = TRUE, 
+                                                                                          iterations = 500
+                                                                     ),  # Más estabilidad
+                                                                     repulsion = list(nodeDistance = 200, centralGravity = 0.5),  # Ajusta fuerzas
+                                                                     maxVelocity = 5,  # 🔹 Reduce la velocidad del movimiento
+                                                                     timestep = 0.1  # 🔹 Hace la animación más suave
             ) 
-        }
+          }
+          
+          
+        })
         
         
-      })
+      } else {
+        output$network <- renderVisNetwork({
+          
+          
+          # Crear la red interactiva con visNetwork
+          
+          network_to_display <- visNetwork(nodes, edges) %>%
+            
+            visEdges(smooth = FALSE) %>%
+            visNodes(size = 15, color = list(background = "lightblue", border = "darkblue")) %>%
+            visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
+            visInteraction(
+              
+              selectConnectedEdges = FALSE,  # Desactiva la selección automática de aristas
+              tooltipDelay = 100,
+              hover = TRUE,
+              dragNodes = TRUE,
+              navigationButtons = TRUE
+            ) %>%  visLayout(randomSeed = 123) %>%
+            visEvents(
+              #     # Evento al hacer clic en un nodo
+              #     selectNode = "function(nodes) {
+              #   if(nodes.nodes.length > 0){
+              #     Shiny.onInputChange('node_clicked', nodes.nodes[0]);
+              #   }
+              # }",
+              # Evento al hacer clic en una arista
+              selectEdge = "function(edges) {
+          if(edges.edges.length > 0){
+            Shiny.onInputChange('edge_clicked', edges.edges[0]);
+          }
+        }"
+            )
+          
+          
+          if(input$network_physics == F){
+            network_to_display <- network_to_display %>% visPhysics(enable = F)
+          }else{
+            network_to_display <- network_to_display %>%  visPhysics(solver = "repulsion",  # 🔹 Usa un modelo de repulsión en vez de fuerza
+                                                                     stabilization = list(enabled = TRUE, 
+                                                                                          iterations = 500
+                                                                     ),  # Más estabilidad
+                                                                     repulsion = list(nodeDistance = 200, centralGravity = 0.5),  # Ajusta fuerzas
+                                                                     maxVelocity = 5,  # 🔹 Reduce la velocidad del movimiento
+                                                                     timestep = 0.1  # 🔹 Hace la animación más suave
+            ) 
+          }
+          
+          
+        })
+        
+      }
+      
+      
+      
       
       # Variable reactiva para almacenar la arista clicada
       clickedEdge <- reactiveVal(NULL)
@@ -5258,7 +5821,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         }
         
         
-        hierarchy_proportions_funciont <- plot_hierarchy_bar
+        hierarchy_proportions_function <- plot_hierarchy_bar
         
         table_gen1_only <- data.frame(
           hpo_id = phenotypes_gen1_only,
@@ -5276,15 +5839,15 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         ## plots parent children proportion
         output$plot_gen1_only <- renderPlot({
-          hierarchy_proportions_funciont(table_gen1_only)
+          hierarchy_proportions_function(table_gen1_only)
         })
         
         output$plot_intersection <- renderPlot({
-          hierarchy_proportions_funciont(table_intersection)
+          hierarchy_proportions_function(table_intersection)
         })
         
         output$plot_gen2_only <- renderPlot({
-          hierarchy_proportions_funciont(table_gen2_only)
+          hierarchy_proportions_function(table_gen2_only)
         })
         
         
@@ -5401,23 +5964,24 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                 collapsed = TRUE,  # Starts collapsed
                 status = "warning",
                 fluidRow(
+                  align = "center",
                   column(
                     width = 4,
                     h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
                     # plotOutput("plot_gen1_only")
                     # ui.R o dentro de tu fluidPage()
-                    plotOutput("plot_gen1_only", width = "400px", height = "500px")
+                    plotOutput("plot_gen1_only", width = "200px", height = "200px")
                     
                   ),
                   column(
                     width = 4,
                     h5("Intersection of Phenotypes"),
-                    plotOutput("plot_intersection", width = "400px", height = "500px")
+                    plotOutput("plot_intersection", width = "200px", height = "200px")
                   ),
                   column(
                     width = 4,
                     h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-                    plotOutput("plot_gen2_only", width = "400px", height = "500px")
+                    plotOutput("plot_gen2_only", width = "200px", height = "200px")
                   )
                 )
                 
@@ -5584,6 +6148,364 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   observeEvent(input$close_modal, {
     removeModal()
   })
+  
+  
+  
+  ## CROND-GPT tab  --------------------------------------------------------
+  
+  
+  output$gpt_info <- renderUI({
+      tagList(
+        fluidRow(
+          column(
+            width = 12,
+            
+          tagList(
+            br(),br(), br(),br(),
+            
+            
+            tags$div(
+              style = "background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 15px; padding: 20px; width: 100%; max-width: 650px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: auto;",
+              
+              tags$head(
+                tags$style(HTML("
+      .button-78 {
+        align-items: center;
+        appearance: none;
+        background-clip: padding-box;
+        background-color: initial;
+        background-image: none;
+        border-style: none;
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        flex-direction: row;
+        flex-shrink: 0;
+        font-family: Eina01, sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        justify-content: center;
+        line-height: 24px;
+        margin: 0;
+        min-height: 64px;
+        outline: none;
+        overflow: visible;
+        padding: 19px 26px;
+        pointer-events: auto;
+        position: relative;
+        text-align: center;
+        text-decoration: none;
+        text-transform: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        vertical-align: middle;
+        width: auto;
+        word-break: keep-all;
+        z-index: 0;
+      }
+
+      @media (min-width: 768px) {
+        .button-78 {
+          padding: 19px 32px;
+        }
+      }
+
+      .button-78:before,
+      .button-78:after {
+        border-radius: 80px;
+      }
+
+      .button-78:before {
+        background-image: linear-gradient(92.83deg, #f39c12 0%, #e67e22 100%);
+        content: '';
+        display: block;
+        height: 100%;
+        left: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: -2;
+      }
+
+      .button-78:after {
+        background-color: initial;
+        background-image: linear-gradient(#8a6111 0, #3a3a3a 100%);
+        bottom: 4px;
+        content: '';
+        display: block;
+        left: 4px;
+        overflow: hidden;
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        transition: all 100ms ease-out;
+        z-index: -1;
+      }
+
+      .button-78:hover:not(:disabled):before {
+        background: linear-gradient(92.83deg, #f5a623 0%, #e67e22 100%);
+      }
+
+      .button-78:hover:not(:disabled):after {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: 0;
+        transition-timing-function: ease-in;
+        opacity: 0;
+      }
+
+      .button-78:active:not(:disabled) {
+        color: #ccc;
+      }
+
+      .button-78:active:not(:disabled):before {
+        background-image: linear-gradient(0deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), linear-gradient(92.83deg, #f39c12 0, #e67e22 100%);
+      }
+
+      .button-78:active:not(:disabled):after {
+        background-image: linear-gradient(#8a6111 0, #3a3a3a 100%);
+        bottom: 4px;
+        left: 4px;
+        right: 4px;
+        top: 4px;
+      }
+
+      .button-78:disabled {
+        cursor: default;
+        opacity: .24;
+      }
+    "))
+              ),
+              
+              tags$h3("🧠 CROND GPT Assistant", style = "margin-top: 0; color: #333; text-align: center;"),
+              
+              tags$p(
+                "This assistant leverages GPT to support the interpretation of genomic data related to neurodevelopmental disorders (NDDs). 
+     It can help you generate gene summaries, interpret pathogenic variants, suggest relevant phenotypes, and provide insights 
+     based on chromatin context and transcriptomic data.",
+                style = "font-size: 16px; color: #555; text-align: justify; line-height: 1.6;"
+              ),
+              
+              tags$div(
+                style = "text-align: center; margin-top: 25px;",
+                tags$a(
+                  href = "https://chatgpt.com/g/g-67ebce3e51bc81919f7d5488ce53ed9a-crond-gpt",
+                  class = "button-78",
+                  target = "_blank",
+                  "Launch CROND GPT 🚀"
+                )
+              )
+            )
+            
+            
+    #'         tags$div(
+    #'           # Contenedor de la caja
+    #'           style = "background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 15px; padding: 20px; width: 100%; max-width: 650px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: auto;",
+    #'           
+    #'           tags$head(
+    #'             # CSS para el botón-78
+    #'             tags$style(HTML("
+    #'   .button-78 {
+    #'     align-items: center;
+    #'     appearance: none;
+    #'     background-clip: padding-box;
+    #'     background-color: initial;
+    #'     background-image: none;
+    #'     border-style: none;
+    #'     box-sizing: border-box;
+    #'     color: #fff;
+    #'     cursor: pointer;
+    #'     display: inline-block;
+    #'     flex-direction: row;
+    #'     flex-shrink: 0;
+    #'     font-family: Eina01,sans-serif;
+    #'     font-size: 16px;
+    #'     font-weight: 800;
+    #'     justify-content: center;
+    #'     line-height: 24px;
+    #'     margin: 0;
+    #'     min-height: 64px;
+    #'     outline: none;
+    #'     overflow: visible;
+    #'     padding: 19px 26px;
+    #'     pointer-events: auto;
+    #'     position: relative;
+    #'     text-align: center;
+    #'     text-decoration: none;
+    #'     text-transform: none;
+    #'     user-select: none;
+    #'     -webkit-user-select: none;
+    #'     touch-action: manipulation;
+    #'     vertical-align: middle;
+    #'     width: auto;
+    #'     word-break: keep-all;
+    #'     z-index: 0;
+    #'   }
+    #' 
+    #'   @media (min-width: 768px) {
+    #'     .button-78 {
+    #'       padding: 19px 32px;
+    #'     }
+    #'   }
+    #' 
+    #'   .button-78:before,
+    #'   .button-78:after {
+    #'     border-radius: 80px;
+    #'   }
+    #' 
+    #'   .button-78:before {
+    #'     background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+    #'     content: '';
+    #'     display: block;
+    #'     height: 100%;
+    #'     left: 0;
+    #'     overflow: hidden;
+    #'     position: absolute;
+    #'     top: 0;
+    #'     width: 100%;
+    #'     z-index: -2;
+    #'   }
+    #' 
+    #'   .button-78:after {
+    #'     background-color: initial;
+    #'     background-image: linear-gradient(#541a0f 0, #0c0d0d 100%);
+    #'     bottom: 4px;
+    #'     content: '';
+    #'     display: block;
+    #'     left: 4px;
+    #'     overflow: hidden;
+    #'     position: absolute;
+    #'     right: 4px;
+    #'     top: 4px;
+    #'     transition: all 100ms ease-out;
+    #'     z-index: -1;
+    #'   }
+    #' 
+    #'   .button-78:hover:not(:disabled):before {
+    #'     background: linear-gradient(92.83deg, rgb(255, 116, 38) 0%, rgb(249, 58, 19) 100%);
+    #'   }
+    #' 
+    #'   .button-78:hover:not(:disabled):after {
+    #'     bottom: 0;
+    #'     left: 0;
+    #'     right: 0;
+    #'     top: 0;
+    #'     transition-timing-function: ease-in;
+    #'     opacity: 0;
+    #'   }
+    #' 
+    #'   .button-78:active:not(:disabled) {
+    #'     color: #ccc;
+    #'   }
+    #' 
+    #'   .button-78:active:not(:disabled):before {
+    #'     background-image: linear-gradient(0deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+    #'   }
+    #' 
+    #'   .button-78:active:not(:disabled):after {
+    #'     background-image: linear-gradient(#541a0f 0, #0c0d0d 100%);
+    #'     bottom: 4px;
+    #'     left: 4px;
+    #'     right: 4px;
+    #'     top: 4px;
+    #'   }
+    #' 
+    #'   .button-78:disabled {
+    #'     cursor: default;
+    #'     opacity: .24;
+    #'   }
+    #' "))
+    #'           ),
+    #'           
+    #'           tags$h3("🧠 CROND GPT Assistant", style = "margin-top: 0; color: #333; text-align: center;"),
+    #'           
+    #'           tags$p(
+    #'             "This assistant leverages GPT to support the interpretation of genomic data related to neurodevelopmental disorders (NDDs). 
+    #'  It can help you generate gene summaries, interpret pathogenic variants, suggest relevant phenotypes, and provide insights 
+    #'  based on chromatin context and transcriptomic data.",
+    #'             style = "font-size: 16px; color: #555; text-align: justify; line-height: 1.6;"
+    #'           ),
+    #'           
+    #'           tags$div(
+    #'             style = "text-align: center; margin-top: 25px;",
+    #'             tags$a(
+    #'               href = "https://chatgpt.com/g/g-67ebce3e51bc81919f7d5488ce53ed9a-crond-gpt",
+    #'               class = "button-78",
+    #'               target = "_blank",
+    #'               "Launch CROND GPT 🚀"
+    #'             )
+    #'           )
+    #'         )
+            
+      #       div(
+      #         style = "background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 15px; padding: 20px; width: 100%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: auto;",
+      #         
+      #         tags$h3("🧠 CROND GPT Assistant", style = "margin-top: 0; color: #333; text-align: center;"),
+      #         
+      #         tags$p("This assistant leverages GPT to support the interpretation of genomic data related to neurodevelopmental disorders (NDDs). 
+      #    It can help you generate gene summaries, interpret pathogenic variants, suggest relevant phenotypes, and provide insights based on chromatin context and transcriptomic data.",
+      #                style = "font-size: 16px; color: #555; text-align: center;"),
+      #         
+      #         div(
+      #           style = "text-align: center; margin-top: 20px;",
+      #           tags$a(
+      #             href = "https://chatgpt.com/g/g-67ebce3e51bc81919f7d5488ce53ed9a-crond-gpt",
+      #             target = "_blank",
+      #             style = "
+      #   display: inline-block;
+      #   padding: 12px 24px;
+      #   background-color: #4CAF50;
+      #   color: white;
+      #   text-decoration: none;
+      #   border-radius: 8px;
+      #   font-weight: bold;
+      #   font-size: 16px;
+      #   transition: background-color 0.3s;
+      # ",
+      #             onmouseover = "this.style.backgroundColor='#45a049'",
+      #             onmouseout  = "this.style.backgroundColor='#4CAF50'",
+      #             "Launch CROND GPT 🚀"
+      #           )
+      #         )
+      #       )
+            
+          )
+              # tagList(
+              #   div(
+              #     style = "background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 15px; padding: 20px; width: 100%; max-width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: auto;",
+              #     
+              #     tags$h3("💬 My GPT Assistant", style = "margin-top: 0; color: #333;"),
+              #     
+              #     tags$p("This tool integrates an AI assistant based on the GPT model to help you generate text, answer questions, and assist with various tasks.",
+              #            style = "font-size: 16px; color: #555;"),
+              #     
+              #     tags$a(
+              #       href = "https://chatgpt.com/g/g-67ebce3e51bc81919f7d5488ce53ed9a-crond-gpt",
+              #       target = "_blank",
+              #       style = "display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; transition: background-color 0.3s;",
+              #       onmouseover = "this.style.backgroundColor='#45a049'",
+              #       onmouseout  = "this.style.backgroundColor='#4CAF50'",
+              #       "Go to ChatGPT 🚀"
+              #     )
+              #   )
+              #   
+              # )
+              
+          )
+        )
+      )
+    
+    
+    })
+  
+  
+  
+  
+  # ------------------------------------------------------------------
   cat("\033[36m\n\nEND of SERVER------>\033[0m\n")
   
 }

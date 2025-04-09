@@ -42,6 +42,24 @@ get_genes_by_diseases <- function(genes_database, disease_ids) {
 }
 
 
+# Función para obtener las enfermedades asociadas a cada gen
+get_diseases_by_genes <- function(genes_database, gene_ids) {
+  result <- lapply(gene_ids, function(gene_id) {
+    if (gene_id %in% names(genes_database)) {
+      gene_info <- genes_database[[gene_id]]
+      if (!is.null(gene_info$diseases_id)) {
+        return(gene_info$diseases_id)
+      }
+    }
+    return(NA)
+  })
+  
+  names(result) <- gene_ids
+  return(result)
+}
+
+
+
 ### COMPARE
 # 
 
@@ -132,8 +150,8 @@ plot_comparison <- function(data_list, term_to_compare = NULL) {
   
   
   # cat en amarillo de la estructura de la tabla
-  cat("\033[33m","Estructura de la tabla","\033[0m\n")
-  print(str(data_df))
+  # cat("\033[33m","Estructura de la tabla","\033[0m\n")
+  # print(str(data_df))
   
   if (data_type == "categorical") {
     print("CATEGORICAL")
