@@ -608,6 +608,7 @@ ui <- ui_dash
 # SERVER
 server <- function(input, output, session) {
 
+  output <<- output
   # Ejemplo de simular carga al inicio
   Sys.sleep(3)
   # waiter_hide()
@@ -4082,6 +4083,131 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   ### COMPARE TAB ---------------------------------------------------------------
   output$compare_info <- renderUI({
+    box(title = NULL,
+        width = 12,
+        solidHeader = FALSE,
+        collapsible = FALSE,
+        
+        
+        
+        # Título principal estilizado
+    
+        fluidRow(
+          # Title
+          column(
+            width = 12, align = "center",
+            tags$h2(
+              "🧬 Compare Tool",
+              style = "font-weight: bold; margin-bottom: 30px;"
+            )
+          ),
+          # Custom radioGroupButtons
+          column(
+            width = 6, offset = 3,
+            tags$div(
+              class = "custom-radio",
+              radioGroupButtons(
+                inputId  = "compare_type",
+                label    = NULL,
+                choices  = c( "Genes" = "genes","Diseases" = "diseases"),
+                selected = "genes",
+                justified = TRUE,
+                checkIcon = list(
+                  yes = tags$i(class = "fa fa-check-circle"),
+                  no  = tags$i(class = "fa fa-circle-o")
+                )
+              )
+            )
+          ),
+          # Custom CSS
+          tags$style(HTML("
+      /* container spacing */
+      .custom-radio { margin-top: 20px; }
+      /* unselected buttons */
+      .custom-radio .btn { 
+        border: 2px solid #FFA500; 
+        background-color: #FFF; 
+        color: #FFA500; 
+        border-radius: 8px; 
+        font-size: 16px;
+        padding: 10px 20px;
+        margin-right: 5px;
+        box-shadow: none;
+        font-size: 1.4em !important;
+        padding: 12px 24px !important;
+      }
+      /* hovered or focused */
+      .custom-radio .btn:hover, 
+      .custom-radio .btn:focus {
+        background-color: #E9F5FF;
+      }
+      /* selected button */
+      .custom-radio .btn.active {
+        background-color: #FFA500;
+        color: #FFF;
+      }
+      /* icon spacing */
+      .custom-radio .btn .fa {
+        margin-right: 8px;
+      }
+    "))
+        ),
+        
+        # Selectores de enfermedades y botón
+
+        # Botón centrado
+
+        br(),
+        
+        fluidRow(
+          box(#title = "Comparison results",
+            title = tags$span("🧪 Comparison ", style = "font-weight: bold; font-size: 18px;"),
+            width = 12,
+            solidHeader = FALSE,
+            collapsible = FALSE,
+            fluidRow(
+              align = "center",
+
+              
+              uiOutput("compare_ui")
+              
+            )
+          )
+        )
+        
+    )
+    
+    # in server.R
+
+    
+    
+
+  })
+  
+  observe({
+    
+  
+    compare_type <- input$compare_type
+    
+    if(is.null(compare_type)){compare_type <- "genes"}
+    if(compare_type == "diseases"){
+      compare_ui <- tagList(
+        uiOutput("compare_diseases"),
+      )
+    }else{
+      compare_ui <- tagList(
+        uiOutput("compare_genes"),
+      )
+    }
+  
+    output$compare_ui <- renderUI({
+      compare_ui
+    })
+    
+    })
+  
+  
+  output$compare_diseases <- renderUI({
     
     fluidRow(
     # Box for disease selection
@@ -4096,7 +4222,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         fluidRow(
           column(12, align = "center",
                  tags$h2(
-                   "🧬 Compare Two Diseases",
+                   "🩺 Compare Two Diseases",
                    style = "font-weight: bold; margin-bottom: 30px;"
                  )
           )
@@ -4105,22 +4231,6 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         # Selectores de enfermedades y botón
         fluidRow(
           column(5, offset = 1,
-                 # pickerInput(
-                 #   inputId = "disease_1_selection",
-                 #   label = tags$span("Gene 1", style = "font-weight: bold; font-size: 16px;"),
-                 #   choices = input_list_genes_CHOICES,
-                 #   options = list(
-                 #     size = 10,
-                 #     `dropdown-auto-width` = TRUE,
-                 #     `actions-box` = TRUE,
-                 #     `live-search` = TRUE
-                 #   ),
-                 #   multiple = FALSE,
-                 #   choicesOpt = list(
-                 #     subtext = input_list_genes$SUBTEXT,
-                 #     style = input_list_genes_style
-                 #   )
-                 # )
                  pickerInput(
                    inputId = "disease_1_selection",
                    label = tags$span("Disease 1", style = "font-weight: bold; font-size: 16px;"),
@@ -4140,22 +4250,6 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           ),
           
           column(5,
-                 # pickerInput(
-                 #   inputId = "disease_2_selection",
-                 #   label = tags$span("Gene 2", style = "font-weight: bold; font-size: 16px;"),
-                 #   choices = input_list_genes_CHOICES,
-                 #   options = list(
-                 #     size = 10,
-                 #     `dropdown-auto-width` = TRUE,
-                 #     `actions-box` = TRUE,
-                 #     `live-search` = TRUE
-                 #   ),
-                 #   multiple = FALSE,
-                 #   choicesOpt = list(
-                 #     subtext = input_list_genes$SUBTEXT,
-                 #     style = input_list_genes_style
-                 #   )
-                 # )
                  
                  pickerInput(
                    inputId = "disease_2_selection",
@@ -4180,7 +4274,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         fluidRow(
           column(12, align = "center",
                  actionBttn(
-                   inputId = "perform_comparison",
+                   inputId = "perform_comparison_diseases",
                    label = "🔍 Perform Comparison",
                    style = "gradient", 
                    color = "success",
@@ -4191,70 +4285,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         br(),
         
-        
-        
-        # 
-        # 
-        # fluidRow(align = "center", h3("Select 2 diseases to compare.")),
-        # 
-        # fluidRow(
-        #   column(5,
-        #          
-        #          pickerInput(
-        #            inputId = "disease_1_selection",
-        #            label = "Disease 1", 
-        #            choices = input_list_diseases_CHOICES,
-        #            options = list(
-        #              size = 10,
-        #              `dropdown-auto-width` = TRUE,
-        #              `actions-box` = TRUE,
-        #              `live-search` = TRUE), 
-        #            multiple = F,
-        #            
-        #            choicesOpt = list(
-        #              subtext = input_list_diseases$SUBTEXT,
-        #              style = input_list_diseases_style
-        #              
-        #            )
-        #          ),
-        #          
-        #          # generic_picker_input("disease_1_selection","Disease 1:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
-        #          ),
-        #   column(5,
-        #          
-        #          pickerInput(
-        #            inputId = "disease_2_selection",
-        #            label = "Disease 2", 
-        #            choices = input_list_diseases_CHOICES,
-        #            options = list(
-        #              size = 10,
-        #              `dropdown-auto-width` = TRUE,
-        #              `actions-box` = TRUE,
-        #              `live-search` = TRUE), 
-        #            multiple = F,
-        #            
-        #            choicesOpt = list(
-        #              subtext = input_list_diseases$SUBTEXT,
-        #              style = input_list_diseases_style
-        #              
-        #            )
-        #          ),
-        #          
-        #          # generic_picker_input("disease_2_selection","Disease 2:",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
-        #          ),
-        #   column(2,
-        #          actionBttn(
-        #            inputId = "perform_comparison",
-        #            label = "Perform comparison",
-        #            style = "unite", 
-        #            color = "warning"
-        #          )
-        #          
-        #          )
-        # ),
-        
-        
-        
+      
         
         fluidRow(
           box(#title = "Comparison results",
@@ -4267,7 +4298,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                 uiOutput("comparison_text"),
                 # uiOutput("scroll_container")
                 # plotOutput("plot_comparison_test")
-                uiOutput("new_ui"),
+                uiOutput("diseases_comparision_ui"),
                 # div(
                   # class = "scroll-container",
                   # plotOutput("plot_comparison_test", width = vals$compare_plot_width, height = vals$compare_plot_height) # Ajusta el ancho aquí
@@ -4298,6 +4329,239 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
 
   })
+  
+  # COMPARE GENES
+  output$compare_genes <- renderUI({
+    
+      
+      fluidRow(
+        # Box for disease selection
+        box(title = NULL,
+            width = 12,
+            solidHeader = FALSE,
+            collapsible = FALSE,
+            
+            
+            
+            # Título principal estilizado
+            fluidRow(
+              column(12, align = "center",
+                     tags$h2(
+                       "🧬 Compare Two Genes",
+                       style = "font-weight: bold; margin-bottom: 30px;"
+                     )
+              )
+            ),
+            
+            # Selectores de enfermedades y botón
+            fluidRow(
+              column(5, offset = 1,
+                     pickerInput(
+                       inputId = "gene_1_selection",
+                       label = tags$span("Gene 1", style = "font-weight: bold; font-size: 16px;"),
+                       choices = input_list_genes_CHOICES,
+                       options = list(
+                         size = 10,
+                         `dropdown-auto-width` = TRUE,
+                         `actions-box` = TRUE,
+                         `live-search` = TRUE
+                       ),
+                       multiple = FALSE,
+                       choicesOpt = list(
+                         subtext = input_list_genes$SUBTEXT,
+                         style = input_list_genes_style
+                       )
+                     )
+
+              ),
+              
+              column(5,
+                     
+                     pickerInput(
+                       inputId = "gene_2_selection",
+                       label = tags$span("Gene 2", style = "font-weight: bold; font-size: 16px;"),
+                       choices = input_list_genes_CHOICES,
+                       options = list(
+                         size = 10,
+                         `dropdown-auto-width` = TRUE,
+                         `actions-box` = TRUE,
+                         `live-search` = TRUE
+                       ),
+                       multiple = FALSE,
+                       choicesOpt = list(
+                         subtext = input_list_genes$SUBTEXT,
+                         style = input_list_genes_style
+                       )
+                     )
+              )
+            ),
+            
+            # Botón centrado
+            fluidRow(
+              column(12, align = "center",
+                     actionBttn(
+                       inputId = "perform_comparison_genes",
+                       label = "🔍 Perform Comparison",
+                       style = "gradient", 
+                       color = "success",
+                       size = "lg"
+                     )
+              )
+            ),
+            
+            br(),
+            
+            
+            
+            fluidRow(
+              box(#title = "Comparison results",
+                title = tags$span("🧪 Comparison Results", style = "font-weight: bold; font-size: 18px;"),
+                width = 12,
+                solidHeader = FALSE,
+                collapsible = FALSE,
+                fluidRow(
+                  align = "center",
+                  uiOutput("comparison_text_genes"),
+                  # uiOutput("scroll_container")
+                  # plotOutput("plot_comparison_test")
+                  # uiOutput("genes_comparision_ui"),
+                  # div(
+                  # class = "scroll-container",
+                  # plotOutput("plot_comparison_test", width = vals$compare_plot_width, height = vals$compare_plot_height) # Ajusta el ancho aquí
+                  # uiOutput("dynamic_plots")  # Aquí se renderizarán los gráficos
+                  # )
+                  
+                  # shinycssloaders::withSpinner(
+                  # 
+                  #   div(
+                  #     class = "scroll-container",
+                  #     # plotOutput("plot_comparison_test", width = vals$compare_plot_width, height = vals$compare_plot_height) # Ajusta el ancho aquí
+                  #     uiOutput("dynamic_plots")  # Aquí se renderizarán los gráficos
+                  #   ),
+                  #   type = 6, color = "#f39c12", size = 1
+                  # )
+                  
+                  
+                  
+                )
+              )
+            )
+            
+        )
+        
+      ) # fluidrow end
+      
+      
+      
+   
+  })
+  
+  
+  
+  observe({
+
+    vals$genes_selected <- NULL
+ 
+  })
+  
+  observeEvent(input$perform_comparison_genes,{
+    cat("\033[36m\n\nperform comparison genes------>\033[0m\n")
+    vals$gene_1_selection <- input$gene_1_selection
+    vals$gene_2_selection <- input$gene_2_selection
+    
+    vals$genes_selected <- c(vals$gene_1_selection, vals$gene_2_selection)
+    cat(vals$genes_selected)
+    
+    if(vals$gene_1_selection == vals$gene_2_selection){
+      cat("\033[31m\n\nidentical genes selected------>\033[0m\n")
+      vals$genes_comparison_ui <- tagList(
+        br(), br(),
+        fluidRow(
+          align = "center",
+          column(12,
+                 div(style = "text-align: center;",
+                     tags$img(src = "icons/warning_icon.svg", width = "120px", style = "opacity: 0.8;"),
+                     h1("Identical Genes Selected", style = "color: #993232; font-size: 2.2em;"),
+                     h3("Please choose two different genes for comparison.", style = "color: #555;"),
+                     p("You selected the same gene twice. Try selecting a second gene from the filters above.",
+                       style = "font-size: 1.2em; color: #777;")
+                 )
+          )
+        )
+      )
+    }else{
+      vals$genes_comparison_ui <- genes_comparison_ui_generator(vals$gene_1_selection,vals$gene_2_selection)  
+    }
+    
+    cat("\033[36m\n\nperform comparison genes END------>\033[0m\n")
+    
+  })
+  
+  
+  output$comparison_text_genes  <- renderUI({
+    cat("\033[31m\n\ncomparison text genes------>\033[0m\n")
+    print(vals$genes_selected)
+    
+    if (is.null(vals$genes_selected) || length(vals$genes_selected) < 1) {
+      cat("\033[34m\n\nNo genes selected------>\033[0m\n")
+      
+      return(tagList(
+        br(), br(),
+        fluidRow(
+          align = "center",
+          column(12,
+                 div(style = "text-align: center;",
+                     tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+                     h1("No Genes Selected", style = "color: #993232; font-size: 2.5em;"),
+                     h3("Please select two different genes using the filters above.", style = "color: #555;")
+                 )
+          )
+        ),
+        br(),
+        fluidRow(
+          align = "left",
+          column(12,
+                 div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+                     h3("🧬 Compare Genes Based on Functional Annotations"),
+                     p("This tab allows you to compare two genes based on their functional and phenotypic annotations."),
+                     tags$ul(
+                       tags$li("🔹 Visualize shared and unique functions between two genes."),
+                       tags$li("🔹 Explore enriched pathways and associated phenotypes."),
+                       tags$li("🔹 Evaluate molecular similarities and divergences."),
+                       tags$li("🔹 Gain insights into overlapping roles or distinct biological processes.")
+                     )
+                 )
+          )
+        ),
+        br()
+      ))
+      
+    } else {
+      cat("\033[32m\n\nGenes selected, rendering UI------>\033[0m\n")
+      return(vals$genes_comparison_ui)
+    }
+    
+    # ⚠️ No pongas código después del return, no se ejecutará.
+  })
+  
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # ------------------------------------------------
+  
   
   
   observe({
@@ -4335,7 +4599,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   })
   
   
-  observeEvent(input$perform_comparison,{
+  observeEvent(input$perform_comparison_diseases,{
     # print("comparison list")
     cat("\033[31m\n\ncomparison list------>\033[0m\n")
     diseases_to_compare <- list(vals$disease_1_selection, vals$disease_2_selection)
@@ -4472,7 +4736,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       disease_name <- all_diseases[all_diseases$disease_id == disease, "disease_name"]
       print(disease_name)
-      disease_text <-  paste0("<span style='color:", diseases_color[disease],"'><b>", disease_name, " - ",names(genes_by_disease[disease]),"</b></span> related with <b>",paste0(genes_names,collapse = ", "),"</b>")
+      disease_text <-  paste0("<span style='color:", diseases_color[disease],"'>⬤</span><b>", disease_name, " - ",names(genes_by_disease[disease]),"</b> related with <b>",paste0(genes_names,collapse = ", "),"</b>")
       
       # disease_text <-  paste0("<span style='color:", diseases_color[disease],"'><b>", names(genes_by_disease[disease]),"</b></span> related with <b>",paste0(genes_names,collapse = ", "),"</b>")
       full_disease_text_list <- full_disease_text_list %>% append(disease_text)
@@ -4601,7 +4865,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                    div(style = "text-align: center;",
                        tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
                        h1("No Diseases Selected", style = "color: #993232; font-size: 2.5em;"),
-                       h3("Please select two different diseases using the filters in the left sidebar.", style = "color: #555;")
+                       h3("Please select two different diseases using the filters above.", style = "color: #555;")
                    )
             )
           ),
@@ -4613,7 +4877,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             align = "left",
             column(12,
                    div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
-                       h3("🧬 Compare Diseases Based on Gene Annotations"),
+                       h3("🩺 Compare Diseases Based on Gene Annotations"),
                        p("This tab will allow you to compare two diseases based on the annotations of their associated genes."),
                        tags$ul(
                          tags$li("🔹 Visualize shared and unique gene functions between two conditions."),
@@ -4643,9 +4907,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   #   vals$ui_plots_list
   # })
   
-  output$new_ui <- renderUI({
+  output$diseases_comparision_ui <- renderUI({
     vals$comparison_ui_list
   })
+  
+  
+  
+  
+  
   # output$plot_comparison_test <- renderPlot({
   #   vals$plots_list[["phenotypes_id"]]
   # })
@@ -4703,7 +4972,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             label = tags$span("Genes", style = "font-weight: bold; font-size: 16px;"),
                             choices = c(
                               "<i< - Show full network -</i>" = "full_net",  # Opción vacía, marcada visualmente
-                              input_list_genes_CHOICES
+                              input_list_genes_with_phenotypes_CHOICES
                             ),
                             options = list(
                               size = 10,
@@ -4714,15 +4983,15 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             choicesOpt = list(
                               content = c(
                                 HTML("<i style='color:gray;'>  - Show full network -</i>"),
-                                input_list_genes$GENE_LABELS_HTML  # ← si ya tienes etiquetas HTML aquí
+                                input_list_genes_with_phenotypes$GENE_LABELS_HTML  # ← si ya tienes etiquetas HTML aquí
                               ),
                               subtext = c(
                                 "",  # No subtexto para el botón de limpiar
-                                input_list_genes$SUBTEXT
+                                input_list_genes_with_phenotypes$SUBTEXT
                               ),
                               style = c(
                                 "color:gray;",  # Opción de limpiar en gris
-                                input_list_genes_style
+                                input_list_genes_with_phenotypes_style
                               )
                             )
                           )
@@ -5400,8 +5669,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           
           # boolean_selected_gene <- selected_gene %in% c(network_data_filtered$Columna, network_data_filtered$Fila)
           selected_gene_phenotypes <- genes_database[[selected_gene]]$phenotypes_id
+          cat("\033[33m\n\nselected_gene_phenotypes------>\033[0m\n")
           print(str(selected_gene_phenotypes))
-        if(length(selected_gene_phenotypes) == 0 || is.null(selected_gene_phenotypes)){
+        if(length(selected_gene_phenotypes) == 0 || is.null(selected_gene_phenotypes) || is.na(selected_gene_phenotypes)){
           print("hello")
           shinyalert::shinyalert(
             closeOnClickOutside = T,
@@ -5672,7 +5942,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # 
       #   # De la arista, podemos extraer 'from' y 'to' para saber qué nodos conecta
       #   node_from <- nodes$label[nodes$id == edge_info$from]
-      #   node_to   <- nodes$label[nodes$id == edge_info$to]
+      #   node_to   <- nodes$labe
+      l[nodes$id == edge_info$to]
       # 
       #   node_from_phenotypes <- genes_database[[node_from]]$phenotypes_id
       #   node_to_phenotypes <- genes_database[[node_to]]$phenotypes_id
@@ -5720,6 +5991,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         node_from <- as.character(edge_info$from)# nodes$label[nodes$id == edge_info$from]
         node_to   <- as.character(edge_info$to)# nodes$label[nodes$id == edge_info$to]
         cat("\033[35m\n\nOBSERVE EVENT ------------------------------------->\033[0m\n")
+      
         print(node_from)
         print(node_to)
         

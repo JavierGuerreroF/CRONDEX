@@ -74,6 +74,37 @@ names(input_list_genes_CHOICES) <- all_genes$SYMBOL
 
 input_list_genes_style <- rep("color: black",nrow(input_list_genes))
 
+
+# Use sapply to find genes with no annotated phenotypes
+input_list_genes_network_id <- names(genes_database)[
+  sapply(genes_database, function(gene) {
+    phenos <- gene$phenotypes_id
+    !(is.null(phenos) || length(phenos) == 0 || all(is.na(phenos)))
+  })
+]
+
+# Display the results
+# cat("\033[31m\nGenes with no annotated phenotypes:\033[0m\n")
+# print(str(input_list_genes_network_id))
+
+all_genes_with_phenotypes <- all_genes[all_genes$ENTREZID %in% input_list_genes_network_id,]
+input_list_genes_with_phenotypes <- data.frame(
+  TEXT = all_genes_with_phenotypes$SYMBOL,
+  SUBTEXT = paste0(all_genes_with_phenotypes$DESCRIPTION," (",all_genes_with_phenotypes$ENTREZID,")"),
+  CHOICES = all_genes_with_phenotypes$ENTREZID
+)
+
+
+input_list_genes_with_phenotypes_CHOICES <- as.list(all_genes_with_phenotypes$ENTREZID)
+names(input_list_genes_with_phenotypes_CHOICES) <- all_genes_with_phenotypes$SYMBOL
+
+input_list_genes_with_phenotypes_style <- rep("color: black",nrow(input_list_genes_with_phenotypes))
+
+
+
+
+
+
 input_list_sources <- all_sources
 input_list_sources_CHOICES <- as.list(all_sources)
 
@@ -146,7 +177,7 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                    menuItem(HTML("&nbsp;&nbsp;&nbsp; Main information"), tabName = "main_tab", icon = icon("database", lib = "font-awesome")),
                                    menuItem(HTML("&nbsp;&nbsp;&nbsp; Gene Set Visualizer"), tabName = "plots_tab", icon = icon("bar-chart", lib = "font-awesome")),
                                    menuItem(HTML("&nbsp;&nbsp;&nbsp; Variants"), tabName = "variants_tab", icon = icon("dna", lib = "font-awesome")),
-                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Compare Diseases"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
+                                   menuItem(HTML("&nbsp;&nbsp;&nbsp; Compare"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
                                    menuItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome")),
                                    menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome")),
                                    

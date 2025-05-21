@@ -62,6 +62,796 @@ get_diseases_by_genes <- function(genes_database, gene_ids) {
 
 ### COMPARE
 # 
+# 2 genes comparison
+genes_comparison_ui_generator <- function(gene_1,gene_2){
+  cat("\n\n")
+  cat("\033[35m","Ejecutando la función 'genes_comparison_ui_generator'","\033[0m\n")
+  gene_1_data <- genes_database[[gene_1]]
+  gene_2_data <- genes_database[[gene_2]]
+  
+  gene_1_symbol <- gene_1_data$gene_symbol
+  gene_2_symbol <- gene_2_data$gene_symbol
+  
+  print(gene_1)
+  print(gene_2)
+  
+  
+  ## JACCARD UI
+  
+  
+  phenotypes_boolean_1 <- (
+    is.null(gene_1_data$phenotypes_id) ||
+      length(gene_1_data$phenotypes_id) == 0 ||
+      all(is.na(gene_1_data$phenotypes_id))
+    
+  )
+  phenotypes_boolean_2 <- (
+    is.null(gene_2_data$phenotypes_id) ||
+      length(gene_2_data$phenotypes_id) == 0 ||
+      all(is.na(gene_2_data$phenotypes_id))
+  )
+  
+  print(phenotypes_boolean_1)
+  print(phenotypes_boolean_2)
+  
+  jaccard_ui <- NULL
+  
+  # jaccard_ui <- if(!(phenotypes_boolean_1 & phenotypes_boolean_2)){
+  # 
+  # 
+  # 
+  #     node_from <- gene_1_data$ncbi_gene_id
+  #     node_to   <- gene_2_data$ncbi_gene_id
+  #     print(node_from)
+  #     print(node_to)
+  # 
+  # 
+  #     if(length(node_to)==0 | length(node_from)==0){
+  # 
+  #       # if(node_from == "NULL" | node_to == "NULL"){
+  #       # showModal(modalDialog(
+  #       #   title = "No edge selected",
+  #       #   "Please, select an edge to display its information",
+  #       #   size = "l",
+  #       #   easyClose = TRUE,
+  #       #   footer = NULL
+  #       # ))
+  #     }else{
+  # 
+  # 
+  #       # strin spliot "_" de edge_id
+  #       edge_id_split <- strsplit(selected_edge_id,"_")[[1]]
+  #       gene_1 <- edge_id_split[1]
+  #       gene_2 <- edge_id_split[2]
+  # 
+  #       gene_1_symbol <- genes_database_filtered[[gene_1]]$gene_symbol
+  #       gene_2_symbol <- genes_database_filtered[[gene_2]]$gene_symbol
+  # 
+  # 
+  #       node_from_phenotypes <- genes_database_filtered[[node_from]]$phenotypes_id
+  #       node_to_phenotypes   <- genes_database_filtered[[node_to]]$phenotypes_id
+  # 
+  # 
+  #       # 3. Intersection and union
+  #       intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
+  #       union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
+  # 
+  # 
+  #       # 4. Compute Jaccard
+  #       intersection_size <- length(intersection_phenotypes)
+  #       union_size        <- length(union_phenotypes)
+  #       jaccard_index     <- intersection_size / union_size
+  # 
+  # 
+  # 
+  #       # 5. Create three subsets for table display
+  #       phenotypes_gen1_only <- setdiff(node_from_phenotypes, node_to_phenotypes)
+  #       phenotypes_intersect <- intersection_phenotypes
+  #       phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
+  # 
+  # 
+  #       all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
+  # 
+  #       cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
+  #       print(str(all_phenotypes_df))
+  #       # # Definir la jerarquía con etiquetas 'children' y 'parent'
+  #       all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
+  # 
+  # 
+  # 
+  #       plot_hierarchy_bar <- function(df) {
+  #         # Define custom colors
+  #         custom_colors <- c("children" = "orange", "parent" = "steelblue")
+  # 
+  #         df %>%
+  #           count(hierarchy) %>%
+  #           ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
+  #           geom_bar(stat = "identity") +
+  #           scale_fill_manual(values = custom_colors) +
+  #           labs(
+  #             # title = "Count of 'children' vs 'parent'",
+  #             x = "Hierarchy level",
+  #             y = "Count") +
+  #           theme_minimal() +
+  #           theme(
+  #             axis.title = element_text(size = 16),
+  #             axis.text = element_text(size = 14),
+  #             plot.title = element_text(size = 18, face = "bold"),
+  #             legend.position = "none"
+  #           )
+  #       }
+  # 
+  #       plot_hierarchy_pie <- function(df) {
+  #         # Define custom colors
+  #         custom_colors <- c("children" = "orange", "parent" = "steelblue")
+  # 
+  #         df %>%
+  #           count(hierarchy) %>%
+  #           mutate(prop = n / sum(n),
+  #                  label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
+  #           ggplot(aes(x = "", y = prop, fill = hierarchy)) +
+  #           geom_bar(stat = "identity", width = 1) +
+  #           coord_polar("y") +
+  #           geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
+  #           scale_fill_manual(values = custom_colors) +
+  #           # labs(title = "Proportion of 'children' and 'parent'") +
+  #           theme_void() +
+  #           theme(
+  #             plot.title = element_text(size = 18, face = "bold"),
+  #             legend.position = "none"
+  #           )
+  #       }
+  # 
+  # 
+  #       hierarchy_proportions_function <- plot_hierarchy_bar
+  # 
+  #       table_gen1_only <- data.frame(
+  #         hpo_id = phenotypes_gen1_only,
+  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
+  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
+  #       table_intersection <- data.frame(
+  #         hpo_id = phenotypes_intersect,
+  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
+  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
+  # 
+  #       table_gen2_only <- data.frame(
+  #         hpo_id = phenotypes_gen2_only,
+  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
+  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
+  # 
+  #       ## plots parent children proportion
+  #       output$plot_gen1_only <- renderPlot({
+  #         hierarchy_proportions_function(table_gen1_only)
+  #       })
+  # 
+  #       output$plot_intersection <- renderPlot({
+  #         hierarchy_proportions_function(table_intersection)
+  #       })
+  # 
+  #       output$plot_gen2_only <- renderPlot({
+  #         hierarchy_proportions_function(table_gen2_only)
+  #       })
+  # 
+  # 
+  # 
+  # 
+  #       # 6. Render tables in the server
+  # 
+  #       output$table_gen1_only <- renderDataTable({
+  #         datatable(
+  #           table_gen1_only,
+  #           rownames = F,
+  #           extensions = 'Buttons',
+  #           options = list(
+  #             dom = 'Bfrtip',
+  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+  #             scrollX = TRUE
+  #           )
+  #         )  %>% formatStyle(
+  #           'hierarchy',  # Esta es la columna con los valores de categorización
+  #           target = 'row',
+  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+  #         )
+  # 
+  #       })
+  # 
+  #       output$table_intersection <- renderDataTable({
+  #         datatable(
+  #           table_intersection,
+  #           rownames = F,
+  #           extensions = 'Buttons',
+  #           options = list(
+  #             dom = 'Bfrtip',
+  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+  #             scrollX = TRUE
+  #           )
+  #         ) %>% formatStyle(
+  #           'hierarchy',  # Esta es la columna con los valores de categorización
+  #           target = 'row',
+  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+  #         )
+  # 
+  #       })
+  # 
+  #       output$table_gen2_only <- renderDataTable({
+  #         datatable(
+  #           table_gen2_only,
+  #           rownames = F,
+  #           extensions = 'Buttons',
+  #           options = list(
+  #             dom = 'Bfrtip',
+  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+  #             scrollX = TRUE
+  #           )
+  #         ) %>% formatStyle(
+  #           'hierarchy',  # Esta es la columna con los valores de categorización
+  #           target = 'row',
+  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+  #         )
+  # 
+  #       })
+  # 
+  # 
+  #       # 7. Show a modal that includes:
+  #       #    - Jaccard formula (HTML/LaTeX-style)
+  #       #    - Calculated Jaccard index
+  #       #    - Plot (eulerPlot_edge)
+  #       #    - A fluidRow with three tables
+  # 
+  # 
+  # 
+  #       # WITH MODAL
+  # 
+  #     }
+  # 
+  # 
+  # 
+  #   jaccard_ui <- tagList(
+  #     # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
+  #     # --- Jaccard formula and value ---
+  #     HTML("<h4>Jaccard Index Formula</h4>"),
+  #     # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
+  #     HTML(
+  #       paste0(
+  #         "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
+  #         intersection_size,
+  #         " / ",
+  #         union_size,
+  #         " = ",
+  #         round(jaccard_index, 3),
+  #         "</strong></p>"
+  #       )
+  #     ),
+  #     HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
+  #                 round(jaccard_index, 3), "</p>")),
+  # 
+  #     # --- Plot output ---
+  #     fluidRow(align = "center",
+  #              plotOutput("eulerPlot_edge")
+  #     ),
+  #     # plotOutput("eulerPlot_edge"),
+  #     box(
+  #       title = HTML("Children/parent proportion"),
+  #       width = NULL,
+  #       solidHeader = TRUE,
+  #       collapsible = TRUE,
+  #       collapsed = TRUE,  # Starts collapsed
+  #       status = "warning",
+  #       fluidRow(
+  #         align = "center",
+  #         column(
+  #           width = 4,
+  #           h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+  #           # plotOutput("plot_gen1_only")
+  #           # ui.R o dentro de tu fluidPage()
+  #           plotOutput("plot_gen1_only", width = "200px", height = "200px")
+  # 
+  #         ),
+  #         column(
+  #           width = 4,
+  #           h5("Intersection of Phenotypes"),
+  #           plotOutput("plot_intersection", width = "200px", height = "200px")
+  #         ),
+  #         column(
+  #           width = 4,
+  #           h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+  #           plotOutput("plot_gen2_only", width = "200px", height = "200px")
+  #         )
+  #       )
+  # 
+  #     ),
+  # 
+  #     # --- Three tables side by side ---
+  #     fluidRow(
+  #       column(
+  #         width = 4,
+  #         h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+  #         dataTableOutput("table_gen1_only")
+  #       ),
+  #       column(
+  #         width = 4,
+  #         h5("Intersection of Phenotypes"),
+  #         dataTableOutput("table_intersection")
+  #       ),
+  #       column(
+  #         width = 4,
+  #         h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+  #         # h5(paste("Phenotypes only in", node_to)),
+  #         dataTableOutput("table_gen2_only")
+  #       )
+  #     )
+  #   )
+  # 
+  # 
+  # 
+  # }
+  
+  # jacard ui 
+  # jaccard_ui <- jaccard_comparison_ui_generator(gene_1,gene_2)
+  
+  
+  ## OTHER COMPARISON UI
+  genes_color <- list("#FF7256", "#8EE5EE")
+  
+
+  # phenotypes id
+  gene_1_phenotypes <- gene_1_data$phenotypes_id
+  gene_2_phenotypes <- gene_2_data$phenotypes_id
+  
+  phenotypes_table <- data.frame(
+    Gene = c(rep(gene_1_symbol, length(gene_1_phenotypes)), rep(gene_2_symbol, length(gene_2_phenotypes))),
+    Value = c(gene_1_phenotypes, gene_2_phenotypes)
+  )
+  cat("\033[33m","Estructura de la tabla phenotypes","\033[0m\n")
+  print(str(phenotypes_table))
+  phenotypes_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(phenotypes_table,genes_color)
+  
+  # gene ontology id
+  gene_1_go <- gene_1_data$gene_ontology_id
+  gene_2_go <- gene_2_data$gene_ontology_id
+  
+  gene_ontology_table <- data.frame(
+    Gene = c(rep(gene_1_symbol, length(gene_1_go)), rep(gene_2_symbol, length(gene_2_go))),
+    Value = c(gene_1_go, gene_2_go)
+  )
+  cat("\033[33m","Estructura de la tabla gene ontology","\033[0m\n")
+  print(str(gene_ontology_table))
+  gene_ontology_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(gene_ontology_table,genes_color)
+  
+  
+  ## function for numeric
+  combine_data <- function(gene_name_1, gene_name_2, expr1, expr2) {
+    # Extraer los vectores de valores (excluyendo columnas de metadatos)
+    values1 <- expr1[, !(names(expr1) %in% c("gene_id", "entrez_id", "id"))]
+    values2 <- expr2[, !(names(expr2) %in% c("gene_id", "entrez_id", "id"))]
+    
+    # Crear filas con prefijo "Value." en los nombres de columnas
+    df1 <- data.frame(
+      Gene = as.character(expr1$entrez_id),
+      Value.gene_symbol = gene_name_1,
+      Value.entrez_id = expr1$entrez_id,
+      setNames(values1, paste0("Value.", names(values1))),
+      check.names = FALSE
+    )
+    
+    df2 <- data.frame(
+      Gene = as.character(expr2$entrez_id),
+      Value.gene_symbol = gene_name_2,
+      Value.entrez_id = expr2$entrez_id,
+      setNames(values2, paste0("Value.", names(values2))),
+      check.names = FALSE
+    )
+    
+    # Combinar en una sola tabla
+    result <- rbind(df1, df2)
+    return(result)
+  }
+  
+  
+  # cellular expression
+  gene_1_cellular_expression <- gene_1_data$cellular_expression
+  gene_2_cellular_expression <- gene_2_data$cellular_expression
+  
+  cellular_expression_table <- combine_data(gene_1_symbol, gene_2_symbol, gene_1_cellular_expression, gene_2_cellular_expression)
+  
+  cat("\033[33m","Estructura de la tabla cellular expression","\033[0m\n")
+  print(str(cellular_expression_table))
+  
+  # cellular_expression_comparison_plot_list <- comparison_plot_generator_NUMERICAL_genes(cellular_expression_table,genes_color)
+  # cellular_expression_comparison_ui <- numerical_genes_ui_generator(cellular_expression_comparison_plot_list)
+  # 
+  cellular_expression_comparison_ui <- compare_cellular_expression(cellular_expression_table,genes_color)
+  
+  
+  # brain tissue expression
+  gene_1_brain_expression <- gene_1_data$spatial_expression
+  gene_2_brain_expression <- gene_2_data$spatial_expression
+  
+  brain_expression_table <- combine_data(gene_1_symbol, gene_2_symbol, gene_1_brain_expression, gene_2_brain_expression)
+  
+  cat("\033[33m","Estructura de la tabla brain expression","\033[0m\n")
+  print(str(brain_expression_table))
+# 
+#   brain_expression_comparison_plot_list <- comparison_plot_generator_NUMERICAL_genes(brain_expression_table,genes_color)
+#   brain_expression_comparison_ui <- numerical_genes_ui_generator(brain_expression_comparison_plot_list)
+  
+  brain_expression_comparison_ui <- compare_brain_tissue_expression(brain_expression_table,genes_color)
+  ## union
+  old_comparison_ui <- tagList(
+    fluidRow(
+      column(
+        width = 12,
+        h2("Phenotypes Comparison", style = "text-align: left;"),
+        phenotypes_comparison_ui
+      ),
+      column(
+        width = 12,
+        h2("Gene Ontology Comparison", style = "text-align: left;"),
+        gene_ontology_comparison_ui
+      ),
+      column(
+        width = 12,
+        h2("Cellular Expression Comparison", style = "text-align: left;"),
+        cellular_expression_comparison_ui
+      ),
+      column(
+        width = 12,
+        h2("Brain Tissue Expression Comparison", style = "text-align: left;"),
+        brain_expression_comparison_ui
+      )
+      
+      
+      
+    )
+    
+  )
+  
+  ### GENE comparison UI
+  
+  gene_comparison_ui <- tagList(
+    fluidRow(
+      column(12,
+             h2("Gene Comparison",style = "text-align: left;"),
+             h4(HTML(paste("<span style='color:", genes_color[1],"'>⬤</span><b>", gene_2_symbol, "</b>(ID:", gene_2,")"))),
+             h4(HTML(paste("<span style='color:", genes_color[2],"'>⬤</span><b>", gene_1_symbol, "</b>(ID:", gene_1, ")"))),
+             jaccard_ui,
+             hr(),
+             old_comparison_ui
+       
+             
+      )
+    )
+  )
+  
+  return(gene_comparison_ui)
+}
+
+
+###-------- START JACCARD UI GENERATOR
+
+jaccard_comparison_ui_generator <- function(gene_1,gene_2){
+  cat("\n\n")
+  cat("\033[35m","Ejecutando la función 'jaccard_comparison_ui_generator'","\033[0m\n")
+  gene_1_data <- genes_database[[gene_1]]
+  gene_2_data <- genes_database[[gene_2]]
+  
+  gene_1_symbol <- gene_1_data$gene_symbol
+  gene_2_symbol <- gene_2_data$gene_symbol
+  
+  print(gene_1)
+  print(gene_2)
+  
+  
+  ## JACCARD UI
+  
+  
+  phenotypes_boolean_1 <- (
+    is.null(gene_1_data$phenotypes_id) ||
+      length(gene_1_data$phenotypes_id) == 0 ||
+      all(is.na(gene_1_data$phenotypes_id))
+    
+  )
+  phenotypes_boolean_2 <- (
+    is.null(gene_2_data$phenotypes_id) ||
+      length(gene_2_data$phenotypes_id) == 0 ||
+      all(is.na(gene_2_data$phenotypes_id))
+  )
+  
+  print(phenotypes_boolean_1)
+  print(phenotypes_boolean_2)
+  
+  jaccard_ui <- NULL
+  
+  
+  if(phenotypes_boolean_2 & phenotypes_boolean_1){
+    jaccard_ui <- tagList(
+      h4("No phenotypes associated with the selected genes"))
+  }else{
+    
+    # COMPUTATION
+        if(F){
+        }else{
+          node_from <- as.character(gene_1_data$ncbi_gene_id)
+          node_to   <- as.character(gene_2_data$ncbi_gene_id)
+
+          node_from_phenotypes <- gene_1_data$phenotypes_id
+          node_to_phenotypes   <- gene_2_data$phenotypes_id
+        
+          
+          cat("\033[32m\n\nnode_from_phenotypes------>\033[0m\n")
+          print(str(node_to_phenotypes))
+          print(str(node_from_phenotypes))
+
+          # 3. Intersection and union
+          intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
+          union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
+
+
+          # 4. Compute Jaccard
+          intersection_size <- length(intersection_phenotypes)
+          union_size        <- length(union_phenotypes)
+          jaccard_index     <- intersection_size / union_size
+
+
+
+          # 5. Create three subsets for table display
+          phenotypes_gen1_only <- setdiff(node_from_phenotypes, node_to_phenotypes)
+          phenotypes_intersect <- intersection_phenotypes
+          phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
+          
+          # filtrada por phenotypical abnomarlities
+          phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID
+          genes_database_filtered <-   filter_database(genes_database,phenotypes_id_to_filter,"phenotypes_id")
+          cat("\033[32m\n\ngenes_database_filtered------>\033[0m\n")
+          print(str(genes_database_filtered))
+          
+          all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
+
+          cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
+          print(str(all_phenotypes_df))
+          # # Definir la jerarquía con etiquetas 'children' y 'parent'
+          all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
+
+
+
+          plot_hierarchy_bar <- function(df) {
+            # Define custom colors
+            custom_colors <- c("children" = "orange", "parent" = "steelblue")
+
+            df %>%
+              count(hierarchy) %>%
+              ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
+              geom_bar(stat = "identity") +
+              scale_fill_manual(values = custom_colors) +
+              labs(
+                # title = "Count of 'children' vs 'parent'",
+                x = "Hierarchy level",
+                y = "Count") +
+              theme_minimal() +
+              theme(
+                axis.title = element_text(size = 16),
+                axis.text = element_text(size = 14),
+                plot.title = element_text(size = 18, face = "bold"),
+                legend.position = "none"
+              )
+          }
+
+          plot_hierarchy_pie <- function(df) {
+            # Define custom colors
+            custom_colors <- c("children" = "orange", "parent" = "steelblue")
+
+            df %>%
+              count(hierarchy) %>%
+              mutate(prop = n / sum(n),
+                     label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
+              ggplot(aes(x = "", y = prop, fill = hierarchy)) +
+              geom_bar(stat = "identity", width = 1) +
+              coord_polar("y") +
+              geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
+              scale_fill_manual(values = custom_colors) +
+              # labs(title = "Proportion of 'children' and 'parent'") +
+              theme_void() +
+              theme(
+                plot.title = element_text(size = 18, face = "bold"),
+                legend.position = "none"
+              )
+          }
+
+
+          hierarchy_proportions_function <- plot_hierarchy_bar
+
+          table_gen1_only <- data.frame(
+            hpo_id = phenotypes_gen1_only,
+            hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
+            hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
+          table_intersection <- data.frame(
+            hpo_id = phenotypes_intersect,
+            hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
+            hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
+
+          table_gen2_only <- data.frame(
+            hpo_id = phenotypes_gen2_only,
+            hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
+            hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
+
+          ## plots parent children proportion
+          output$plot_gen1_only <- renderPlot({
+            hierarchy_proportions_function(table_gen1_only)
+          })
+
+          output$plot_intersection <- renderPlot({
+            hierarchy_proportions_function(table_intersection)
+          })
+
+          output$plot_gen2_only <- renderPlot({
+            hierarchy_proportions_function(table_gen2_only)
+          })
+
+
+
+
+          # 6. Render tables in the server
+
+          output$table_gen1_only <- renderDataTable({
+            datatable(
+              table_gen1_only,
+              rownames = F,
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                scrollX = TRUE
+              )
+            )  %>% formatStyle(
+              'hierarchy',  # Esta es la columna con los valores de categorización
+              target = 'row',
+              backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+            )
+
+          })
+
+          output$table_intersection <- renderDataTable({
+            datatable(
+              table_intersection,
+              rownames = F,
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                scrollX = TRUE
+              )
+            ) %>% formatStyle(
+              'hierarchy',  # Esta es la columna con los valores de categorización
+              target = 'row',
+              backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+            )
+
+          })
+
+          output$table_gen2_only <- renderDataTable({
+            datatable(
+              table_gen2_only,
+              rownames = F,
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                scrollX = TRUE
+              )
+            ) %>% formatStyle(
+              'hierarchy',  # Esta es la columna con los valores de categorización
+              target = 'row',
+              backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+            )
+
+          })
+
+
+          # 7. Show a modal that includes:
+          #    - Jaccard formula (HTML/LaTeX-style)
+          #    - Calculated Jaccard index
+          #    - Plot (eulerPlot_edge)
+          #    - A fluidRow with three tables
+
+
+
+          # WITH MODAL
+
+        }
+    
+    
+    
+    
+    # UI 
+    jaccard_ui <- tagList(
+      # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
+      # --- Jaccard formula and value ---
+      HTML("<h4>Jaccard Index Formula</h4>"),
+      # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
+      HTML(
+        paste0(
+          "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
+          intersection_size,
+          " / ",
+          union_size,
+          " = ",
+          round(jaccard_index, 3),
+          "</strong></p>"
+        )
+      ),
+      HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
+                  round(jaccard_index, 3), "</p>")),
+      
+      # --- Plot output ---
+      fluidRow(align = "center",
+               plotOutput("eulerPlot_edge")
+      ),
+      # plotOutput("eulerPlot_edge"),
+      box(
+        title = HTML("Children/parent proportion"),
+        width = NULL,
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        collapsed = TRUE,  # Starts collapsed
+        status = "warning",
+        fluidRow(
+          align = "center",
+          column(
+            width = 4,
+            h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+            # plotOutput("plot_gen1_only")
+            # ui.R o dentro de tu fluidPage()
+            plotOutput("plot_gen1_only", width = "200px", height = "200px")
+            
+          ),
+          column(
+            width = 4,
+            h5("Intersection of Phenotypes"),
+            plotOutput("plot_intersection", width = "200px", height = "200px")
+          ),
+          column(
+            width = 4,
+            h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+            plotOutput("plot_gen2_only", width = "200px", height = "200px")
+          )
+        )
+        
+      ),
+      
+      # --- Three tables side by side ---
+      fluidRow(
+        column(
+          width = 4,
+          h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+          dataTableOutput("table_gen1_only")
+        ),
+        column(
+          width = 4,
+          h5("Intersection of Phenotypes"),
+          dataTableOutput("table_intersection")
+        ),
+        column(
+          width = 4,
+          h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+          # h5(paste("Phenotypes only in", node_to)),
+          dataTableOutput("table_gen2_only")
+        )
+      )
+    )
+  
+    
+  }
+      
+    
+  
+  
+  cat("\033[35m","Finalizando la función 'jaccard_comparison_ui_generator'","\033[0m\n")
+  cat("\n\n")
+}
+
+
+
+## END JACCARD UI GENERATOR -----
 
 get_field_by_disease <- function(disease_list, selected_diseases, field) {
   # Filtrar las enfermedades seleccionadas
@@ -484,6 +1274,8 @@ comparison_ui_generator <- function(data_list, output, diseases_color,term_to_co
     
     if (data_type == "categorical") {
       #
+      cat("\033[33m","Estructura de la tabla","\033[0m\n")
+      print(str(data_df))
       ui_result <- comparison_ui_generator_CATEGORICAL(data_df,diseases_color)
       
       
@@ -500,7 +1292,8 @@ comparison_ui_generator <- function(data_list, output, diseases_color,term_to_co
         )
       
     } else if (data_type == "numerical") {
-   
+      cat("\033[37m","Estructura de la tabla NUMERICAL","\033[0m\n")
+      print(str(data_df))
       plot_result <- comparison_plot_generator_NUMERICAL(data_df, diseases_color)
       compare_plot_height <- plot_result$height
       compare_plot_width <- plot_result$width
@@ -599,27 +1392,13 @@ comparison_ui_generator <- function(data_list, output, diseases_color,term_to_co
   
 }
 
+## CATEGORICAL GENES
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## CATEGORICAL
-
-
-comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
+comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   
   print("CATEGORICAL")  
-  diseases_color_categorical <- diseases_color
+  
+  
   
   transform_to_matrix <- function(df) {
     # Crear una tabla cruzada con Disease + Value como filas y Gene como columnas
@@ -634,9 +1413,740 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
     # Devolver el data frame transformado
     return(result)
   }
+  
+  
+  binary_matrix <- transform_to_matrix(data_df)
+  
+  data_with_intersection <- binary_matrix %>%
+    unite(col = "intersection", -c("entry"), sep = "")
+  data_with_intersection <- data_with_intersection[order(data_with_intersection$intersection,decreasing = T),]
+  data_with_intersection$ones_count <- sapply(data_with_intersection$intersection, function(x) sum(strsplit(x, "")[[1]] == "1"))
+  data_with_intersection <- data_with_intersection[order(data_with_intersection$ones_count,decreasing = T),]
+  # print(str(data_with_intersection))
+  
+  shorted_terms <- data_with_intersection$entry
+  
+  # Ordenar binary_matrix según el vector shorted_terms
+  data_df_result <- binary_matrix[order(factor(binary_matrix$entry, levels = shorted_terms)), ]
+  # print(head(data_df_result))
+  # print(head(data_df_result$entry))
+  # print(grepl("HP", data_df_result$entry))
+  # print(any(grepl("HP", data_df_result$entry)))
+  # # Comprobar si hay valores que contienen "HP" en la columna Value
+  hp_logical <- any(grepl("HP", data_df_result$entry))
+  if(hp_logical){
+    filtered_df <- all_phenotypes %>% filter(hpo_id %in% data_df_result$entry)
+    data_df_result$term <- filtered_df$hpo_name
+  }else{
+    filtered_df <- all_gene_ontology %>% filter(go_id %in% data_df_result$entry)
+    data_df_result$term <- filtered_df$go_term
+  }
+  
+  
+  data_df_result <- data_df_result %>% relocate(term, .before = 1) 
+
+  
+ 
+  sort_by_binary_priority <- function(df, col_A_index, col_B_index) {
+    A <- df[[col_A_index]]
+    B <- df[[col_B_index]]
+    
+    df$priority <- ifelse(A == 1 & B == 1, 1,
+                          ifelse(A == 1 & B == 0, 2,
+                                 ifelse(A == 0 & B == 1, 3, 4)))
+    
+    df_sorted <- df[order(df$priority), ]
+    df_sorted$priority <- NULL
+    return(df_sorted)
+  }
+  
+  # Ver el resultado
+  data_df_result <- sort_by_binary_priority(data_df_result,3,4)
+  data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
+  
+  
+  
+  # 
+  
+  columns_to_color <- c(3,4)
+  
+  
+  
+  DT_table <- renderDT({
+    datatable(data_df_result,
+              options = list(
+                pageLength = 15, 
+                autoWidth = TRUE,
+                scrollX = TRUE ),
+              rownames = FALSE)%>%
+      formatStyle(
+        columns = columns_to_color[1],  # Aplicar color verde a las columnas 3 y 4
+        `text-align` = "center",
+        color = styleEqual(c("",  "⬤"), c('white', genes_color[1]))
+      ) %>%
+      formatStyle(
+        columns = columns_to_color[2],  # Aplicar color verde a las columnas 3 y 4
+        `text-align` = "center",
+        color = styleEqual(c("",  "⬤"), c('white', genes_color[2]))
+        
+      ) 
+    
+  })
+  
+  result_ui <- tagList(
+    fluidRow(
+      column(12,
+             DT_table
+      )
+      
+    )
+  )
+  
+  return(result_ui)
+  
+}
+
+
+
+
+# NUMERICAL GENES
+# comparison_plot_generator_NUMERICAL_genes <- function(data_df, genes_color){
+#   
+#   general_text_size <- 20
+#   data_df$Gene <- data_df$Value.gene_symbol
+#     
+#   df <- data_df
+#   if (any(grepl("astro", colnames(df)))){datatype <- "cellular"}else{datatype <- "spatial"}
+#   cat("\033[33m","datatype:\033[0m\033[32m",datatype,"\033[0m\n")
+#   data_df <- df
+#   
+#   # TISSUE FUNCTIONS
+#   tissue_expression_formating <- function(data_df){
+#     tissue_expression_list <- list()
+#     cat("\033[33m","performing tissue_expression_formating","\033[0m\n")
+#     for(gene in unique(data_df$Value.gene_symbol)){
+#       tissue_expression <- data_df[data_df$Value.gene_symbol == gene,]
+#       # quitar columna Disease
+#       tissue_expression <- tissue_expression[,-1]
+#       # reemplazar Value. de los nombres de las columnas
+#       colnames(tissue_expression) <- gsub("Value\\.","",colnames(tissue_expression))
+#       
+#       tissue_expression_list[[gene]] <- tissue_expression
+#     }
+#     
+#     return(tissue_expression_list)
+#   }
+#   
+#   
+#   tissue_expression_calculator <- function(tissue_expression_list){
+#     tissue_expression_list_to_plot <- list()
+#     metadata <- samples_annot
+#     metadata <- metadata %>% rename(sample_id = RNAseq_sample_name)
+#     
+#     for(gene in names(tissue_expression_list)){
+#       spatial_expression <- tissue_expression_list[[gene]]
+#       
+#       spatial_long <- spatial_expression %>%
+#         pivot_longer(cols = starts_with("S010"), names_to = "sample_id", values_to = "expression")
+#       
+#       merged_data <- spatial_long %>%
+#         inner_join(metadata, by = "sample_id")
+#       
+#       mean_expression_by_ontology <- merged_data %>%
+#         group_by(ontology_structure_id) %>%
+#         summarize(mean_expression = mean(expression, na.rm = TRUE))
+#       mean_expression_by_ontology <- merge(mean_expression_by_ontology,samples_annot[, c("ontology_structure_id", "structure_name")],by = "ontology_structure_id",all.x = TRUE)
+#       mean_expression_by_ontology <- mean_expression_by_ontology[order(mean_expression_by_ontology$mean_expression, decreasing =T ), ]
+#       column_order <- c("ontology_structure_id", "structure_name", "mean_expression")
+#       mean_expression_by_ontology <- mean_expression_by_ontology[, column_order]
+#       tissue_expression_list_to_plot[[gene]] <- mean_expression_by_ontology
+#     }
+#     
+#     return(tissue_expression_list_to_plot)
+#     
+#   }
+#   
+#   # CELLULAR FUNCTIONS
+#   
+#   
+#   cellular_expression_mean_calculator <- function(gene_cellular_expression_df){
+#     
+#     df_long <- gene_cellular_expression_df %>%
+#       pivot_longer(
+#         cols = everything(),  # Convierte todas las columnas a formato largo
+#         names_to = "cell_type",  # Nombre para la nueva columna con los nombres originales de las columnas
+#         values_to = "value"      # Nombre para la nueva columna con los valores de las celdas
+#       )
+#     # df_long <- gene_cellular_expression_df
+#     
+#     summary_df <- df_long %>%
+#       mutate(cell_group = case_when(
+#         str_detect(cell_type, "astrocytes_fetal") ~ "Astrocytes Fetal",
+#         str_detect(cell_type, "astrocytes_mature") ~ "Astrocytes Mature",
+#         str_detect(cell_type, "endothelial") ~ "Endothelial",
+#         str_detect(cell_type, "microglla") ~ "Microglia",
+#         str_detect(cell_type, "neurons") ~ "Neurons",
+#         str_detect(cell_type, "oligodendrocytes") ~ "Oligodendrocytes"
+#       )) %>%
+#       group_by(cell_group) %>%
+#       summarize(mean_value = mean(value, na.rm = TRUE), sd_value = sd(value, na.rm = TRUE))
+#     return(summary_df)
+#   }
+#   
+#   #-------------
+#   
+#   
+#   
+#   if(datatype == "cellular"){
+#     print("CELLULAR")
+#     
+# 
+# 
+#     cellular_expression_df <- data_df
+# 
+#     #eliminar los averege count y sd de oligo
+#     cellular_expression_df$Value.oligodendrocytes_standard_deviation <- NULL
+#     cellular_expression_df$Value.oligodendrocytes_average_count <- NULL
+#     
+#     # remove "Value" de colnames
+#     colnames(cellular_expression_df) <- gsub("Value\\.","",colnames(cellular_expression_df))
+#     cellular_expression_df$gene_id <- cellular_expression_df$entrez_id
+#     
+#   
+#     
+#     all_gene_cellular_expression_df <- data.frame()
+#   
+#     for(gene in unique(cellular_expression_df$Gene)){
+#       gene_cellular_expression_df <- cellular_expression_df[cellular_expression_df$Gene == gene,]
+#       gene_cellular_expression_df <- gene_cellular_expression_df[,-c(1,2,3)]
+#       gene_cellular_expression_df <- cellular_expression_mean_calculator(gene_cellular_expression_df)
+# 
+#       gene_cellular_expression_df$gene_id <- gene
+#       colnames(gene_cellular_expression_df) <- c("Sample", "mean_expression", "sd_value", "Gene")
+#       
+#       all_gene_cellular_expression_df <- rbind(all_gene_cellular_expression_df, gene_cellular_expression_df)
+#       
+#       
+#       
+#     }
+# 
+# 
+#     #
+#     # remove all na samples
+#     all_gene_cellular_expression_df <- all_gene_cellular_expression_df[!is.na(all_gene_cellular_expression_df$Sample),]
+#     df_long <- all_gene_cellular_expression_df
+#     
+# 
+# 
+#     genes_color <- unlist(genes_color)
+#     df <- df_long
+#     numerical_plot <- ggplot(df, aes(x = Sample, y = mean_expression, group = Gene, color = factor(Gene))) +
+#       geom_line() +
+#       geom_point(size = 4) +
+#       scale_color_manual(values = genes_color) +
+#       theme_minimal() +
+#         theme(
+#           text = element_text(size = general_text_size),
+#           axis.text.x = element_text(angle = 45, hjust = 1),
+#           legend.position = "left",
+#           legend.box = "horizontal",
+#           legend.margin = margin(t = 0, r = 0, b = 10, l = 0)
+#         ) +
+#       labs(
+#         x = "Cell Type",
+#         y = "Mean Expression",
+#         color = "Gene"
+#       ) 
+# 
+# 
+# 
+#    
+#     compare_plot_width <- paste0(length(unique(df_long$Sample))*100+150,"px")
+#     compare_plot_height <- "450px"
+#     
+#     term <- "cellular"
+#     
+#     
+#     
+#     
+#     
+#     #cellular
+#     
+#   }else{
+#     #tissue
+#     cat("\033[35m","TISULAR EXPRESION","\033[0m\n")
+#   
+#     tissue_expression_list <- tissue_expression_formating(data_df)
+#   
+#     tissue_expression <- tissue_expression_calculator(tissue_expression_list)
+# 
+#     disease_list <- split(disease_list_to_plot$Value.gene_symbol, disease_list_to_plot$Disease)
+#     
+#     gene_list <- tissue_expression
+#     # Convertir lista a data frame largo
+#     df_long <- bind_rows(gene_list, .id = "Gene")
+# 
+#    
+# 
+#     
+#     
+#     genes_color <- unlist(genes_color)
+#     df <- df_long
+#     numerical_plot <- ggplot(df, aes(x = structure_name, y = mean_expression, group = Gene, color = factor(Gene))) +
+#       geom_line() +
+#       geom_point(size = 4) +
+#       scale_color_manual(values = genes_color) +
+#       theme_minimal() +
+#       theme(
+#         text = element_text(size = general_text_size),
+#         axis.text.x = element_text(angle = 45, hjust = 1),
+#         legend.position = "left",
+#         legend.box = "horizontal",
+#         legend.margin = margin(t = 0, r = 0, b = 10, l = 0)
+#       ) +
+#       labs(
+#         x = "Cell Type",
+#         y = "Mean Expression",
+#         color = "Gene"
+#       ) 
+#     
+#     
+#     
+#     compare_plot_width <- paste0(length(unique(df_long$structure_name))*25+150,"px")
+#     compare_plot_height <- "650px"
+#     
+#     term <- "tisular"
+#     
+#   }
+#     
+#   plot_result <- list(plot = numerical_plot, width = compare_plot_width, height = compare_plot_height,term = term)
+#   cat("\033[33mTerm:\033[0m\033[35m",plot_result$term,"\033[0m\n")
+#   
+#   
+#   
+# 
+# 
+# 
+#   
+#  
+#   
+#   # return(ui_result)
+#   return(plot_result)
+#   
+#   cat("\033[33m","END FUNCTION RETURNING ui_result","\033[0m\n")
+# }
+
+
+# numerical_genes_ui_generator <- function(plot_list_result){
+# cat("\033[33m","numerical_genes_ui_generator","\033[0m\n")
+#   plot_result <- plot_list_result
+#   
+#   print(plot_result$term)
+#   # print(plot_result$plot)
+#   print(plot_result$width)
+#   print(plot_result$height)
+#     
+#   compare_plot_width <- plot_result$width
+#   compare_plot_height <- plot_result$height
+#   
+#   if(plot_result$term == "cellular"){
+#     print("CELLULAR")
+# 
+#     displayed_names <- "Cellular Expression"
+# 
+#     output$cellular_plot_genes <- renderPlot({
+#       plot_result[[1]]
+#     })
+# 
+#     ui_result <- tagList(
+#       fluidRow(
+#         column(12,
+#                # h2(displayed_names,style = "text-align: left;"),
+# 
+#                div(
+#                  class = "scroll-container",
+#                  shinycssloaders::withSpinner(
+#                    plotOutput("cellular_plot_genes", height = compare_plot_height, width = compare_plot_width),
+#                    type = 6, color = "#f39c12", size = 1),
+# 
+#                ),
+#                hr()
+# 
+#         ),
+#       )
+#     )
+# 
+# 
+#   }else{
+#     print("TISULAR")
+#     displayed_names <- "Brain Tissue Expression"
+# 
+# 
+#     output$tisular_plot_genes <- renderPlot({
+#       plot_result[[1]]
+#     })
+# 
+# 
+#     ui_result <- tagList(
+#       fluidRow(
+#         column(12,
+# 
+# 
+#                # h2(displayed_names,style = "text-align: left;"),
+# 
+#                div(
+#                  class = "scroll-container",
+#                  shinycssloaders::withSpinner(
+#                    plotOutput("tisular_plot_genes", height = compare_plot_height, width = compare_plot_width),
+#                    type = 6, color = "#f39c12", size = 1),
+#                  hr()
+#                )
+# 
+# 
+#         ),
+#       )
+#     )
+#   }
+# 
+#   numerical_genes_ui <- ui_result
+#   return(numerical_genes_ui)
+# }
+
+
+
+#### funciones independientes
+compare_cellular_expression <- function(data_df, genes_color){
+  
+  
+  general_text_size <- 20
+  data_df$Gene <- data_df$Value.gene_symbol
+  
+  df <- data_df
+  if (any(grepl("astro", colnames(df)))){datatype <- "cellular"}else{datatype <- "spatial"}
+  cat("\033[33m","datatype:\033[0m\033[32m",datatype,"\033[0m\n")
+  data_df <- df
+  # CELLULAR FUNCTIONS
+  
+  
+  cellular_expression_mean_calculator <- function(gene_cellular_expression_df){
+    
+    df_long <- gene_cellular_expression_df %>%
+      pivot_longer(
+        cols = everything(),  # Convierte todas las columnas a formato largo
+        names_to = "cell_type",  # Nombre para la nueva columna con los nombres originales de las columnas
+        values_to = "value"      # Nombre para la nueva columna con los valores de las celdas
+      )
+    # df_long <- gene_cellular_expression_df
+    
+    summary_df <- df_long %>%
+      mutate(cell_group = case_when(
+        str_detect(cell_type, "astrocytes_fetal") ~ "Astrocytes Fetal",
+        str_detect(cell_type, "astrocytes_mature") ~ "Astrocytes Mature",
+        str_detect(cell_type, "endothelial") ~ "Endothelial",
+        str_detect(cell_type, "microglla") ~ "Microglia",
+        str_detect(cell_type, "neurons") ~ "Neurons",
+        str_detect(cell_type, "oligodendrocytes") ~ "Oligodendrocytes"
+      )) %>%
+      group_by(cell_group) %>%
+      summarize(mean_value = mean(value, na.rm = TRUE), sd_value = sd(value, na.rm = TRUE))
+    return(summary_df)
+  }
+  
+  #-------------
+  
+  print("CELLULAR")
+  
+  
+  
+  cellular_expression_df <- data_df
+  
+  #eliminar los averege count y sd de oligo
+  cellular_expression_df$Value.oligodendrocytes_standard_deviation <- NULL
+  cellular_expression_df$Value.oligodendrocytes_average_count <- NULL
+  
+  # remove "Value" de colnames
+  colnames(cellular_expression_df) <- gsub("Value\\.","",colnames(cellular_expression_df))
+  cellular_expression_df$gene_id <- cellular_expression_df$entrez_id
+  
+  
+  
+  all_gene_cellular_expression_df <- data.frame()
+  
+  for(gene in unique(cellular_expression_df$Gene)){
+    gene_cellular_expression_df <- cellular_expression_df[cellular_expression_df$Gene == gene,]
+    gene_cellular_expression_df <- gene_cellular_expression_df[,-c(1,2,3)]
+    gene_cellular_expression_df <- cellular_expression_mean_calculator(gene_cellular_expression_df)
+    
+    gene_cellular_expression_df$gene_id <- gene
+    colnames(gene_cellular_expression_df) <- c("Sample", "mean_expression", "sd_value", "Gene")
+    
+    all_gene_cellular_expression_df <- rbind(all_gene_cellular_expression_df, gene_cellular_expression_df)
+    
+    
+    
+  }
+  
+  
+  #
+  # remove all na samples
+  all_gene_cellular_expression_df <- all_gene_cellular_expression_df[!is.na(all_gene_cellular_expression_df$Sample),]
+  df_long <- all_gene_cellular_expression_df
+  
+  
+  
+  genes_color <- unlist(genes_color)
+  df <- df_long
+  numerical_plot <- ggplot(df, aes(x = Sample, y = mean_expression, group = Gene, color = factor(Gene))) +
+    geom_line() +
+    geom_point(size = 4) +
+    scale_color_manual(values = genes_color) +
+    theme_minimal() +
+    theme(
+      text = element_text(size = general_text_size),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "left",
+      legend.box = "horizontal",
+      legend.margin = margin(t = 0, r = 0, b = 10, l = 0)
+    ) +
+    labs(
+      x = "Cell Type",
+      y = "Mean Expression",
+      color = "Gene"
+    ) 
+  
+  
+  
+  
+  compare_plot_width <- paste0(length(unique(df_long$Sample))*100+150,"px")
+  compare_plot_height <- "450px"
+  
+  term <- "cellular"
+  
+  
+  
+  plot_result <- list(plot = numerical_plot, width = compare_plot_width, height = compare_plot_height,term = term)
+  cat("\033[33mTerm:\033[0m\033[35m",plot_result$term,"\033[0m\n")
+  
+  
+  compare_plot_height <- plot_result$height
+  compare_plot_width <- plot_result$width
+  #cellular
+  
+  print("CELLULAR")
+
+  displayed_names <- "Cellular Expression"
+
+  output$cellular_plot_genes <- renderPlot({
+    plot_result[[1]]
+  })
+
+  ui_result <- tagList(
+    fluidRow(
+      column(12,
+             # h2(displayed_names,style = "text-align: left;"),
+
+             div(
+               class = "scroll-container",
+               shinycssloaders::withSpinner(
+                 plotOutput("cellular_plot_genes", height = compare_plot_height, width = compare_plot_width),
+                 type = 6, color = "#f39c12", size = 1),
+
+             ),
+             hr()
+
+      ),
+    )
+  )
+
+
+return(ui_result)
+  
+}
+
+
+
+
+
+
+
+
+#···· Tisu fucntion
+compare_brain_tissue_expression <- function(data_df, genes_color){
+  
+  general_text_size <- 20
+  data_df$Gene <- data_df$Value.gene_symbol
+  
+  df <- data_df
+  if (any(grepl("astro", colnames(df)))){datatype <- "cellular"}else{datatype <- "spatial"}
+  cat("\033[33m","datatype:\033[0m\033[32m",datatype,"\033[0m\n")
+  data_df <- df
+  
+  
+  # TISSUE FUNCTIONS
+  tissue_expression_formating <- function(data_df){
+    tissue_expression_list <- list()
+    cat("\033[33m","performing tissue_expression_formating","\033[0m\n")
+    for(gene in unique(data_df$Value.gene_symbol)){
+      tissue_expression <- data_df[data_df$Value.gene_symbol == gene,]
+      # quitar columna Disease
+      tissue_expression <- tissue_expression[,-1]
+      # reemplazar Value. de los nombres de las columnas
+      colnames(tissue_expression) <- gsub("Value\\.","",colnames(tissue_expression))
+      
+      tissue_expression_list[[gene]] <- tissue_expression
+    }
+    
+    return(tissue_expression_list)
+  }
+  
+  
+  tissue_expression_calculator <- function(tissue_expression_list){
+    tissue_expression_list_to_plot <- list()
+    metadata <- samples_annot
+    metadata <- metadata %>% rename(sample_id = RNAseq_sample_name)
+    
+    for(gene in names(tissue_expression_list)){
+      spatial_expression <- tissue_expression_list[[gene]]
+      
+      spatial_long <- spatial_expression %>%
+        pivot_longer(cols = starts_with("S010"), names_to = "sample_id", values_to = "expression")
+      
+      merged_data <- spatial_long %>%
+        inner_join(metadata, by = "sample_id")
+      
+      mean_expression_by_ontology <- merged_data %>%
+        group_by(ontology_structure_id) %>%
+        summarize(mean_expression = mean(expression, na.rm = TRUE))
+      mean_expression_by_ontology <- merge(mean_expression_by_ontology,samples_annot[, c("ontology_structure_id", "structure_name")],by = "ontology_structure_id",all.x = TRUE)
+      mean_expression_by_ontology <- mean_expression_by_ontology[order(mean_expression_by_ontology$mean_expression, decreasing =T ), ]
+      column_order <- c("ontology_structure_id", "structure_name", "mean_expression")
+      mean_expression_by_ontology <- mean_expression_by_ontology[, column_order]
+      tissue_expression_list_to_plot[[gene]] <- mean_expression_by_ontology
+    }
+    
+    return(tissue_expression_list_to_plot)
+    
+  }
+  
+  
+  
+  #tissue
+  cat("\033[35m","TISULAR EXPRESION","\033[0m\n")
+  
+  tissue_expression_list <- tissue_expression_formating(data_df)
+  
+  tissue_expression <- tissue_expression_calculator(tissue_expression_list)
+  
+  disease_list <- split(disease_list_to_plot$Value.gene_symbol, disease_list_to_plot$Disease)
+  
+  gene_list <- tissue_expression
+  # Convertir lista a data frame largo
+  df_long <- bind_rows(gene_list, .id = "Gene")
+  
+  
+  
+  
+  
+  genes_color <- unlist(genes_color)
+  df <- df_long
+  numerical_plot <- ggplot(df, aes(x = structure_name, y = mean_expression, group = Gene, color = factor(Gene))) +
+    geom_line() +
+    geom_point(size = 4) +
+    scale_color_manual(values = genes_color) +
+    theme_minimal() +
+    theme(
+      text = element_text(size = general_text_size),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "left",
+      legend.box = "horizontal",
+      legend.margin = margin(t = 0, r = 0, b = 10, l = 0)
+    ) +
+    labs(
+      x = "Cell Type",
+      y = "Mean Expression",
+      color = "Gene"
+    ) 
+  
+  
+  
+  compare_plot_width <- paste0(length(unique(df_long$structure_name))*25+150,"px")
+  compare_plot_height <- "650px"
+  
+  term <- "tisular"
+  
+  plot_result <- list(plot = numerical_plot, width = compare_plot_width, height = compare_plot_height,term = term)
+  cat("\033[33mTerm:\033[0m\033[35m",plot_result$term,"\033[0m\n")
+  
+
+  print("TISULAR")
+  displayed_names <- "Brain Tissue Expression"
+
+  
+  compare_plot_height <- plot_result$height
+  compare_plot_width <- plot_result$width
+
+  output$tisular_plot_genes <- renderPlot({
+    plot_result[[1]]
+  })
+
+
+  ui_result <- tagList(
+    fluidRow(
+      column(12,
+
+
+             # h2(displayed_names,style = "text-align: left;"),
+
+             div(
+               class = "scroll-container",
+               shinycssloaders::withSpinner(
+                 plotOutput("tisular_plot_genes", height = compare_plot_height, width = compare_plot_width),
+                 type = 6, color = "#f39c12", size = 1),
+               hr()
+             )
+
+
+      ),
+    )
+  )
+
+  
+}
+
+
+
+
+
+
+
+
+
+## CATEGORICAL DISEASES
+
+
+comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
+  
+  print("CATEGORICAL")  
+  diseases_color_categorical <- diseases_color
+  
+
+  transform_to_matrix <- function(df) {
+    # Crear una tabla cruzada con Disease + Value como filas y Gene como columnas
+    binary_matrix <- table(df$Value, df$Gene)
+    
+    # Convertir a data frame con formato de matriz binaria
+    result <- as.data.frame.matrix(binary_matrix)
+    # Añadir una columna con los términos (Value) como identificadores de fila
+    result <- cbind(entry = rownames(result), result)
+    rownames(result) <- NULL
+    
+    # Devolver el data frame transformado
+    return(result)
+  }
+  
 
   binary_matrix <- transform_to_matrix(data_df)
-  # print(head(binary_matrix))
+
   data_with_intersection <- binary_matrix %>%
     unite(col = "intersection", -c("entry"), sep = "")
   data_with_intersection <- data_with_intersection[order(data_with_intersection$intersection,decreasing = T),]
@@ -664,9 +2174,7 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
   
 
   data_df_result <- data_df_result %>% relocate(term, .before = 1) 
-
-  
-
+ 
   get_columns_disease_to_reorder <- function(columns_disease){
     columns_disease_to_reorder <- list()
     for(diseases in names(data_list)){
@@ -675,13 +2183,14 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
     return(columns_disease_to_reorder)
   }
   columns_disease_to_reorder <- get_columns_disease_to_reorder(colnames(data_df_result))
+
   columns_disease_to_reorder <- columns_disease_to_reorder[order(sapply(columns_disease_to_reorder, length))]
 
 
   data_df_result <- data_df_result[,c(1,2,columns_disease_to_reorder[[1]],columns_disease_to_reorder[[2]])]
+
   # Guarda el orden original de las columnas
 
-  
   columns_disease_to_color <- get_columns_disease_to_reorder(colnames(data_df_result))
   colnames(data_df_result) <- recode(colnames(data_df_result), !!!setNames(all_genes$SYMBOL, all_genes$ENTREZID))
   #
@@ -695,13 +2204,12 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
   data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
   
 
-
   # 
 
     
   
 
-  
+ 
   DT_table <- renderDT({
     datatable(data_df_result,
               options = list(
@@ -756,7 +2264,7 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
 
 
 
-# NUMERICAL
+# NUMERICAL DISEASES
 
 
 comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
