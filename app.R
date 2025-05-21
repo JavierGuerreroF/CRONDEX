@@ -37,7 +37,6 @@ print("Scripts loaded")
 
 # load data
 genes_database <- readRDS("data/genes_database.rds")
-print(genes_database[[1]])
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
 # print(cat("\033[32mGENES DATABASE NEW\033[0m\n"))
@@ -79,10 +78,7 @@ all_phenotypes <<- all_phenotypes[order(all_phenotypes$hpo_name),]
 all_diseases <<- join_df_from_name(genes_database,names(genes_database),"diseases")
 all_diseases <<- all_diseases[order(all_diseases$disease_name),]
 # remove na
-print(str(all_diseases))
 all_diseases <<- all_diseases[!is.na(all_diseases$disease_name),]
-print(str(all_diseases))
-print(all_diseases[all_diseases$disease_id == "OMIM:114480",])
 
 
 all_gene_ontology <<- join_df_from_name(genes_database,names(genes_database),"gene_ontology")
@@ -390,6 +386,40 @@ tags$head(
       }
 
     "))
+),
+
+# tags$head(
+#   tags$style(HTML("
+#         /* Aumenta el tamaño de fuente de los subitems del menú */
+#         .sidebar-menu .treeview-menu > li > a {
+#           font-size: 19px !important;
+#           
+#         }
+#       "))
+# ),
+tags$head(
+  tags$style(HTML("
+    /* Cambiar tamaño de fuente de los subitems */
+    .sidebar-menu .treeview-menu > li > a {
+      font-size: 18px !important;
+ 
+    }
+
+    /* Añadir espacio entre subitems */
+    .sidebar-menu .treeview-menu > li {
+      margin: 10px;
+    }
+  "))
+),
+tags$head(
+  tags$style(HTML("
+    /* Cambiar tamaño y estilo de los menuItem (ítems principales) */
+    .main-sidebar .sidebar .sidebar-menu > li > a {
+      font-size: 19px !important;   /* Aumenta tamaño */
+      padding-top: 10px;            /* Más espacio arriba */
+      padding-bottom: 10px;         /* Más espacio abajo */
+    }
+  "))
 ),
 
 
@@ -5206,8 +5236,6 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     #
     
     network_data <- network_genes_data
-    cat("\033[32mNetwork data\033[0m\n")
-    print(str(network_data))
     # cat en verde 
     network_data_columns <- colnames(network_data)
     metrics_columns <- grep("columna|fila",colnames(network_data),value = T,invert = T,ignore.case = T)
@@ -5510,6 +5538,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       network_data_to_DT <- network_data_to_DT %>% dplyr::select(jaccard_columns)
       
+      vals$network_data_to_DT <- network_data_to_DT
       
       output$network_datatable <- renderDataTable({
         
@@ -5520,6 +5549,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           network_data_to_DT_renamed,
           rownames = F,
           extensions = 'Buttons',
+          selection = "single",
           options = list(
             dom = 'Bfrtip',
             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
@@ -5528,6 +5558,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           )
         ) 
       })
+      
+
       
       output$network_table_ui <- renderUI({
         
@@ -5557,6 +5589,70 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     
     
+    observeEvent(   input$network_datatable_rows_selected,
+                    ignoreNULL = TRUE,
+                    {
+                      network_data_to_DT <- vals$network_data_to_DT 
+                      selected_row <- input$network_datatable_rows_selected
+                      if (length(selected_row)) {
+                        # network_data_to_DT[selected_row, ]
+                        gene_1 <- as.character(network_data_to_DT[selected_row, "Gene 1"])
+                        gene_2 <- as.character(network_data_to_DT[selected_row, "Gene 2"])
+                        
+                        gene_1_symbol <- as.character(network_data_to_DT[selected_row, "Gene 1 symbol"])
+                        gene_2_symbol <- as.character(network_data_to_DT[selected_row, "Gene 2 symbol"])
+                        
+                      } else {
+                        "Ninguna fila seleccionada"
+                      }
+                      cat("\033[32m\n\nSelected row------>\033[0m\n")
+                      print(gene_1)
+                      print(gene_2)
+                      
+                      cat("\033[32m\n\ngenes_comparison_ui------>\033[0m\n")
+                      # genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
+                      
+                      
+                      output$network_datatable_selected_row_ui <- renderUI({
+                        genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
+                       modal_comparison_ui <- tagList(
+                         genes_comparison_ui
+                         
+                       )
+                        return(modal_comparison_ui)
+                      })
+                      
+                      
+                      showModal(modalDialog(
+                        title=tagList(
+                        div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+                            h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
+                            actionButton("close_modal", "×", 
+                                         style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+                        )
+                        ),
+                        
+                        # UI elements
+                        {
+                          uiOutput("network_datatable_selected_row_ui")
+                        },
+                        footer=tagList(
+                          #downloadButton(outputId = "dwnld_data", "Download Data"),
+                          modalButton('Close')),
+                        
+                        size = "m",
+                        easyClose = TRUE,
+                        fade = FALSE,
+                        tags$head(
+                          tags$style(HTML("
+                            .modal-dialog {
+                              max-width: 90% !important;
+                              width: 90% !important;
+                            }
+                          ")))
+                      ))
+                      
+                    })
     
     
     
@@ -5942,8 +6038,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # 
       #   # De la arista, podemos extraer 'from' y 'to' para saber qué nodos conecta
       #   node_from <- nodes$label[nodes$id == edge_info$from]
-      #   node_to   <- nodes$labe
-      l[nodes$id == edge_info$to]
+      #   node_to   <- nodes$label[nodes$id == edge_info$to]
       # 
       #   node_from_phenotypes <- genes_database[[node_from]]$phenotypes_id
       #   node_to_phenotypes <- genes_database[[node_to]]$phenotypes_id
@@ -5970,17 +6065,12 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       #     footer = NULL
       #   ))
       # })
-      
-      
-      
       observeEvent(input$edge_clicked, ignoreInit = TRUE, {
         
         clickedEdge(input$edge_clicked)
         
-        phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID
+        #### NEW FUNCTION---------------------------------------------------------------------
         
-        vals$genes_database_filtered_edge <- filter_database(genes_database,phenotypes_id_to_filter,"phenotypes_id")
-        genes_database_filtered <- vals$genes_database_filtered_edge
         
         
         # 1. Identify the selected edge
@@ -5988,314 +6078,393 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         edge_info <- edges[edges$id == selected_edge_id, ]
         
         # 2. Extract from/to node labels and phenotypes
-        node_from <- as.character(edge_info$from)# nodes$label[nodes$id == edge_info$from]
-        node_to   <- as.character(edge_info$to)# nodes$label[nodes$id == edge_info$to]
-        cat("\033[35m\n\nOBSERVE EVENT ------------------------------------->\033[0m\n")
-      
-        print(node_from)
-        print(node_to)
+        gene_1 <- as.character(edge_info$from)# nodes$label[nodes$id == edge_info$from]
+        gene_2   <- as.character(edge_info$to)# nodes$label[nodes$id == edge_info$to]
         
-     
-        if(length(node_to)==0 | length(node_from)==0){
-          
-        # if(node_from == "NULL" | node_to == "NULL"){
-          # showModal(modalDialog(
-          #   title = "No edge selected",
-          #   "Please, select an edge to display its information",
-          #   size = "l",
-          #   easyClose = TRUE,
-          #   footer = NULL
-          # ))
-          }else{
-        
-        
-        # strin spliot "_" de edge_id
-        edge_id_split <- strsplit(selected_edge_id,"_")[[1]]
-        gene_1 <- edge_id_split[1]
-        gene_2 <- edge_id_split[2]
-        
-        gene_1_symbol <- genes_database_filtered[[gene_1]]$gene_symbol
-        gene_2_symbol <- genes_database_filtered[[gene_2]]$gene_symbol
-        
-        
-        node_from_phenotypes <- genes_database_filtered[[node_from]]$phenotypes_id
-        node_to_phenotypes   <- genes_database_filtered[[node_to]]$phenotypes_id
-        
-        
-        # 3. Intersection and union
-        intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
-        union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
-        
-        
-        # 4. Compute Jaccard
-        intersection_size <- length(intersection_phenotypes)
-        union_size        <- length(union_phenotypes)
-        jaccard_index     <- intersection_size / union_size
-      
-        
-
-        # 5. Create three subsets for table display
-        phenotypes_gen1_only <- setdiff(node_from_phenotypes, node_to_phenotypes)
-        phenotypes_intersect <- intersection_phenotypes
-        phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
-        
-        
-        all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
-        
-        cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
-        print(str(all_phenotypes_df))
-        # # Definir la jerarquía con etiquetas 'children' y 'parent'
-        all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
-       
-    
-        
-        plot_hierarchy_bar <- function(df) {
-          # Define custom colors
-          custom_colors <- c("children" = "orange", "parent" = "steelblue")
-          
-          df %>%
-            count(hierarchy) %>%
-            ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
-            geom_bar(stat = "identity") +
-            scale_fill_manual(values = custom_colors) +
-            labs(
-              # title = "Count of 'children' vs 'parent'",
-                 x = "Hierarchy level",
-                 y = "Count") +
-            theme_minimal() +
-            theme(
-              axis.title = element_text(size = 16),
-              axis.text = element_text(size = 14),
-              plot.title = element_text(size = 18, face = "bold"),
-              legend.position = "none"
-            )
-        }
-        
-        plot_hierarchy_pie <- function(df) {
-          # Define custom colors
-          custom_colors <- c("children" = "orange", "parent" = "steelblue")
-          
-          df %>%
-            count(hierarchy) %>%
-            mutate(prop = n / sum(n),
-                   label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
-            ggplot(aes(x = "", y = prop, fill = hierarchy)) +
-            geom_bar(stat = "identity", width = 1) +
-            coord_polar("y") +
-            geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
-            scale_fill_manual(values = custom_colors) +
-            # labs(title = "Proportion of 'children' and 'parent'") +
-            theme_void() +
-            theme(
-              plot.title = element_text(size = 18, face = "bold"),
-              legend.position = "none"
-            )
-        }
-        
-        
-        hierarchy_proportions_function <- plot_hierarchy_bar
-        
-        table_gen1_only <- data.frame(
-          hpo_id = phenotypes_gen1_only,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
-          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
-        table_intersection <- data.frame(
-          hpo_id = phenotypes_intersect,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
-          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
-        
-        table_gen2_only <- data.frame(
-          hpo_id = phenotypes_gen2_only,
-          hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
-          hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
-        
-        ## plots parent children proportion
-        output$plot_gen1_only <- renderPlot({
-          hierarchy_proportions_function(table_gen1_only)
-        })
-        
-        output$plot_intersection <- renderPlot({
-          hierarchy_proportions_function(table_intersection)
-        })
-        
-        output$plot_gen2_only <- renderPlot({
-          hierarchy_proportions_function(table_gen2_only)
-        })
-        
-        
-        
-        
-        # 6. Render tables in the server
-        
-        output$table_gen1_only <- renderDataTable({
-          datatable(
-            table_gen1_only,
-            rownames = F,
-            extensions = 'Buttons',
-            options = list(
-              dom = 'Bfrtip',
-              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-              scrollX = TRUE
-            )
-          )  %>% formatStyle(
-                'hierarchy',  # Esta es la columna con los valores de categorización
-                target = 'row',
-                backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-              )
-          
-        })
-        
-        output$table_intersection <- renderDataTable({
-          datatable(
-            table_intersection,
-            rownames = F,
-            extensions = 'Buttons',
-            options = list(
-              dom = 'Bfrtip',
-              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-              scrollX = TRUE
-            )
-          ) %>% formatStyle(
-            'hierarchy',  # Esta es la columna con los valores de categorización
-            target = 'row',
-            backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-          )
-          
-        })
-        
-        output$table_gen2_only <- renderDataTable({
-          datatable(
-            table_gen2_only,
-            rownames = F,
-            extensions = 'Buttons',
-            options = list(
-              dom = 'Bfrtip',
-              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-              scrollX = TRUE
-            )
-          ) %>% formatStyle(
-            'hierarchy',  # Esta es la columna con los valores de categorización
-            target = 'row',
-            backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-          )
-          
-        })
-        
+        gene_1_symbol <- genes_database[[gene_1]]$gene_symbol
+        gene_2_symbol <- genes_database[[gene_2]]$gene_symbol
   
-        # 7. Show a modal that includes:
-        #    - Jaccard formula (HTML/LaTeX-style)
-        #    - Calculated Jaccard index
-        #    - Plot (eulerPlot_edge)
-        #    - A fluidRow with three tables
         
-
+    
+        cat("\033[32m\n\nSelected row------>\033[0m\n")
+        print(gene_1)
+        print(gene_2)
         
-      # WITH MODAL
-        showModal(
-          modalDialog(
-            title = tagList(
-              div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
-                  h4(paste( gene_1_symbol, "(ID:", edge_info$from, ") - ", gene_2_symbol, "(ID:", edge_info$to, ")")),
-                  actionButton("close_modal", "×", 
-                               style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
-              )
-            ),  
-              
-              
-              # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")" ),
-            #paste("Information for Edge", selected_edge_id),
-            tagList(
-                  # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
-              # --- Jaccard formula and value ---
-              HTML("<h4>Jaccard Index Formula</h4>"),
-              # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
-              HTML(
-                paste0(
-                  "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
-                  intersection_size,
-                  " / ",
-                  union_size,
-                  " = ",
-                  round(jaccard_index, 3),
-                  "</strong></p>"
-                )
-              ),
-              HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
-                          round(jaccard_index, 3), "</p>")),
-
-              # --- Plot output ---
-              fluidRow(align = "center",
-                       plotOutput("eulerPlot_edge")
-              ),
-              # plotOutput("eulerPlot_edge"),
-              box(
-                title = HTML("Children/parent proportion"),
-                width = NULL,
-                solidHeader = TRUE,
-                collapsible = TRUE,
-                collapsed = TRUE,  # Starts collapsed
-                status = "warning",
-                fluidRow(
-                  align = "center",
-                  column(
-                    width = 4,
-                    h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
-                    # plotOutput("plot_gen1_only")
-                    # ui.R o dentro de tu fluidPage()
-                    plotOutput("plot_gen1_only", width = "200px", height = "200px")
-                    
-                  ),
-                  column(
-                    width = 4,
-                    h5("Intersection of Phenotypes"),
-                    plotOutput("plot_intersection", width = "200px", height = "200px")
-                  ),
-                  column(
-                    width = 4,
-                    h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-                    plotOutput("plot_gen2_only", width = "200px", height = "200px")
-                  )
-                )
-                
-              ),
-              
-              # --- Three tables side by side ---
-              fluidRow(
-                column(
-                  width = 4,
-                  h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
-                  dataTableOutput("table_gen1_only")
-                ),
-                column(
-                  width = 4,
-                  h5("Intersection of Phenotypes"),
-                  dataTableOutput("table_intersection")
-                ),
-                column(
-                  width = 4,
-                  h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-                  # h5(paste("Phenotypes only in", node_to)),
-                  dataTableOutput("table_gen2_only")
-                )
-              )
-            ),
-            size = "s",
-            easyClose = TRUE,
-            # header=tagList(
-            #   modalButton('Close')
-            # ),
-            header = tagList(
-              div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
-                  h4("Information"),  # Título del modal
-                  actionButton("close_modal", "×", style="background: none; border: none; font-size: 20px; color: black;")
-              )
-            ),
+        cat("\033[32m\n\ngenes_comparison_ui------>\033[0m\n")
+        # genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
+        
+        
+        output$network_clicked_pair_ui <- renderUI({
+          genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
+          modal_comparison_ui <- tagList(
+            genes_comparison_ui
             
-            footer = NULL)
-        )
+          )
+          return(modal_comparison_ui)
+        })
         
-          }
+        
+        showModal(modalDialog(
+          title=tagList(
+            div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+                h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
+                actionButton("close_modal", "×", 
+                             style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+            )
+          ),
+          
+          # UI elements
+          {
+            uiOutput("network_clicked_pair_ui")
+          },
+          footer=tagList(
+            #downloadButton(outputId = "dwnld_data", "Download Data"),
+            modalButton('Close')),
+          
+          size = "m",
+          easyClose = TRUE,
+          fade = FALSE,
+          tags$head(
+            tags$style(HTML("
+                            .modal-dialog {
+                              max-width: 90% !important;
+                              width: 90% !important;
+                            }
+                          ")))
+        ))
+        
+
+        
       })
+      
+      
+      
+      # observeEvent(input$edge_clicked, ignoreInit = TRUE, {
+      #   
+      #   clickedEdge(input$edge_clicked)
+      #   
+      
+      #   ##### OLD FUNCTION---------------------------------------------------------------------
+      #   
+      #   phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID
+      #   
+      #   vals$genes_database_filtered_edge <- filter_database(genes_database,phenotypes_id_to_filter,"phenotypes_id")
+      #   genes_database_filtered <- vals$genes_database_filtered_edge
+      #   
+      #   
+      #   # 1. Identify the selected edge
+      #   selected_edge_id <- input$edge_clicked
+      #   edge_info <- edges[edges$id == selected_edge_id, ]
+      #   
+      #   # 2. Extract from/to node labels and phenotypes
+      #   node_from <- as.character(edge_info$from)# nodes$label[nodes$id == edge_info$from]
+      #   node_to   <- as.character(edge_info$to)# nodes$label[nodes$id == edge_info$to]
+      #   cat("\033[35m\n\nOBSERVE EVENT ------------------------------------->\033[0m\n")
+      # 
+      #   print(node_from)
+      #   print(node_to)
+      #   
+      # 
+      #   if(length(node_to)==0 | length(node_from)==0){
+      #     
+      #   # if(node_from == "NULL" | node_to == "NULL"){
+      #     # showModal(modalDialog(
+      #     #   title = "No edge selected",
+      #     #   "Please, select an edge to display its information",
+      #     #   size = "l",
+      #     #   easyClose = TRUE,
+      #     #   footer = NULL
+      #     # ))
+      #     }else{
+      #   
+      #   
+      #   # strin spliot "_" de edge_id
+      #   edge_id_split <- strsplit(selected_edge_id,"_")[[1]]
+      #   gene_1 <- edge_id_split[1]
+      #   gene_2 <- edge_id_split[2]
+      #   
+      #   gene_1_symbol <- genes_database_filtered[[gene_1]]$gene_symbol
+      #   gene_2_symbol <- genes_database_filtered[[gene_2]]$gene_symbol
+      #   
+      #   
+      #   node_from_phenotypes <- genes_database_filtered[[node_from]]$phenotypes_id
+      #   node_to_phenotypes   <- genes_database_filtered[[node_to]]$phenotypes_id
+      #   
+      #   
+      #   # 3. Intersection and union
+      #   intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
+      #   union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
+      #   
+      #   
+      #   # 4. Compute Jaccard
+      #   intersection_size <- length(intersection_phenotypes)
+      #   union_size        <- length(union_phenotypes)
+      #   jaccard_index     <- intersection_size / union_size
+      # 
+      #   
+      # 
+      #   # 5. Create three subsets for table display
+      #   phenotypes_gen1_only <- setdiff(node_from_phenotypes, node_to_phenotypes)
+      #   phenotypes_intersect <- intersection_phenotypes
+      #   phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
+      #   
+      #   
+      #   all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
+      #   
+      #   cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
+      #   print(str(all_phenotypes_df))
+      #   # # Definir la jerarquía con etiquetas 'children' y 'parent'
+      #   all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
+      #  
+      # 
+      #   
+      #   plot_hierarchy_bar <- function(df) {
+      #     # Define custom colors
+      #     custom_colors <- c("children" = "orange", "parent" = "steelblue")
+      #     
+      #     df %>%
+      #       count(hierarchy) %>%
+      #       ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
+      #       geom_bar(stat = "identity") +
+      #       scale_fill_manual(values = custom_colors) +
+      #       labs(
+      #         # title = "Count of 'children' vs 'parent'",
+      #            x = "Hierarchy level",
+      #            y = "Count") +
+      #       theme_minimal() +
+      #       theme(
+      #         axis.title = element_text(size = 16),
+      #         axis.text = element_text(size = 14),
+      #         plot.title = element_text(size = 18, face = "bold"),
+      #         legend.position = "none"
+      #       )
+      #   }
+      #   
+      #   plot_hierarchy_pie <- function(df) {
+      #     # Define custom colors
+      #     custom_colors <- c("children" = "orange", "parent" = "steelblue")
+      #     
+      #     df %>%
+      #       count(hierarchy) %>%
+      #       mutate(prop = n / sum(n),
+      #              label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
+      #       ggplot(aes(x = "", y = prop, fill = hierarchy)) +
+      #       geom_bar(stat = "identity", width = 1) +
+      #       coord_polar("y") +
+      #       geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
+      #       scale_fill_manual(values = custom_colors) +
+      #       # labs(title = "Proportion of 'children' and 'parent'") +
+      #       theme_void() +
+      #       theme(
+      #         plot.title = element_text(size = 18, face = "bold"),
+      #         legend.position = "none"
+      #       )
+      #   }
+      #   
+      #   
+      #   hierarchy_proportions_function <- plot_hierarchy_bar
+      #   
+      #   table_gen1_only <- data.frame(
+      #     hpo_id = phenotypes_gen1_only,
+      #     hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
+      #     hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
+      #   table_intersection <- data.frame(
+      #     hpo_id = phenotypes_intersect,
+      #     hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
+      #     hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
+      #   
+      #   table_gen2_only <- data.frame(
+      #     hpo_id = phenotypes_gen2_only,
+      #     hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
+      #     hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
+      #   
+      #   ## plots parent children proportion
+      #   output$plot_gen1_only <- renderPlot({
+      #     hierarchy_proportions_function(table_gen1_only)
+      #   })
+      #   
+      #   output$plot_intersection <- renderPlot({
+      #     hierarchy_proportions_function(table_intersection)
+      #   })
+      #   
+      #   output$plot_gen2_only <- renderPlot({
+      #     hierarchy_proportions_function(table_gen2_only)
+      #   })
+      #   
+      #   
+      #   
+      #   
+      #   # 6. Render tables in the server
+      #   
+      #   output$table_gen1_only <- renderDataTable({
+      #     datatable(
+      #       table_gen1_only,
+      #       rownames = F,
+      #       extensions = 'Buttons',
+      #       options = list(
+      #         dom = 'Bfrtip',
+      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         scrollX = TRUE
+      #       )
+      #     )  %>% formatStyle(
+      #           'hierarchy',  # Esta es la columna con los valores de categorización
+      #           target = 'row',
+      #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+      #         )
+      #     
+      #   })
+      #   
+      #   output$table_intersection <- renderDataTable({
+      #     datatable(
+      #       table_intersection,
+      #       rownames = F,
+      #       extensions = 'Buttons',
+      #       options = list(
+      #         dom = 'Bfrtip',
+      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         scrollX = TRUE
+      #       )
+      #     ) %>% formatStyle(
+      #       'hierarchy',  # Esta es la columna con los valores de categorización
+      #       target = 'row',
+      #       backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+      #     )
+      #     
+      #   })
+      #   
+      #   output$table_gen2_only <- renderDataTable({
+      #     datatable(
+      #       table_gen2_only,
+      #       rownames = F,
+      #       extensions = 'Buttons',
+      #       options = list(
+      #         dom = 'Bfrtip',
+      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         scrollX = TRUE
+      #       )
+      #     ) %>% formatStyle(
+      #       'hierarchy',  # Esta es la columna con los valores de categorización
+      #       target = 'row',
+      #       backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
+      #     )
+      #     
+      #   })
+      #   
+      # 
+      #   # 7. Show a modal that includes:
+      #   #    - Jaccard formula (HTML/LaTeX-style)
+      #   #    - Calculated Jaccard index
+      #   #    - Plot (eulerPlot_edge)
+      #   #    - A fluidRow with three tables
+      #   
+      # 
+      #   
+      # # WITH MODAL
+      #   showModal(
+      #     modalDialog(
+      #       title = tagList(
+      #         div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+      #             h4(paste( gene_1_symbol, "(ID:", edge_info$from, ") - ", gene_2_symbol, "(ID:", edge_info$to, ")")),
+      #             actionButton("close_modal", "×", 
+      #                          style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+      #         )
+      #       ),  
+      #         
+      #         
+      #         # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")" ),
+      #       #paste("Information for Edge", selected_edge_id),
+      #       tagList(
+      #             # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
+      #         # --- Jaccard formula and value ---
+      #         HTML("<h4>Jaccard Index Formula</h4>"),
+      #         # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
+      #         HTML(
+      #           paste0(
+      #             "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
+      #             intersection_size,
+      #             " / ",
+      #             union_size,
+      #             " = ",
+      #             round(jaccard_index, 3),
+      #             "</strong></p>"
+      #           )
+      #         ),
+      #         HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
+      #                     round(jaccard_index, 3), "</p>")),
+      # 
+      #         # --- Plot output ---
+      #         fluidRow(align = "center",
+      #                  plotOutput("eulerPlot_edge")
+      #         ),
+      #         # plotOutput("eulerPlot_edge"),
+      #         box(
+      #           title = HTML("Children/parent proportion"),
+      #           width = NULL,
+      #           solidHeader = TRUE,
+      #           collapsible = TRUE,
+      #           collapsed = TRUE,  # Starts collapsed
+      #           status = "warning",
+      #           fluidRow(
+      #             align = "center",
+      #             column(
+      #               width = 4,
+      #               h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+      #               # plotOutput("plot_gen1_only")
+      #               # ui.R o dentro de tu fluidPage()
+      #               plotOutput("plot_gen1_only", width = "200px", height = "200px")
+      #               
+      #             ),
+      #             column(
+      #               width = 4,
+      #               h5("Intersection of Phenotypes"),
+      #               plotOutput("plot_intersection", width = "200px", height = "200px")
+      #             ),
+      #             column(
+      #               width = 4,
+      #               h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+      #               plotOutput("plot_gen2_only", width = "200px", height = "200px")
+      #             )
+      #           )
+      #           
+      #         ),
+      #         
+      #         # --- Three tables side by side ---
+      #         fluidRow(
+      #           column(
+      #             width = 4,
+      #             h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+      #             dataTableOutput("table_gen1_only")
+      #           ),
+      #           column(
+      #             width = 4,
+      #             h5("Intersection of Phenotypes"),
+      #             dataTableOutput("table_intersection")
+      #           ),
+      #           column(
+      #             width = 4,
+      #             h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+      #             # h5(paste("Phenotypes only in", node_to)),
+      #             dataTableOutput("table_gen2_only")
+      #           )
+      #         )
+      #       ),
+      #       size = "s",
+      #       easyClose = TRUE,
+      #       # header=tagList(
+      #       #   modalButton('Close')
+      #       # ),
+      #       header = tagList(
+      #         div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+      #             h4("Information"),  # Título del modal
+      #             actionButton("close_modal", "×", style="background: none; border: none; font-size: 20px; color: black;")
+      #         )
+      #       ),
+      #       
+      #       footer = NULL)
+      #   )
+      #   
+      #     }
+      # })
       
       
       # Ejemplo con eulerr

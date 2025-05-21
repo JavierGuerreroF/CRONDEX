@@ -95,303 +95,12 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   print(phenotypes_boolean_2)
   
   jaccard_ui <- NULL
-  
-  # jaccard_ui <- if(!(phenotypes_boolean_1 & phenotypes_boolean_2)){
-  # 
-  # 
-  # 
-  #     node_from <- gene_1_data$ncbi_gene_id
-  #     node_to   <- gene_2_data$ncbi_gene_id
-  #     print(node_from)
-  #     print(node_to)
-  # 
-  # 
-  #     if(length(node_to)==0 | length(node_from)==0){
-  # 
-  #       # if(node_from == "NULL" | node_to == "NULL"){
-  #       # showModal(modalDialog(
-  #       #   title = "No edge selected",
-  #       #   "Please, select an edge to display its information",
-  #       #   size = "l",
-  #       #   easyClose = TRUE,
-  #       #   footer = NULL
-  #       # ))
-  #     }else{
-  # 
-  # 
-  #       # strin spliot "_" de edge_id
-  #       edge_id_split <- strsplit(selected_edge_id,"_")[[1]]
-  #       gene_1 <- edge_id_split[1]
-  #       gene_2 <- edge_id_split[2]
-  # 
-  #       gene_1_symbol <- genes_database_filtered[[gene_1]]$gene_symbol
-  #       gene_2_symbol <- genes_database_filtered[[gene_2]]$gene_symbol
-  # 
-  # 
-  #       node_from_phenotypes <- genes_database_filtered[[node_from]]$phenotypes_id
-  #       node_to_phenotypes   <- genes_database_filtered[[node_to]]$phenotypes_id
-  # 
-  # 
-  #       # 3. Intersection and union
-  #       intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
-  #       union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
-  # 
-  # 
-  #       # 4. Compute Jaccard
-  #       intersection_size <- length(intersection_phenotypes)
-  #       union_size        <- length(union_phenotypes)
-  #       jaccard_index     <- intersection_size / union_size
-  # 
-  # 
-  # 
-  #       # 5. Create three subsets for table display
-  #       phenotypes_gen1_only <- setdiff(node_from_phenotypes, node_to_phenotypes)
-  #       phenotypes_intersect <- intersection_phenotypes
-  #       phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
-  # 
-  # 
-  #       all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
-  # 
-  #       cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
-  #       print(str(all_phenotypes_df))
-  #       # # Definir la jerarquía con etiquetas 'children' y 'parent'
-  #       all_phenotypes_df$hierarchy <- ifelse(all_phenotypes_df$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
-  # 
-  # 
-  # 
-  #       plot_hierarchy_bar <- function(df) {
-  #         # Define custom colors
-  #         custom_colors <- c("children" = "orange", "parent" = "steelblue")
-  # 
-  #         df %>%
-  #           count(hierarchy) %>%
-  #           ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
-  #           geom_bar(stat = "identity") +
-  #           scale_fill_manual(values = custom_colors) +
-  #           labs(
-  #             # title = "Count of 'children' vs 'parent'",
-  #             x = "Hierarchy level",
-  #             y = "Count") +
-  #           theme_minimal() +
-  #           theme(
-  #             axis.title = element_text(size = 16),
-  #             axis.text = element_text(size = 14),
-  #             plot.title = element_text(size = 18, face = "bold"),
-  #             legend.position = "none"
-  #           )
-  #       }
-  # 
-  #       plot_hierarchy_pie <- function(df) {
-  #         # Define custom colors
-  #         custom_colors <- c("children" = "orange", "parent" = "steelblue")
-  # 
-  #         df %>%
-  #           count(hierarchy) %>%
-  #           mutate(prop = n / sum(n),
-  #                  label = paste0(hierarchy, " (", round(prop * 100, 1), "%)")) %>%
-  #           ggplot(aes(x = "", y = prop, fill = hierarchy)) +
-  #           geom_bar(stat = "identity", width = 1) +
-  #           coord_polar("y") +
-  #           geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 6) +
-  #           scale_fill_manual(values = custom_colors) +
-  #           # labs(title = "Proportion of 'children' and 'parent'") +
-  #           theme_void() +
-  #           theme(
-  #             plot.title = element_text(size = 18, face = "bold"),
-  #             legend.position = "none"
-  #           )
-  #       }
-  # 
-  # 
-  #       hierarchy_proportions_function <- plot_hierarchy_bar
-  # 
-  #       table_gen1_only <- data.frame(
-  #         hpo_id = phenotypes_gen1_only,
-  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only],
-  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen1_only])
-  #       table_intersection <- data.frame(
-  #         hpo_id = phenotypes_intersect,
-  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_intersect],
-  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_intersect])
-  # 
-  #       table_gen2_only <- data.frame(
-  #         hpo_id = phenotypes_gen2_only,
-  #         hpo_name = all_phenotypes_df$hpo_name[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only],
-  #         hierarchy = all_phenotypes_df$hierarchy[all_phenotypes_df$hpo_id %in% phenotypes_gen2_only])
-  # 
-  #       ## plots parent children proportion
-  #       output$plot_gen1_only <- renderPlot({
-  #         hierarchy_proportions_function(table_gen1_only)
-  #       })
-  # 
-  #       output$plot_intersection <- renderPlot({
-  #         hierarchy_proportions_function(table_intersection)
-  #       })
-  # 
-  #       output$plot_gen2_only <- renderPlot({
-  #         hierarchy_proportions_function(table_gen2_only)
-  #       })
-  # 
-  # 
-  # 
-  # 
-  #       # 6. Render tables in the server
-  # 
-  #       output$table_gen1_only <- renderDataTable({
-  #         datatable(
-  #           table_gen1_only,
-  #           rownames = F,
-  #           extensions = 'Buttons',
-  #           options = list(
-  #             dom = 'Bfrtip',
-  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-  #             scrollX = TRUE
-  #           )
-  #         )  %>% formatStyle(
-  #           'hierarchy',  # Esta es la columna con los valores de categorización
-  #           target = 'row',
-  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-  #         )
-  # 
-  #       })
-  # 
-  #       output$table_intersection <- renderDataTable({
-  #         datatable(
-  #           table_intersection,
-  #           rownames = F,
-  #           extensions = 'Buttons',
-  #           options = list(
-  #             dom = 'Bfrtip',
-  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-  #             scrollX = TRUE
-  #           )
-  #         ) %>% formatStyle(
-  #           'hierarchy',  # Esta es la columna con los valores de categorización
-  #           target = 'row',
-  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-  #         )
-  # 
-  #       })
-  # 
-  #       output$table_gen2_only <- renderDataTable({
-  #         datatable(
-  #           table_gen2_only,
-  #           rownames = F,
-  #           extensions = 'Buttons',
-  #           options = list(
-  #             dom = 'Bfrtip',
-  #             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-  #             scrollX = TRUE
-  #           )
-  #         ) %>% formatStyle(
-  #           'hierarchy',  # Esta es la columna con los valores de categorización
-  #           target = 'row',
-  #           backgroundColor = styleEqual(c('children', 'parent'), c('orange', 'white'))
-  #         )
-  # 
-  #       })
-  # 
-  # 
-  #       # 7. Show a modal that includes:
-  #       #    - Jaccard formula (HTML/LaTeX-style)
-  #       #    - Calculated Jaccard index
-  #       #    - Plot (eulerPlot_edge)
-  #       #    - A fluidRow with three tables
-  # 
-  # 
-  # 
-  #       # WITH MODAL
-  # 
-  #     }
-  # 
-  # 
-  # 
-  #   jaccard_ui <- tagList(
-  #     # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
-  #     # --- Jaccard formula and value ---
-  #     HTML("<h4>Jaccard Index Formula</h4>"),
-  #     # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
-  #     HTML(
-  #       paste0(
-  #         "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
-  #         intersection_size,
-  #         " / ",
-  #         union_size,
-  #         " = ",
-  #         round(jaccard_index, 3),
-  #         "</strong></p>"
-  #       )
-  #     ),
-  #     HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
-  #                 round(jaccard_index, 3), "</p>")),
-  # 
-  #     # --- Plot output ---
-  #     fluidRow(align = "center",
-  #              plotOutput("eulerPlot_edge")
-  #     ),
-  #     # plotOutput("eulerPlot_edge"),
-  #     box(
-  #       title = HTML("Children/parent proportion"),
-  #       width = NULL,
-  #       solidHeader = TRUE,
-  #       collapsible = TRUE,
-  #       collapsed = TRUE,  # Starts collapsed
-  #       status = "warning",
-  #       fluidRow(
-  #         align = "center",
-  #         column(
-  #           width = 4,
-  #           h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
-  #           # plotOutput("plot_gen1_only")
-  #           # ui.R o dentro de tu fluidPage()
-  #           plotOutput("plot_gen1_only", width = "200px", height = "200px")
-  # 
-  #         ),
-  #         column(
-  #           width = 4,
-  #           h5("Intersection of Phenotypes"),
-  #           plotOutput("plot_intersection", width = "200px", height = "200px")
-  #         ),
-  #         column(
-  #           width = 4,
-  #           h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-  #           plotOutput("plot_gen2_only", width = "200px", height = "200px")
-  #         )
-  #       )
-  # 
-  #     ),
-  # 
-  #     # --- Three tables side by side ---
-  #     fluidRow(
-  #       column(
-  #         width = 4,
-  #         h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
-  #         dataTableOutput("table_gen1_only")
-  #       ),
-  #       column(
-  #         width = 4,
-  #         h5("Intersection of Phenotypes"),
-  #         dataTableOutput("table_intersection")
-  #       ),
-  #       column(
-  #         width = 4,
-  #         h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-  #         # h5(paste("Phenotypes only in", node_to)),
-  #         dataTableOutput("table_gen2_only")
-  #       )
-  #     )
-  #   )
-  # 
-  # 
-  # 
-  # }
-  
   # jacard ui 
-  # jaccard_ui <- jaccard_comparison_ui_generator(gene_1,gene_2)
+  jaccard_ui <- jaccard_comparison_ui_generator(gene_1,gene_2)
   
   
   ## OTHER COMPARISON UI
-  genes_color <- list("#FF7256", "#8EE5EE")
+  genes_color <<- list("#FF7256", "#8EE5EE")
   
 
   # phenotypes id
@@ -417,15 +126,33 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   cat("\033[33m","Estructura de la tabla gene ontology","\033[0m\n")
   print(str(gene_ontology_table))
   gene_ontology_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(gene_ontology_table,genes_color)
+
   
-  
-  ## function for numeric
   combine_data <- function(gene_name_1, gene_name_2, expr1, expr2) {
-    # Extraer los vectores de valores (excluyendo columnas de metadatos)
-    values1 <- expr1[, !(names(expr1) %in% c("gene_id", "entrez_id", "id"))]
-    values2 <- expr2[, !(names(expr2) %in% c("gene_id", "entrez_id", "id"))]
+    missing_genes <- character()
     
-    # Crear filas con prefijo "Value." en los nombres de columnas
+    # Validar expr1
+    valid_expr1 <- is.data.frame(expr1) && nrow(expr1) > 0 && any(!(names(expr1) %in% c("gene_id", "entrez_id", "id")))
+    if (!valid_expr1) {
+      missing_genes <- c(missing_genes, gene_name_1)
+    }
+    
+    # Validar expr2
+    valid_expr2 <- is.data.frame(expr2) && nrow(expr2) > 0 && any(!(names(expr2) %in% c("gene_id", "entrez_id", "id")))
+    if (!valid_expr2) {
+      missing_genes <- c(missing_genes, gene_name_2)
+    }
+    
+    # Si hay genes sin datos, devolver el vector con esos nombres
+    if (length(missing_genes) > 0) {
+      return(missing_genes)
+    }
+    
+    # Extraer los vectores de valores
+    values1 <- expr1[, !(names(expr1) %in% c("gene_id", "entrez_id", "id")), drop = FALSE]
+    values2 <- expr2[, !(names(expr2) %in% c("gene_id", "entrez_id", "id")), drop = FALSE]
+    
+    # Crear los data frames formateados
     df1 <- data.frame(
       Gene = as.character(expr1$entrez_id),
       Value.gene_symbol = gene_name_1,
@@ -442,40 +169,58 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
       check.names = FALSE
     )
     
-    # Combinar en una sola tabla
+    # Combinar ambos
     result <- rbind(df1, df2)
     return(result)
   }
-  
   
   # cellular expression
   gene_1_cellular_expression <- gene_1_data$cellular_expression
   gene_2_cellular_expression <- gene_2_data$cellular_expression
   
   cellular_expression_table <- combine_data(gene_1_symbol, gene_2_symbol, gene_1_cellular_expression, gene_2_cellular_expression)
-  
-  cat("\033[33m","Estructura de la tabla cellular expression","\033[0m\n")
-  print(str(cellular_expression_table))
-  
+
   # cellular_expression_comparison_plot_list <- comparison_plot_generator_NUMERICAL_genes(cellular_expression_table,genes_color)
   # cellular_expression_comparison_ui <- numerical_genes_ui_generator(cellular_expression_comparison_plot_list)
   # 
-  cellular_expression_comparison_ui <- compare_cellular_expression(cellular_expression_table,genes_color)
+  if(is.data.frame(cellular_expression_table)){
+    cellular_expression_comparison_ui <- compare_cellular_expression(cellular_expression_table,genes_color)}else{
+      cellular_expression_comparison_ui <- HTML(
+        paste0(
+          "<h4>Cellular expression data not available for the next genes:</h4>",
+          "<ul>",
+          paste0("<li><b>", cellular_expression_table, "</b></li>", collapse = ""),
+          "</ul>"
+        )
+      )
+      
+    }
+  # cellular_expression_comparison_ui <- compare_cellular_expression(cellular_expression_table,genes_color)
   
   
   # brain tissue expression
   gene_1_brain_expression <- gene_1_data$spatial_expression
   gene_2_brain_expression <- gene_2_data$spatial_expression
   
+
   brain_expression_table <- combine_data(gene_1_symbol, gene_2_symbol, gene_1_brain_expression, gene_2_brain_expression)
-  
-  cat("\033[33m","Estructura de la tabla brain expression","\033[0m\n")
-  print(str(brain_expression_table))
-# 
+
 #   brain_expression_comparison_plot_list <- comparison_plot_generator_NUMERICAL_genes(brain_expression_table,genes_color)
 #   brain_expression_comparison_ui <- numerical_genes_ui_generator(brain_expression_comparison_plot_list)
-  
-  brain_expression_comparison_ui <- compare_brain_tissue_expression(brain_expression_table,genes_color)
+  if(is.data.frame(brain_expression_table)){
+    brain_expression_comparison_ui <- compare_brain_tissue_expression(brain_expression_table,genes_color)
+  }else{
+    brain_expression_comparison_ui <- HTML(
+      paste0(
+        "<h4>Brain tissue expression data not available for the next genes:</h4>",
+        "<ul>",
+        paste0("<li><b>", brain_expression_table, "</b></li>", collapse = ""),
+        "</ul>"
+      )
+    )
+    
+    }
+  # brain_expression_comparison_ui <- compare_brain_tissue_expression(brain_expression_table,genes_color)
   ## union
   old_comparison_ui <- tagList(
     fluidRow(
@@ -512,8 +257,9 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
     fluidRow(
       column(12,
              h2("Gene Comparison",style = "text-align: left;"),
-             h4(HTML(paste("<span style='color:", genes_color[1],"'>⬤</span><b>", gene_2_symbol, "</b>(ID:", gene_2,")"))),
-             h4(HTML(paste("<span style='color:", genes_color[2],"'>⬤</span><b>", gene_1_symbol, "</b>(ID:", gene_1, ")"))),
+             h4(HTML(paste("<span style='color:", genes_color[1],"'>⬤</span><b>", gene_1_symbol, "</b>(ID:", gene_1,")"))),
+             h4(HTML(paste("<span style='color:", genes_color[2],"'>⬤</span><b>", gene_2_symbol, "</b>(ID:", gene_2,")"))),
+             h2("Phenotype Similarity (Jaccard index)",style= "text-align: left;"),
              jaccard_ui,
              hr(),
              old_comparison_ui
@@ -522,6 +268,9 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
       )
     )
   )
+  
+  cat("\n\n")
+  cat("\033[35m","Finalizando la función 'genes_comparison_ui_generator'","\033[0m\n")
   
   return(gene_comparison_ui)
 }
@@ -577,9 +326,16 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           node_from_phenotypes <- gene_1_data$phenotypes_id
           node_to_phenotypes   <- gene_2_data$phenotypes_id
         
-          
+    
+    
+          # filtrada por phenotypical abnomarlities
+          phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID      
+          node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
+          node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
+          # MARK
           cat("\033[32m\n\nnode_from_phenotypes------>\033[0m\n")
           print(str(node_to_phenotypes))
+          cat("\033[32m\n\nnode_to_phenotypes------>\033[0m\n")
           print(str(node_from_phenotypes))
 
           # 3. Intersection and union
@@ -599,14 +355,10 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           phenotypes_intersect <- intersection_phenotypes
           phenotypes_gen2_only <- setdiff(node_to_phenotypes, node_from_phenotypes)
           
-          # filtrada por phenotypical abnomarlities
-          phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID
-          genes_database_filtered <-   filter_database(genes_database,phenotypes_id_to_filter,"phenotypes_id")
-          cat("\033[32m\n\ngenes_database_filtered------>\033[0m\n")
-          print(str(genes_database_filtered))
+          both_genes_phenotpyes_id_list <- unique(c(node_from_phenotypes, node_to_phenotypes))
+          all_phenotypes_df <- all_phenotypes %>% filter(hpo_id %in% both_genes_phenotpyes_id_list)
+         
           
-          all_phenotypes_df <- unique(rbind( genes_database_filtered[[node_from]]$phenotypes, genes_database_filtered[[node_to]]$phenotypes))
-
           cat("\033[32m\n\nall_phenotypes_df------>\033[0m\n")
           print(str(all_phenotypes_df))
           # # Definir la jerarquía con etiquetas 'children' y 'parent'
@@ -617,16 +369,17 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           plot_hierarchy_bar <- function(df) {
             # Define custom colors
             custom_colors <- c("children" = "orange", "parent" = "steelblue")
-
+            
             df %>%
               count(hierarchy) %>%
               ggplot(aes(x = hierarchy, y = n, fill = hierarchy)) +
               geom_bar(stat = "identity") +
+              geom_text(aes(label = n), vjust = 1.5, size = 5) +  # <- Añade los números encima
               scale_fill_manual(values = custom_colors) +
               labs(
-                # title = "Count of 'children' vs 'parent'",
                 x = "Hierarchy level",
-                y = "Count") +
+                y = "Count"
+              ) +
               theme_minimal() +
               theme(
                 axis.title = element_text(size = 16),
@@ -635,7 +388,7 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
                 legend.position = "none"
               )
           }
-
+          
           plot_hierarchy_pie <- function(df) {
             # Define custom colors
             custom_colors <- c("children" = "orange", "parent" = "steelblue")
@@ -753,7 +506,40 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           #    - Plot (eulerPlot_edge)
           #    - A fluidRow with three tables
 
-
+          
+          
+          
+          output$eulerPlot_jaccard <- renderPlot({
+          
+            cat("\033[35m\n\nrenderPlot------>\033[0m\n")
+            print("Jaccard plot")
+            # Filtrar info de la arista
+            gene_1_symbol <- as.character(gene_1_data$gene_symbol)
+            gene_2_symbol <- as.character(gene_2_data$gene_symbol)
+            
+            gene_1_phenotypes_ids <- gene_1_data$phenotypes_id
+            gene_2_phenotypes_ids   <- gene_2_data$phenotypes_id
+            
+     
+            euler_list <- list()
+            
+            euler_list[[gene_1_symbol]] <- gene_1_phenotypes_ids
+            euler_list[[gene_2_symbol]] <- gene_2_phenotypes_ids
+            
+            
+            cat("\033[35m\n\nedge_id_split------>\033[0m\n")
+            
+            print(str(euler_list))
+            
+            
+            edge_euler_plot <- plot_euler_edge_jaccard(euler_list, gene_colors = genes_color)
+            
+            plot(edge_euler_plot) 
+            cat("\033[35m\n\nfinish_edge_id_split------>\033[0m\n")
+            
+            
+          })
+          
 
           # WITH MODAL
 
@@ -764,28 +550,53 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
     
     # UI 
     jaccard_ui <- tagList(
-      # paste(gene_1_symbol, "(ID:", edge_info$from, ") - ",  gene_2_symbol,   "(ID:", edge_info$to,   ")"),
-      # --- Jaccard formula and value ---
-      HTML("<h4>Jaccard Index Formula</h4>"),
-      # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
-      HTML(
-        paste0(
-          "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
-          intersection_size,
-          " / ",
-          union_size,
-          " = ",
-          round(jaccard_index, 3),
-          "</strong></p>"
-        )
-      ),
-      HTML(paste0("<p><strong>Jaccard Index Value:</strong> ",
-                  round(jaccard_index, 3), "</p>")),
+
+ 
       
+      fluidRow(
+        column(6,
+               HTML("<h4>Jaccard Index Formula</h4>"),
+               # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
+               HTML(
+                 paste0(
+                   "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
+                   intersection_size,
+                   " / ",
+                   union_size,
+                   " = ",
+                   round(jaccard_index, 3),
+                   "</strong></p>"
+                 )
+               )  
+          
+        ),
+        column(6,
+               HTML(paste0(
+                 "<div style='
+          background-color: #fdf6e3;
+          border: 2px solid #f39c12;
+          padding: 10px 15px;
+          margin-top: 10px;
+          border-radius: 8px;
+          font-family: Arial, sans-serif;
+          width: fit-content;
+          max-width: 250px;
+      '>
+        <p style='margin: 0; font-size: 14px;'>Jaccard Index Value:</p>
+        <p style='margin: 0; font-size: 24px; font-weight: bold; color: #f39c12;'>",
+                 round(jaccard_index, 3),
+                 "</p>
+      </div>"
+               )),
+               )
+      ),
+      
+      br(),
       # --- Plot output ---
       fluidRow(align = "center",
-               plotOutput("eulerPlot_edge")
+               plotOutput("eulerPlot_jaccard")
       ),
+      br(),
       # plotOutput("eulerPlot_edge"),
       box(
         title = HTML("Children/parent proportion"),
@@ -819,24 +630,35 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
       ),
       
       # --- Three tables side by side ---
-      fluidRow(
-        column(
-          width = 4,
-          h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
-          dataTableOutput("table_gen1_only")
-        ),
-        column(
-          width = 4,
-          h5("Intersection of Phenotypes"),
-          dataTableOutput("table_intersection")
-        ),
-        column(
-          width = 4,
-          h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
-          # h5(paste("Phenotypes only in", node_to)),
-          dataTableOutput("table_gen2_only")
+      box(
+        title = HTML("Phenotypes tables"),
+        width = NULL,
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        collapsed = TRUE,  # Starts collapsed
+        status = "warning",
+        fluidRow(
+          column(
+            width = 4,
+            h5(paste("Phenotypes only in",gene_1_symbol," (", node_from,")")),
+            dataTableOutput("table_gen1_only")
+          ),
+          column(
+            width = 4,
+            h5("Intersection of Phenotypes"),
+            dataTableOutput("table_intersection")
+          ),
+          column(
+            width = 4,
+            h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
+            # h5(paste("Phenotypes only in", node_to)),
+            dataTableOutput("table_gen2_only")
+          )
         )
-      )
+      ),
+      
+      
+
     )
   
     
@@ -844,7 +666,7 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
       
     
   
-  
+  return(jaccard_ui)
   cat("\033[35m","Finalizando la función 'jaccard_comparison_ui_generator'","\033[0m\n")
   cat("\n\n")
 }
@@ -2431,8 +2253,8 @@ comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
       labs(
         x = "Sample",
         y = "Expression Value",
-        color = "Gene",
-        linetype = "Disease"
+        color = "Disease",
+        linetype = "Gene"
       ) +
       scale_color_manual(values = diseases_color_numerical)
 
@@ -2486,8 +2308,8 @@ comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
       labs(
         x = "Sample",
         y = "Expression Value",
-        color = "Gene",
-        linetype = "Disease"
+        color = "Color",
+        linetype = "Gene"
       ) +
       scale_color_manual(values = diseases_color_numerical)
     
@@ -2690,51 +2512,73 @@ if (!requireNamespace("stringr", quietly = TRUE)) install.packages("stringr")
 library(eulerr)
 library(stringr)
 
-# # Function to create a presence matrix from a list of sets
-# create_presence_matrix <- function(sets_list) {
-#   unique_elements <- unique(unlist(sets_list))  # Get unique elements
-#   presence_matrix <- sapply(sets_list, function(set) unique_elements %in% set)
-#   rownames(presence_matrix) <- unique_elements
-#   return(as.data.frame(presence_matrix))
-# }
-# 
-# # Function to plot an Euler diagram from a list of sets
-# plot_euler_edge <- function(sets_list, legend = F, labels = TRUE, counts = TRUE, percent = F, trunc = 40) {
-#   cat("\033[33m", "Running the function 'plot_euler_edge'", "\033[0m\n")
-#   print(str(sets_list))
-#   
-#   # Truncate set names for better visualization
-#   names(sets_list) <- str_trunc(names(sets_list), trunc, "center")
-#   
-#   # Define metrics to display
-#   metrics_logic <- c(counts, percent)
-#   metrics <- c("counts", "percent")
-#   selected_metrics <- metrics[metrics_logic]
-#   
-#   if (length(selected_metrics) < 1) {
-#     selected_metrics <- c()
-#   } else {
-#     selected_metrics <- list(type = selected_metrics)
-#   }
-#   
-#   # Create presence matrix
-#   create_presence_matrix <- function(sets_list) {
-#     unique_elements <- unique(unlist(sets_list))  # Get unique elements
-#     presence_matrix <- sapply(sets_list, function(set) unique_elements %in% set)
-#     rownames(presence_matrix) <- unique_elements
-#     return(as.data.frame(presence_matrix))
-#   }
-#   
-#   
-#   set_list_presence_matrix <- create_presence_matrix(sets_list)
-#   print(str(set_list_presence_matrix))
-#   
-#   # Generate Euler plot
-#   plot(euler(set_list_presence_matrix), 
-#        quantities = selected_metrics,
-#        legend = legend,
-#        labels = labels)
-# }
+
+plot_euler_edge_jaccard <- function(sets_list, counts = TRUE, percent = FALSE, trunc = 25,
+                                    legend = TRUE, labels = TRUE, gene_colors = NULL,
+                                    font_size = 1.3, quantities_font_size = 1.3) {
+  
+  cat("\033[33m", "Running the function 'plot_euler_edge_jaccard'", "\033[0m\n")
+  print(str(sets_list))
+  cat("\033[33m", "colors:", paste0(gene_colors, collapse = " - "), "\033[0m\n")
+  
+  # Truncar nombres
+  names(sets_list) <- str_trunc(names(sets_list), trunc, "center")
+  
+  # Lógica para métricas
+  metrics_logic <- c(counts, percent)
+  metrics <- c("counts", "percent")
+  selected_metrics <- metrics[metrics_logic]
+  
+  if (length(selected_metrics) < 1) {
+    selected_metrics <- c()
+  } else {
+    selected_metrics <- list(type = selected_metrics, cex = quantities_font_size)
+  }
+  
+  # Matriz de presencia
+  create_presence_matrix <- function(sets_list) {
+    unique_elements <- unique(unlist(sets_list))
+    presence_matrix <- sapply(sets_list, function(set) unique_elements %in% set)
+    rownames(presence_matrix) <- unique_elements
+    as.data.frame(presence_matrix)
+  }
+  
+  set_list_presence_matrix <- create_presence_matrix(sets_list)
+  print(str(set_list_presence_matrix))
+  
+  n_sets <- ncol(set_list_presence_matrix)
+  
+  # Si el usuario no pasa colores personalizados, usar paleta pastel
+  if (is.null(gene_colors)) {
+    fills <- colorRampPalette(brewer.pal(3, "Pastel1"))(n_sets)
+  } else {
+    if (length(gene_colors) < n_sets) {
+      warning("Insufficient number of colors provided; recycling colors.")
+      fills <- rep(gene_colors, length.out = n_sets)
+    } else {
+      fills <- gene_colors[1:n_sets]
+    }
+  }
+  fills <- unlist(fills)
+  
+  # Crear objeto Euler
+  euler_obj <- euler(set_list_presence_matrix)
+  
+  # Labels personalizados si labels == TRUE
+  label_param <- if (isTRUE(labels)) list(cex = font_size) else labels
+  
+  # Plot
+  plot(
+    euler_obj,
+    quantities = selected_metrics,
+    legend = legend,
+    labels = label_param,
+    fills = fills,
+    alpha = 0.8,
+    edges = list(col = "gray40", lwd = 1)
+  )
+}
+
 
 
 
@@ -2782,6 +2626,8 @@ plot_euler_edge <- function(
   # If you have many more sets, you might consider using multiple palettes or another scheme.
   pastel_colors <- colorRampPalette(brewer.pal(3, "Pastel1"))(n_sets)
   
+  cat("\033[33m", "Pastel Colors:", paste0(pastel_colors, collapse = " - "), "\033[0m\n")
+  print(str(pastel_colors))
   # Create Euler object
   euler_obj <- euler(set_list_presence_matrix)
   
