@@ -2091,7 +2091,12 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
 
 comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
   
+
+  
   print("NUMERICAL")
+  genes_symbols <- c(genes_database[[data_df$Gene[1]]]$gene_symbol,genes_database[[data_df$Gene[2]]]$gene_symbol)
+  print(genes_symbols)
+  
   diseases_color_numerical <- unlist(diseases_color)
   names(diseases_color_numerical) <- names(diseases_color)
   
@@ -2236,8 +2241,12 @@ comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
         disease_name <- names(Filter(function(genes) .x %in% genes, disease_list))
         if (length(disease_name) > 0) disease_name else "Unknown"
       }))
-
-
+    
+    old_symbols <- unique(df_long$Gene)
+    new_symbols <- genes_symbols
+    df_long_Gene <- df_long$Gene
+    df_long_Gene <- ifelse(df_long_Gene == old_symbols[1], new_symbols[1], new_symbols[2])
+    df_long$Gene <- df_long_Gene
     # Graficar los datos
     numerical_plot <- ggplot(df_long, aes(x = Sample, y = mean_expression, group = Gene)) +
       geom_line(aes(color = Disease, linetype = Gene)) +
@@ -2293,6 +2302,13 @@ comparison_plot_generator_NUMERICAL <- function(data_df, diseases_color){
         if (length(disease_name) > 0) disease_name else "Unknown"
       }))
     
+    
+    
+    old_symbols <- unique(df_long$Gene)
+    new_symbols <- genes_symbols
+    df_long_Gene <- df_long$Gene
+    df_long_Gene <- ifelse(df_long_Gene == old_symbols[1], new_symbols[1], new_symbols[2])
+    df_long$Gene <- df_long_Gene
     # Graficar los datos
     numerical_plot <- ggplot(df_long, aes(x = structure_name, y = mean_expression, group = Gene)) +
       geom_line(aes(color = Disease, linetype = Gene)) +

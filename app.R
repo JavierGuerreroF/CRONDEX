@@ -5,7 +5,7 @@
 options(ragg.max_dim = 100000)  # Ajusta el límite según sea necesario
 # remotes::install_github("upsetjs/upsetjs_r")
 # 
-website_name <- "CROND"
+website_name <- "CRONDEX"
 
 cat("\n\n\033[31mSTARTING APP...\033[0m\n\n\n")
 # load packages
@@ -705,7 +705,10 @@ server <- function(input, output, session) {
         column(12,
                div(
                  style = "margin: 10px;",
-                 h1("CROND", style = "color: #f39c12; font-family: Tahoma, sans-serif; font-size: 2.8em;"),
+                 h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+                    style = "font-size: 2.8em;"),
+                 
+                 # h1("CROND", style = "color: #f39c12; font-family: Tahoma, sans-serif; font-size: 2.8em;"),
                  h3(strong("ChROmatin and NeuroDevelopmental Disorder Protein Explorer")),
                  p(style = "font-size: 1.2em;",
                    "CROND is a specialized web portal integrating proteins associated with chromatin and their role in neurodevelopmental disorders. 
