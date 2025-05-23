@@ -203,65 +203,56 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                     condition = "input.tabs == 'main_tab' | input.tabs == 'plots_tab' | input.tabs == 'variants_tab' ",
                                     id = "filters_panel_full",
                                     fluidRow(column(12,align = "center",
+                                                    
+                                                    
                                                     actionBttn(
                                                       inputId = "perform_search",
-                                                      label = "Perform search",
-                                                      style = "unite", 
-                                                      color = "warning"
+                                                      label   = "Perform search",
+                                                      style   = "unite",
+                                                      color   = "warning",
+                                                      size    = "lg",
+                                                      # block   = TRUE          # ocupa el 100 % del contenedor
                                                     )
+                                                    
+                                                    # actionBttn(
+                                                    #   inputId = "perform_search",
+                                                    #   label = "Perform search",
+                                                    #   style = "unite", 
+                                                    #   color = "warning"
+                                                    # )
                                     )
                                     ),
-                                    
+                                    hr(),
                                     fluidRow(column(12,
                                                     align = "center",
                                                     
-                                                    materialSwitch(
-                                                      inputId = "show_filters",
-                                                      label = "Show filters", 
-                                                      value = T,
-                                                      status = "warning"
-                                                    ),
-                                                    
-                                                    # switchInput(
+                                                    # materialSwitch(
                                                     #   inputId = "show_filters",
                                                     #   label = "Show filters", 
-                                                    #   labelWidth = "180px",
-                                                    #   size = "mini"
+                                                    #   value = T,
+                                                    #   status = "warning"
                                                     # ),
                                                     
+
                                                     )),
-                                    conditionalPanel(
-                                      condition = "input.show_filters == true",
-                                      id = "filters_panel",
+                                    tagList( #)
+                                    # conditionalPanel(
+                                    #   condition = "input.show_filters == true",
+                                    #   id = "filters_panel",
                                       # file input
-                                      div(id = "file_input",
-                                          fileInput("file", "Upload your file to filter", accept = c(".txt",".csv",".tsv"))
-                                      ),
-                                      div(style = "margin-top: -20px"),
-                                      fluidRow(
-                                        column(8,
-                                               align = "center",
-                                               actionBttn(
-                                                 width = "100%",
-                                                 inputId = "clear_file",
-                                                 label = "Clear file input", 
-                                                 style = "bordered",
-                                                 color = "warning"
-                                               )
-                                        ),
-                                        column(4,
-                                               align = "left",
-                                               actionBttn(
-                                                 inputId = "help_input_file",
-                                                 label = NULL,
-                                                 style = "material-circle", 
-                                                 color = "warning",
-                                                 icon = icon("question")
-                                                 
-                                               )
-                                        )
-                                      ),
                                       
+
+                                      
+                                      tagList(
+                                      # PICKER INPUTS
+                                      actionBttn(
+                                        width = "100%",
+                                        inputId = "reset_inputs",
+                                        label = "Reset filters", 
+                                        style = "bordered",
+                                        color = "warning",
+                                        size = "sm"
+                                      ),
                                       
                                       # picker inputs
                                       generic_picker_input("gene_selection","Genes",input_list_genes_CHOICES,input_list_genes$SUBTEXT,style = input_list_genes_style),
@@ -271,6 +262,41 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                       generic_picker_input("gene_ontology_subontology_selection","Gene Ontology Subontology",input_list_gene_ontology_subontology,style = input_list_gene_ontology_subontology_style),
                                       generic_picker_input("gene_ontology_selection","Gene Ontology",input_list_gene_ontology_CHOICES,input_list_gene_ontology$SUBTEXT,style = input_list_gene_ontology_style),
                                       generic_picker_input("pathway_selection","Pathways",input_list_pathways_CHOICES,input_list_pathways$SUBTEXT,style = input_list_pathways_style),
+                                      ),
+                                      hr(),
+                                      tagList(
+                                        # FILE UPLOAD
+                                        
+                                        div(id = "file_input",
+                                            fileInput("file", "Upload your file to filter", accept = c(".txt",".csv",".tsv"))
+                                        ),
+                                        div(style = "margin-top: -20px"),
+                                        fluidRow(
+                                          column(8,
+                                                 align = "center",
+                                                 actionBttn(
+                                                   width = "100%",
+                                                   inputId = "clear_file",
+                                                   label = "Clear file input", 
+                                                   style = "bordered",
+                                                   color = "warning",
+                                                   size = "sm"
+                                                   
+                                                 )
+                                          ),
+                                          column(4,
+                                                 align = "left",
+                                                 actionBttn(
+                                                   inputId = "help_input_file",
+                                                   label = NULL,
+                                                   style = "material-circle", 
+                                                   color = "warning",
+                                                   icon = icon("question")
+                                                   
+                                                 )
+                                          )
+                                        )
+                                      ),
                                       br(),br()
                                       
                                       

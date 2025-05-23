@@ -39,17 +39,16 @@ print("Scripts loaded")
 genes_database <- readRDS("data/genes_database.rds")
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
-# print(cat("\033[32mGENES DATABASE NEW\033[0m\n"))
-# print(length(genes_database_new))
-# print(genes_database_new[1])
-# print(cat("\033[32mGENES DATABASE OLD\033[0m\n"))
-# print(length(genes_database))
-# print(genes_database[1])
 
 file_format_help <- readChar("data/file_format_help.txt", file.info("data/file_format_help.txt")$size)
 
 network_genes_data <- read.csv("data/network_data/network_genes_data_names.csv")
 df_frecuencias_children <<- read.csv("data/network_data/df_frecuencias_children.csv")
+
+
+# Filter db deleting NO NDD diseases asociated
+sysndd_ndd_phenotype <- read.csv("data/sysndd_ndd_phenotype.csv")
+genes_database <- filter_genes_by_phenotype(genes_database, sysndd_ndd_phenoype)
 
 all_genes <<-  data.frame(
   ENTREZID= names(genes_database),
@@ -163,7 +162,8 @@ ui_dash <- dashboardPage(
       ),
       # website_name
       tags$strong(
-        website_name,
+        HTML('<span style="color: #ffffff; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+        # website_name,
         style = "font-size: 20px; font-weight: bold; color: #ffffff;"
       )
       
@@ -318,6 +318,51 @@ ui_dash <- dashboardPage(
   #   }
   # "))
   #   ),
+
+# filters css
+# tags$head(
+#   tags$style(HTML("
+#     .list-group-item { padding: .45rem .6rem; font-size: 3 rem; }
+#     .badge           { max-width: 60%; white-space: normal; }
+#     .btn-success      { background-color: #9ee79e; border-color: #9ee79e; }
+#   "))
+# ),
+## Put this in your UI (e.g. inside fluidPage / dashboardBody)
+tags$head(
+  tags$style(HTML("
+    /* ---------- Filter list layout ---------- */
+    .list-group-item {
+      padding: .45rem .75rem;
+      font-size: 1.5rem;
+    }
+
+    /* ---------- Solid pastel‑blue badges ---------- */
+    .badge.bg-warning {
+      background-color: #cde5ff;       /* pastel blue, no gradient */
+      color: #033f67;                  /* darker blue text */
+      font-weight: 500;
+      font-size: 1.25rem;
+      border-radius: .65rem;
+      padding: .40em .75em;
+      box-shadow: 0 0 .25rem rgba(0,0,0,.15);
+      max-width: 60%;
+      white-space: normal;
+    }
+
+    /* ---------- Light‑green full‑width buttons ---------- */
+    .btn-success {
+      background-color: #6fcb6f;
+      border-color:     #6fcb6f;
+      font-size: 1.25rem;
+    }
+    .btn-success:hover,
+    .btn-success:focus {
+      background-color: #5db75d;
+      border-color:     #5db75d;
+    }
+  "))
+),
+
 
     
     # hoglight sidebar: 
@@ -889,7 +934,25 @@ server <- function(input, output, session) {
   #   
   # })
   
+  # observeEvent(input$reset_inputs, {
+  #   print("TESTINT INPUT RESET")
+  #   print(str(session))
+  #   print(input$gene_selection )
+  #   updatePickerInput(session, "gene_selection", selected = character(0))
+  #   print(input$gene_selection)
+  # })
   
+
+  
+  observeEvent(input$reset_inputs, {
+    # Vector con los IDs de los pickers que quieras reiniciar
+    picker_ids <- c("gene_selection", "phenotype_selection", "disease_selection",
+                    "gene_ontology_subontology_selection", "gene_ontology_selection",
+                    "pathway_selection")
+    lapply(picker_ids, \(id)
+           updatePickerInput(session, id, selected = character(0))   # character(0) == NULL para Shiny
+    )
+  })
   
   # filtered database
  observeEvent(input$perform_search,{
@@ -933,6 +996,239 @@ server <- function(input, output, session) {
     filters$source_filter <- as.character(source_filter)
     
     print(str(filters))
+
+    ##############################################################################
+    ##  SERVER block — paste inside your
+    ##  server(function(input, output, session) { … })
+    ##############################################################################
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  A. Row builder
+    ##     • Layout: fluidRow → column(3) label | column(6) badge | column(3) button
+    ##     • “None” if the filter is empty
+    ##     • Shows first 15 values, then “…” if more exist
+    ##     • “See more” button appears only when:
+    ##         – the filter is NOT empty  AND
+    ##         – the row is **not** GO‑Sub‑ontology
+    ## ──────────────────────────────────────────────────────────────────────────
+    make_row <- function(label, values, id_slug) {
+      empty      <- length(values) == 0L || all(is.na(values))
+      over_limit <- length(values) > 15L
+      show_btn   <- !empty && id_slug != "gosub"           # <- no button for sub‑ontology
+      
+      badge_txt <- if (empty) {
+        "None"
+      } else if (over_limit) {
+        paste(c(head(values, 15L), "..."), collapse = ", ")
+      } else {
+        paste(values, collapse = ", ")
+      }
+      
+      tags$li(
+        class = "list-group-item",
+        fluidRow(
+          column(3, strong(label)),
+          column(6, tags$span(badge_txt, class = "badge bg-warning text-dark")),
+          column(3,
+                 if (show_btn)
+                   actionButton(
+                     inputId = paste0("see_", id_slug),
+                     label   = "See more",
+                     class   = "btn btn-success btn-sm w-100"
+                   )
+          )
+        )
+      )
+    }
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  B. Render the Active‑filters list  (assumes ‘filters’ already exists)
+    ## ──────────────────────────────────────────────────────────────────────────
+    output$active_filters_ui <- renderUI({
+      tags$ul(class = "list-group list-group-flush",
+              make_row("Genes Entrez ID",           filters$gene_filter,                      "genes"),
+              make_row("Phenotypes HPO ID",      filters$phenotype_filter,                 "phenotypes"),
+              make_row("Diseases OMIM ID",        filters$disease_filter,                   "diseases"),
+              make_row("GeneOntology ID",        filters$gene_ontology_filter,             "go"),
+              make_row("GO Sub‑ontology", filters$gene_ontology_subontology_filter, "gosub"),
+              make_row("Pathways KEGG ID",        filters$pathway_filter,                   "pathways")
+      )
+    })
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  C.  Master tables  (prepared earlier in your script)
+    ## ──────────────────────────────────────────────────────────────────────────
+    all_sources_df <- tibble::tibble(source = all_sources)   # vector → data.frame
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  D.  Helper: return the appropriate *filtered* table
+    ## ──────────────────────────────────────────────────────────────────────────
+    get_filtered_table <- function(slug) {
+      switch(slug,
+             genes = if (length(filters$gene_filter) > 0L)
+               dplyr::filter(all_genes, ENTREZID %in% filters$gene_filter)
+             else all_genes,
+             
+             phenotypes = if (length(filters$phenotype_filter) > 0L)
+               dplyr::filter(all_phenotypes, hpo_id %in% filters$phenotype_filter)
+             else all_phenotypes,
+             
+             diseases = if (length(filters$disease_filter) > 0L)
+               dplyr::filter(all_diseases, disease_id %in% filters$disease_filter)
+             else all_diseases,
+             
+             go = if (length(filters$gene_ontology_filter) > 0L)
+               dplyr::filter(all_gene_ontology, go_id %in% filters$gene_ontology_filter)
+             else all_gene_ontology,
+             
+             gosub = if (length(filters$gene_ontology_subontology_filter) > 0L)
+               dplyr::filter(all_gene_ontology_subontology,
+                             subontology %in% filters$gene_ontology_subontology_filter)
+             else all_gene_ontology_subontology,
+             
+             pathways = if (length(filters$pathway_filter) > 0L)
+               dplyr::filter(all_pathways, kegg_pathway_id %in% filters$pathway_filter)
+             else all_pathways,
+             
+             source = if (length(filters$source_filter) > 0L)
+               dplyr::filter(all_sources_df, source %in% filters$source_filter)
+             else all_sources_df
+      )
+    }
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  E.  Generic modal launcher with DT table
+    ## ──────────────────────────────────────────────────────────────────────────
+    show_table_modal <- function(slug, title) {
+      showModal(
+        modalDialog(
+          title     = title,
+          DT::DTOutput(outputId = paste0("tbl_", slug)),
+          size      = "l",
+          easyClose = TRUE
+        )
+      )
+      
+      output[[paste0("tbl_", slug)]] <- DT::renderDT({
+        DT::datatable(
+          get_filtered_table(slug),
+          extensions = "Buttons",
+          options = list(
+            pageLength = 10,
+            scrollX    = TRUE,
+            dom        = "Bfrtip",
+            buttons    = c("copy", "csv", "excel", "pdf", "print")
+          )
+        )
+      })
+    }
+    
+    ## ──────────────────────────────────────────────────────────────────────────
+    ##  F.  Observers — one for every “See more” button that exists
+    ##      (no button for sub‑ontology → observer harmless if never triggered)
+    ## ──────────────────────────────────────────────────────────────────────────
+    observeEvent(input$see_genes,      show_table_modal("genes",      "Genes"))
+    observeEvent(input$see_phenotypes, show_table_modal("phenotypes", "Phenotypes"))
+    observeEvent(input$see_diseases,   show_table_modal("diseases",   "Diseases"))
+    observeEvent(input$see_go,         show_table_modal("go",         "Gene Ontology"))
+    observeEvent(input$see_gosub,      show_table_modal("gosub",      "GO Sub‑ontology"))
+    observeEvent(input$see_pathways,   show_table_modal("pathways",   "Pathways"))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ## Assumes *filters* is already available in the enclosing scope
+    ## (e.g. created in observeEvent(input$perform_search, { … }))
+    # ## ---- ui helper -----------------------------------------------------------
+    # make_row <- function(label, values, id_slug) {
+    #   tags$li(
+    #     class = "list-group-item d-flex justify-content-between align-items-center",
+    #     tags$span(label),
+    #     
+    #     ## value badge + "see more" button sit together
+    #     tags$div(class = "d-flex align-items-center",
+    #              tags$span(
+    #                if (length(values) == 0L || all(is.na(values))) "All"
+    #                else paste(values, collapse = ", "),
+    #                class = "badge bg-warning text-dark"
+    #              ),
+    #              actionButton(
+    #                inputId = paste0("see_", id_slug),
+    #                label   = "See more",
+    #                class   = "btn btn-success btn-sm ms-2"
+    #              )
+    #     )
+    #   )
+    # }
+    # 
+    # 
+    # output$active_filters_ui <- renderUI({
+    #   tags$ul(
+    #     class = "list-group list-group-flush",
+    #     
+    #     make_row("Genes",           filters$gene_filter,                      "genes"),
+    #     make_row("Phenotypes",      filters$phenotype_filter,                 "phenotypes"),
+    #     make_row("Diseases",        filters$disease_filter,                   "diseases"),
+    #     make_row("GO Terms",        filters$gene_ontology_filter,             "go"),
+    #     make_row("GO Sub‑ontology", filters$gene_ontology_subontology_filter, "gosub"),
+    #     make_row("Pathways",        filters$pathway_filter,                   "pathways"),
+    #     make_row("Source",          filters$source_filter,                    "source")
+    #   )
+    # })
+    
+    
+    
+    
+    # output$active_filters_ui <- renderUI({
+    #   
+    #   #— Helper: renders a single <li> line  -----------------------------------
+    #   make_row <- function(label, values) {
+    #     tags$li(
+    #       class = "list-group-item d-flex justify-content-between align-items-center",
+    #       tags$span(label),
+    #       tags$span(
+    #         if (length(values) == 0L || all(is.na(values))) "None"
+    #         else paste(values, collapse = ", "),
+    #         class = "badge bg-warning text-dark"
+    #       )
+    #     )
+    #   }
+    #   
+    #   #— Build the list --------------------------------------------------------
+    #   tags$ul(
+    #     class = "list-group list-group-flush",
+    #     
+    #     make_row("Genes Entrez ID",        filters$gene_filter),
+    #     make_row("Phenotypes HPO ID",   filters$phenotype_filter),
+    #     make_row("Diseases OMIM ID",     filters$disease_filter),
+    #     make_row("GO Terms ID",     filters$gene_ontology_filter),
+    #     make_row("GO Sub‑ontology", filters$gene_ontology_subontology_filter),
+    #     make_row("Pathways ID",     filters$pathway_filter)
+    #     # make_row("Source",       filters$source_filter)
+    #   )
+    # })
+    
+    # # ui.R  o bien dentro de dashboardBody()
+    query_ui <- tagList(
+      box(
+        title       = tagList(icon("filter"), "Active filters"),
+        status      = "warning",
+        solidHeader = TRUE,
+        width       = NULL,
+        collapsible = TRUE,
+        collapsed = T,
+        
+        # aquí se pintará dinámicamente el resumen
+        uiOutput("active_filters_ui")
+      )
+    )
+    
+    vals$query_ui <- query_ui
  
     # filter from input file 
     
@@ -1445,9 +1741,33 @@ output$table_phenotypes <- renderDataTable({
 
  
   ## CLAUDE SONNET proposal
-  
+ # observe({
+ #   query_ui <- tagList(
+ #     box(
+ #       title = "Query",
+ #       width = 12,
+ #       solidHeader = FALSE,
+ #       collapsible = FALSE,
+ #       fluidRow(),
+ #       hr(),
+ #       fluidRow()
+ #     )
+ #   )
+ #   
+ #   main_info <- tagList(
+ #     fluidRow(
+ #       re
+ #     )
+ #   )
+ # }) 
+ 
+ 
+ 
+ 
   
   observe({
+    
+    
     if(is.null(vals$database_size)) {
       vals$database_size <- 0
     }
@@ -1456,7 +1776,7 @@ output$table_phenotypes <- renderDataTable({
       vals$gene_information <- vals$gene_database_filtered[[1]]
     }
 
-    output$main_info <- renderUI({
+    result_main_info_ui <- tagList(
       
       if(vals$database_size == 0 || is.null(vals$database_size)) {
         # box(title = NULL,
@@ -1473,7 +1793,7 @@ output$table_phenotypes <- renderDataTable({
         
         box(
           title = NULL,
-          width = 12,
+          width = NULL,
           solidHeader = FALSE,
           collapsible = FALSE,
           
@@ -1526,7 +1846,7 @@ output$table_phenotypes <- renderDataTable({
         )
         
         
-
+        
         
       } else if(vals$database_size == 1) {
         box(title = "Protein information:",
@@ -1543,7 +1863,7 @@ output$table_phenotypes <- renderDataTable({
                        h5(vals$gene_information$ncbi_gene_id),
                        h4(vals$gene_information$description)
                      )
-                    
+                     
               )
             ),
             hr(),
@@ -1559,14 +1879,14 @@ output$table_phenotypes <- renderDataTable({
                        solidHeader = T,
                        status = "warning",
                        # fluidRow(
-                         
-                         uiOutput("cellular_expression_ui")
-                         
+                       
+                       uiOutput("cellular_expression_ui")
+                       
                        # )
                      )
                      # h3("Cellular expression"),
                      # uiOutput("cellular_expression_ui")
-                     ),
+              ),
             ),
             fluidRow(
               column(12,
@@ -1626,9 +1946,9 @@ output$table_phenotypes <- renderDataTable({
               
             ),
             # HPO info
-              fluidRow(align = "left",
-                       column(12,
-                              div(
+            fluidRow(align = "left",
+                     column(12,
+                            div(
                               style = "margin: 10px;",  # Ajusta el valor según necesites
                               tags$a(
                                 href="https://hpo.jax.org/",
@@ -1637,14 +1957,14 @@ output$table_phenotypes <- renderDataTable({
                                          alt="HPO-logo",
                                          width="20%",
                                          height="10%"
-                                         ),
+                                ),
                                 target="_blank"
-                                    )
-                                  )
-                              
                               )
-
-                      ),
+                            )
+                            
+                     )
+                     
+            ),
             box(
               width = NULL,
               fluidRow(
@@ -1662,7 +1982,7 @@ output$table_phenotypes <- renderDataTable({
                 
               )
               
-            
+              
               
               
             ),
@@ -1719,14 +2039,14 @@ output$table_phenotypes <- renderDataTable({
               )
               
             )  
-
+            
         )
       } else if(vals$database_size > 1) {
         
         
         # MULTIPLE PROTEINS
         box(title = "Multiple proteins",
-            width = 12,
+            width = NULL,
             solidHeader = FALSE,
             collapsible = FALSE,
             
@@ -1737,9 +2057,9 @@ output$table_phenotypes <- renderDataTable({
                      div(
                        style = "margin: 10px;",  # Ajusta el valor según necesites
                        h2(paste0(length(vals$proteins_list))),
-                        p(" Proteins selected")
+                       p(" Proteins selected")
                      ),
-                     ),
+              ),
               column(2,
                      div(
                        style = "margin: 10px;",
@@ -1752,8 +2072,8 @@ output$table_phenotypes <- renderDataTable({
                        )
                        # Ajusta el valor según necesites
                      )
-
-                     ),
+                     
+              ),
               
               # column(2,
               #        div(
@@ -1770,7 +2090,7 @@ output$table_phenotypes <- renderDataTable({
               # ),
               
               column(width = 8,
-                            # h2("Protein information"),
+                     # h2("Protein information"),
                      fluidRow(
                        align = "left",
                        div(
@@ -1779,9 +2099,9 @@ output$table_phenotypes <- renderDataTable({
                        )
                        
                      )
-                            
-                     )
-              ),
+                     
+              )
+            ),
             
             
             
@@ -1843,14 +2163,14 @@ output$table_phenotypes <- renderDataTable({
                               style = "margin: 10px;",  # Ajusta el valor según necesites
                               tags$a(
                                 href="https://hpo.jax.org/",
-                                 tags$img(src="images/hpo-logo.png",
+                                tags$img(src="images/hpo-logo.png",
                                          title="Human Phenotype Ontology",
                                          alt="HPO-logo",
                                          width="20%",
                                          height="10%"),
                                 target="_blank"
                               )
-
+                              
                               # tags$a(
                               #   href="https://hpo.jax.org/",
                               #   tags$img(src="images/GO_logo.png",#"images/HPO_logo.png",
@@ -1903,7 +2223,7 @@ output$table_phenotypes <- renderDataTable({
             box(
               width = NULL,
               
-
+              
               # 
               # actionBttn(
               #   inputId = "gene_ontology_euler_plot",
@@ -1914,10 +2234,10 @@ output$table_phenotypes <- renderDataTable({
               # )
               
               # distinto de 1 ROW
-       
-                fluidRow(
-                  h3('Gene Ontology')
-                ),
+              
+              fluidRow(
+                h3('Gene Ontology')
+              ),
               fluidRow(
                 dataTableOutput('table_gene_ontology')
               )
@@ -1972,7 +2292,22 @@ output$table_phenotypes <- renderDataTable({
             # Aquí puedes añadir más contenido para múltiples proteínas
         )
       }
-    })
+    )
+    
+    main_info <- tagList(
+      fluidRow(
+        column(12,
+               vals$query_ui
+        )
+      ),
+      fluidRow(
+        column(12,
+               result_main_info_ui
+        )
+      )
+    )
+    
+    output$main_info <- renderUI({main_info})
   })
 
   
@@ -2474,7 +2809,6 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         paste0(vals$proteins_list,collapse=", ")
       }
     
-    # mark
   })
   
   observe({
@@ -3477,8 +3811,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             datos$Porcentaje <- datos$Freq/sum(datos$Freq)*100
             datos <- datos[datos$Porcentaje >1,]
             
-            # MARKA
-            
+
             print(paste0("nrow:", nrow(datos)))
             print(paste0("max:", max(nchar(as.character(datos$Var1)))))
             
@@ -5375,7 +5708,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         column(12,
                sliderInput(
                  inputId = "threshold_jaccard",
-                 label = "Threshold Jaccard",
+                 label = "Threshold Similarity (Jaccard)",
                  min = 0,
                  max = 1,
                  value = c(0.4,1)
@@ -5429,10 +5762,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     
     # THRESHOLDS
-    
-    # observeEvent(list(input$threshold_jaccard,input$metric_width, input$metric_color, input$threshold_color, input$threshold_width),{
-    observeEvent(input$threshold_jaccard,{
-        
+    updateThresholds <- function(){
+      
+      # MARK
       # cat en color de inside
       # metric_width <- input$metric_width
       # metric_color <- input$metric_color
@@ -5475,14 +5807,103 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       colnames(network_data)[colnames(network_data) == "Fila"] <- "Gene 2"
       colnames(network_data)[colnames(network_data) == "columna_name"] <- "Gene 1 symbol"
       colnames(network_data)[colnames(network_data) == "fila_name"] <- "Gene 2 symbol"
-
-
+      
+      
       vals$network_data_to_DT <- network_data
       vals$network_columns <- colnames(network_data)
       
       # vals$metric_color_column <- metric_color
       # vals$metric_width_column <- metric_width
+      
+    }
+    # observeEvent(list(input$threshold_jaccard,input$metric_width, input$metric_color, input$threshold_color, input$threshold_width),{
+    observeEvent(input$selected_gene_network,{
+      # cat en verde
+      cat("\033[32mGENE SELECTION\n\n------>\033[0m\n")
+      selected_gene <- input$selected_gene_network
+      print(selected_gene)
+      print(str(network_data))
+      network_data_filtered <- network_data
+      
+      if (!is.null(selected_gene) && selected_gene %in% c(network_data_filtered$Columna, network_data_filtered$Fila)) {
+        df <- network_data_filtered
+        network_data_filtered_by_gene <- df[df$Fila == selected_gene | df$Columna == selected_gene, ]
+        
+      } else {
+        network_data_filtered_by_gene <- network_data
+        
+      }
+      cat("\033[32m------>\033[0m\n")
+      
+      print(str(network_data_filtered_by_gene))
+      
+      vals$network_data_filtered_by_gene <- network_data_filtered_by_gene
+
     })
+    
+    observeEvent(c(input$threshold_jaccard,vals$network_data_filtered_by_gene),
+                 # ignoreNULL = T,
+                 ignoreInit = T,{
+      updateThresholds()
+    })
+    
+    updateThresholds <- function(){
+      # En verde cat("Ejecuting updateThresholds\n")
+      cat("\033[32mEjecuting updateThresholds\033[0m\n")
+      
+      network_data <- vals$network_data_filtered_by_gene
+      # MARK
+      # cat en color de inside
+      # metric_width <- input$metric_width
+      # metric_color <- input$metric_color
+      metric_color <- "Jaccard"
+      metric_width <- "Jaccard"
+      
+      # threshold_width <- input$threshold_width 
+      # threshold_color <- input$threshold_color
+      # 
+      threshold_jaccard <- input$threshold_jaccard
+      
+      threshold_width <- threshold_jaccard
+      threshold_color <- threshold_jaccard
+      
+      # if(is.null(metric_width) | is.null(metric_color) | is.null(input$threshold_width) | is.null(input$threshold_color)){
+      if(is.null(threshold_jaccard)){
+        number_of_nodes <- NULL
+        number_of_edges <- NULL
+      }else{
+        
+        network_data <- network_data %>% 
+          filter(.[[metric_color]] > threshold_color[1] & .[[metric_color]] < threshold_color[2]) %>% 
+          filter(.[[metric_width]] > threshold_width[1] & .[[metric_width]] < threshold_width[2])
+        
+        number_of_nodes <- length(unique(c(network_data$Columna, network_data$Fila)))
+        number_of_edges <- nrow(network_data)
+      }
+      number_of_nodes_text <- ifelse(is.null(number_of_nodes), "No nodes to display", paste0("Number of nodes to display:<b> ", number_of_nodes,"</b>"))
+      number_of_edges_text <- ifelse(is.null(number_of_edges), "No edges to display", paste0("Number of edges to display:<b> ", number_of_edges,"</b>"))
+      output$number_of_nodes_ui <- renderUI({
+        fluidRow(
+          align = "center",
+          HTML((number_of_nodes_text)),
+          br(),
+          HTML((number_of_edges_text))
+        )
+      })
+      
+      colnames(network_data)[colnames(network_data) == "Columna"] <- "Gene 1"
+      colnames(network_data)[colnames(network_data) == "Fila"] <- "Gene 2"
+      colnames(network_data)[colnames(network_data) == "columna_name"] <- "Gene 1 symbol"
+      colnames(network_data)[colnames(network_data) == "fila_name"] <- "Gene 2 symbol"
+      
+      
+      vals$network_data_to_DT <- network_data
+      vals$network_columns <- colnames(network_data)
+      
+      # vals$metric_color_column <- metric_color
+      # vals$metric_width_column <- metric_width
+      
+    }
     
     # columns selection ui
     output$columns_selection_ui <- renderUI({
@@ -5770,7 +6191,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           selected_gene_phenotypes <- genes_database[[selected_gene]]$phenotypes_id
           cat("\033[33m\n\nselected_gene_phenotypes------>\033[0m\n")
           print(str(selected_gene_phenotypes))
-        if(length(selected_gene_phenotypes) == 0 || is.null(selected_gene_phenotypes) || is.na(selected_gene_phenotypes)){
+          
+        if(length(selected_gene_phenotypes) == 0 || is.null(selected_gene_phenotypes)){
           print("hello")
           shinyalert::shinyalert(
             closeOnClickOutside = T,

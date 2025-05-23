@@ -8,10 +8,46 @@
 library(eulerr)
 library(UpSetR)
 
-
+print("CORRECT FUNCION")
 #variables
 # RdBl pallete for bening, paleta de RdBl de seis colores pero lo quiero a partir de la paelta presexitente rdBl
 paleta_RdBl <- brewer.pal(6, "RdBu")
+
+
+filter_genes_by_phenotype <- function(genes_database, phenotype_df) {
+  
+  #' Depura las enfermedades de cada gen según la tabla de fenotipos NDD
+  #'
+  #' @param genes_database Lista; cada elemento (gen) debe contener:
+  #'        • diseases_id : vector de caracteres  
+  #'        • diseases    : tibble/data.frame con columna disease_id
+  #' @param phenotype_df   Tibble/data.frame con
+  #'        • disease_ontology_id_version  
+  #'        • ndd_phenotype (0 = descartar, 1 = mantener)
+  #' @return La lista con los mismos genes; dentro de cada gen se actualizan
+  #'         diseases_id y diseases ‑‑ las filas/ids no marcadas con 1 desaparecen.
+  ## 1. IDs que debemos conservar
+  keep_ids <- phenotype_df$disease_ontology_id_version[
+    phenotype_df$ndd_phenotype == 1
+  ]
+  
+  ## 2. Recorremos cada gen y filtramos ambas estructuras
+  lapply(genes_database, function(gene) {
+    
+    ## 2a. Vector diseases_id
+    gene$diseases_id <- intersect(gene$diseases_id, keep_ids)
+    
+    ## 2b. Tibble diseases (si existe y es data frame)
+    if ("diseases" %in% names(gene) && is.data.frame(gene$diseases)) {
+      gene$diseases <- gene$diseases[
+        gene$diseases$disease_id %in% keep_ids, ,
+        drop = FALSE
+      ]
+    }
+    
+    gene  # devolvemos el gen, vacío o no
+  })
+}
 
 
 
@@ -332,7 +368,7 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           phenotypes_id_to_filter <- phenotypic_abnormality_subtree_db$ID      
           node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
           node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
-          # MARK
+          
           cat("\033[32m\n\nnode_from_phenotypes------>\033[0m\n")
           print(str(node_to_phenotypes))
           cat("\033[32m\n\nnode_to_phenotypes------>\033[0m\n")
@@ -2746,7 +2782,10 @@ join_df_from_name_freqs <- function(lista, nombres,field) {
     resultado <- unlist(lapply(elementos_seleccionados, function(x) x[[field]]))   
   }
   
+  if(is.null(resultado) || nrow(resultado) == 0 ){return(NULL)
+    break}
   freq <- as.data.frame(table(resultado[1]))
+  
   resultado_unique <- unique(resultado)
   resultado_final <- merge(resultado_unique, freq, by.x = colnames(resultado_unique)[1], by.y = colnames(freq)[1], all.x = TRUE)
   
