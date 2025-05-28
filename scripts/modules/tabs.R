@@ -169,18 +169,19 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                   
                                    
                                    sidebarMenu(
-                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),  
+                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),
+                                     
+                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Analysis"), icon = icon("flask"),
+                                              menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Compare"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
+                                              menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome"))
+                                     ),
                                      menuItem(HTML("&nbsp;&nbsp;&nbsp; Exploration"), icon = icon("magnifying-glass"),
                                               # menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Main information"), tabName = "main_tab", icon = icon("database", lib = "font-awesome")),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Gene Set Visualizer"), tabName = "plots_tab", icon = icon("bar-chart", lib = "font-awesome")),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Variants"), tabName = "variants_tab", icon = icon("dna", lib = "font-awesome"))
                                      ),
-                                     
-                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Analysis"), icon = icon("flask"),
-                                              menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Compare"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
-                                              menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome"))
-                                     ),
+                                   
                                      
                                      menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome"))
                                    ),

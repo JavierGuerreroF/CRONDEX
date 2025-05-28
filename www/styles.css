@@ -1,0 +1,216 @@
+/* Estilo 1: Moderno con gradientes */
+#neighbors_cluster_button .btn-group {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+#neighbors_cluster_button .btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+#neighbors_cluster_button .btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+#neighbors_cluster_button .btn:hover:before {
+  left: 100%;
+}
+
+#neighbors_cluster_button .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#neighbors_cluster_button .btn.active {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(79, 172, 254, 0.4);
+}
+
+/* Estilo 2: Minimalista elegante */
+.style-minimal #neighbors_cluster_button .btn-group {
+  border-radius: 25px;
+  background: #f8f9fa;
+  padding: 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.style-minimal #neighbors_cluster_button .btn {
+  background: transparent;
+  border: none;
+  color: #495057;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.style-minimal #neighbors_cluster_button .btn:hover {
+  background: rgba(0,123,255,0.1);
+  color: #007bff;
+}
+
+.style-minimal #neighbors_cluster_button .btn.active {
+  background: #007bff;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+/* Estilo 3: Neumorphism */
+.style-neuro #neighbors_cluster_button .btn-group {
+  background: #e0e5ec;
+  border-radius: 20px;
+  padding: 8px;
+  box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
+  border: none;
+}
+
+.style-neuro #neighbors_cluster_button .btn {
+  background: #e0e5ec;
+  border: none;
+  color: #333;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  box-shadow: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff;
+}
+
+.style-neuro #neighbors_cluster_button .btn:hover {
+  box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
+}
+
+.style-neuro #neighbors_cluster_button .btn.active {
+  background: #667eea;
+  color: white;
+  box-shadow: inset 5px 5px 10px rgba(0,0,0,0.2);
+}
+
+/* Estilo 4: Glassmorphism */
+.style-glass #neighbors_cluster_button .btn-group {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.style-glass #neighbors_cluster_button .btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #333;
+  font-weight: 500;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.style-glass #neighbors_cluster_button .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.style-glass #neighbors_cluster_button .btn.active {
+  background: rgba(79, 172, 254, 0.6);
+  color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+/* Estilo 5: Botones pill con iconos */
+.style-pill #neighbors_cluster_button .btn-group {
+  border-radius: 50px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.style-pill #neighbors_cluster_button .btn {
+  background: #6c757d;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 14px 28px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.style-pill #neighbors_cluster_button .btn:hover {
+  background: #5a6268;
+  transform: scale(1.05);
+}
+
+.style-pill #neighbors_cluster_button .btn.active {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+/* Estilo 6: Sobrio y simple */
+.style-simple #neighbors_cluster_button .btn-group {
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.style-simple #neighbors_cluster_button .btn {
+  background: #ffffff;
+  border: none;
+  color: #495057;
+  font-size: 16px;  
+  font-weight: 400;
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+  border-right: 1px solid #dee2e6;
+}
+
+.style-simple #neighbors_cluster_button .btn:last-child {
+  border-right: none;
+}
+
+.style-simple #neighbors_cluster_button .btn:hover {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.style-simple #neighbors_cluster_button .btn.active {
+  background: #659af0;
+  color: #ffffff;
+}
+
+.style-simple #neighbors_cluster_button .btn:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+
+/* Label personalizado */
+#neighbors_cluster_button > label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+/* Estilo para el tooltip de ayuda */   
+.tiny-help   { border:none; background:none; padding:0 0 0 4px; }
+.tiny-help i { font-size: 1.5rem; color:#6c757d; }      /* gris suave */
+.tiny-help:hover i { color:#0d6efd; }                   /* azul al pasar */
+

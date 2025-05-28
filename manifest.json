@@ -819,6 +819,30 @@
         "Archs": "base64enc.so.dSYM"
       }
     },
+    "beeswarm": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "beeswarm",
+        "Title": "The Bee Swarm Plot, an Alternative to Stripchart",
+        "Description": "The bee swarm plot is a one-dimensional scatter plot like\n    \"stripchart\", but with closely-packed, non-overlapping points. ",
+        "Version": "0.4.0",
+        "Date": "2021-05-07",
+        "Authors@R": "c(\n    person(\"Aron\", \"Eklund\", , \"aroneklund@gmail.com\",\n           role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-0861-1001\")),\n    person(\"James\", \"Trimble\", role = \"aut\",\n           comment = c(ORCID = \"0000-0001-7282-8745\"))\n    )",
+        "Imports": "stats, graphics, grDevices, utils",
+        "NeedsCompilation": "yes",
+        "License": "Artistic-2.0",
+        "URL": "https://github.com/aroneklund/beeswarm",
+        "BugReports": "https://github.com/aroneklund/beeswarm/issues",
+        "Packaged": "2021-05-07 08:52:45 UTC; aron",
+        "Author": "Aron Eklund [aut, cre] (<https://orcid.org/0000-0003-0861-1001>),\n  James Trimble [aut] (<https://orcid.org/0000-0001-7282-8745>)",
+        "Maintainer": "Aron Eklund <aroneklund@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2021-06-01 21:40:02 UTC",
+        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-01-24 21:39:44 UTC; unix",
+        "Archs": "beeswarm.so.dSYM"
+      }
+    },
     "biomaRt": {
       "Source": "Bioconductor",
       "Repository": "https://bioconductor.org/packages/3.19/bioc",
@@ -1811,6 +1835,34 @@
         "Repository": "CRAN",
         "Date/Publication": "2022-07-05 19:40:02 UTC",
         "Built": "R 4.4.0; ; 2024-04-05 14:59:48 UTC; unix"
+      }
+    },
+    "ggbeeswarm": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "ggbeeswarm",
+        "Type": "Package",
+        "Title": "Categorical Scatter (Violin Point) Plots",
+        "Version": "0.7.2",
+        "Date": "2023-04-28",
+        "Authors@R": "c(\n    person(given=\"Erik\", family=\"Clarke\", role=c(\"aut\", \"cre\"), email=\"erikclarke@gmail.com\"),\n    person(given=\"Scott\", family=\"Sherrill-Mix\", role=c(\"aut\"), email=\"sherrillmix@gmail.com\"),\n    person(given=\"Charlotte\", family=\"Dawson\", role=c(\"aut\"), email=\"csdaw@outlook.com\"))",
+        "Description": "Provides two methods of plotting categorical scatter plots such\n    that the arrangement of points within a category reflects the density of\n    data at that region, and avoids over-plotting.",
+        "URL": "https://github.com/eclarke/ggbeeswarm",
+        "BugReports": "https://github.com/eclarke/ggbeeswarm/issues",
+        "Encoding": "UTF-8",
+        "License": "GPL (>= 3)",
+        "Depends": "R (>= 3.5.0), ggplot2 (>= 3.3.0)",
+        "Imports": "beeswarm, lifecycle, vipor, cli",
+        "Suggests": "gridExtra",
+        "RoxygenNote": "7.2.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-04-29 20:56:12 UTC; erik",
+        "Author": "Erik Clarke [aut, cre],\n  Scott Sherrill-Mix [aut],\n  Charlotte Dawson [aut]",
+        "Maintainer": "Erik Clarke <erikclarke@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-04-29 21:40:02 UTC",
+        "Built": "R 4.4.0; ; 2024-04-06 11:47:20 UTC; unix"
       }
     },
     "ggplot2": {
@@ -4246,6 +4298,31 @@
         "Archs": "vctrs.so.dSYM"
       }
     },
+    "vipor": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "vipor",
+        "Type": "Package",
+        "Title": "Plot Categorical Data Using Quasirandom Noise and Density\nEstimates",
+        "Version": "0.4.7",
+        "Date": "2023-12-15",
+        "Author": "Scott Sherrill-Mix, Erik Clarke",
+        "Maintainer": "Scott Sherrill-Mix <ssm@msu.edu>",
+        "Description": "Generate a violin point plot, a combination of a violin/histogram\n    plot and a scatter plot by offsetting points within a category based on their\n    density using quasirandom noise.",
+        "License": "GPL (>= 2)",
+        "LazyData": "True",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "stats, graphics",
+        "Suggests": "testthat, beeswarm, lattice, ggplot2, beanplot, vioplot,\nggbeeswarm,",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-12-16 03:56:56 UTC; scott",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-12-18 14:30:02 UTC",
+        "Built": "R 4.4.1; ; 2025-01-24 22:06:42 UTC; unix"
+      }
+    },
     "viridisLite": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4531,11 +4608,14 @@
     }
   },
   "files": {
+    ".RData": {
+      "checksum": "f8dbf9c410509cfcb7239ba935224390"
+    },
     "app.R": {
-      "checksum": "b4541a1f4b12202595babf21a80b4e24"
+      "checksum": "4c7fee49838015bfec68cb60db227e4a"
     },
     "data/.DS_Store": {
-      "checksum": "1f723add28f25206cf2af74a70048d35"
+      "checksum": "fccc1531a0baee5121fc4b4b96705e7a"
     },
     "data/all_features_similarities.csv": {
       "checksum": "9832ab261a4d74c90e7f963caae76a98"
@@ -4546,17 +4626,20 @@
     "data/allen-brain-atlas/samples_annot_names.csv": {
       "checksum": "dd120d79c4cf24f62bd2067f5bc07fa3"
     },
-    "data/clinvar_variants_mod_old.csv": {
-      "checksum": "bef1d665628e0ab85d035c26c6eb937c"
-    },
     "data/clinvar_variants_mod.csv": {
       "checksum": "d700a8e604afa8c630a6ca42b110b8a2"
     },
-    "data/cover_old.html": {
-      "checksum": "60f4a2f0595453799c4c83749e94821b"
-    },
     "data/cover.html": {
       "checksum": "97165df0d23cc6bbd11a67729da94c0b"
+    },
+    "data/deprecated/clinvar_variants_mod_old.csv": {
+      "checksum": "bef1d665628e0ab85d035c26c6eb937c"
+    },
+    "data/deprecated/cover_old.html": {
+      "checksum": "60f4a2f0595453799c4c83749e94821b"
+    },
+    "data/deprecated/sysndd_entity_table.xlsx": {
+      "checksum": "de7e26d18ab0a88574710023c2e46946"
     },
     "data/file_format_help.txt": {
       "checksum": "e4872b4ed4262047fb89a6de04228e80"
@@ -4564,11 +4647,14 @@
     "data/filter_from_file.txt": {
       "checksum": "77a617a5c8ed22fe7714210b8c39f975"
     },
+    "data/genes_database.json": {
+      "checksum": "fb15f5e546cb25109fde8693042f61dc"
+    },
     "data/genes_database.rds": {
       "checksum": "c49d100d003f9897df92dedc27660c66"
     },
     "data/network_data/.DS_Store": {
-      "checksum": "5f39abbb4153da227644dd345484facd"
+      "checksum": "a5a1691eb8a2a4171b40f1a4b447bfe7"
     },
     "data/network_data/all_net.csv": {
       "checksum": "d8f55e8054bdd70ee348e207c5e0f9f9"
@@ -4609,11 +4695,20 @@
     "data/network_data/phenotypic_net.csv": {
       "checksum": "101ff60e0e836534400d99132f75da96"
     },
+    "data/network_data/testing.R": {
+      "checksum": "92f875b1121fb36a9cf734721f2cde33"
+    },
+    "data/sysndd_ndd_phenotype.csv": {
+      "checksum": "f867c57e7adfd53bc7ab4793c7e06a5f"
+    },
     "scripts/.DS_Store": {
-      "checksum": "e2938a6b2c304def35d6492fe3630bc7"
+      "checksum": "29090a117af17647e5b0ba2f9c873445"
     },
     "scripts/functions.R": {
-      "checksum": "eafe02e21c8f0d4765c0930facce86f3"
+      "checksum": "4e01ecbd3c50b9bc17d083a6dec0a3ff"
+    },
+    "scripts/modules/.DS_Store": {
+      "checksum": "194577a7e20bdcc7afbb718f502c134c"
     },
     "scripts/modules/interactive_euler.R": {
       "checksum": "8139fd2cae9f77a092c56b6d372fb757"
@@ -4625,7 +4720,7 @@
       "checksum": "00cbd34d8720a0395f2a47c31a20617e"
     },
     "scripts/modules/tabs.R": {
-      "checksum": "014c4fb38d14d86f779e5e2fefc7f104"
+      "checksum": "6914ca0c83f6b5ef789cb2274a16159e"
     },
     "scripts/utils/.DS_Store": {
       "checksum": "194577a7e20bdcc7afbb718f502c134c"
@@ -4645,20 +4740,35 @@
     "scripts/utils/network_test.R": {
       "checksum": "30a957fb3dacb9f7992b0bf0a02df541"
     },
+    "scripts/utils/one_gene_net.R": {
+      "checksum": "ec7a0f87659436dbee3e5b8f1aeacb78"
+    },
+    "scripts/utils/sysndd_diseases_filter.R": {
+      "checksum": "873a17fc10e12b74ec8399a17c3ea9af"
+    },
     "www/.DS_Store": {
-      "checksum": "6be5f6d6fc3fdae4fbbd5d5fc9a2c522"
+      "checksum": "957cf1c8a32de3fcffd1547bd22ee71e"
     },
     "www/brain.svg": {
       "checksum": "d01c2f48e93c083de19d7a7e75db8e8c"
     },
+    "www/crondex-logo.png": {
+      "checksum": "0e2e1e851e7469153f529ea25dce5495"
+    },
     "www/favicon.svg": {
       "checksum": "f322c82eef7e38deda0f4b61003a8ad0"
+    },
+    "www/icons/compare_tool.svg": {
+      "checksum": "f547338efb9fd94ca226b58281b590e4"
     },
     "www/icons/empty_search.svg": {
       "checksum": "5d41b5869ec330ca754380b5ca4c18d9"
     },
     "www/icons/network_placeholder.svg": {
       "checksum": "d8c5d5bff937bb94e8fd6d50a4bd6c4c"
+    },
+    "www/icons/warning_icon.svg": {
+      "checksum": "110daac102977d7feb9eb2f91e017f6e"
     },
     "www/images/.DS_Store": {
       "checksum": "194577a7e20bdcc7afbb718f502c134c"
@@ -4684,8 +4794,14 @@
     "www/images/KEGG_logo.gif": {
       "checksum": "2b8324029b9281d8f44dcf0a751e642d"
     },
-    "www/yellow-brain.svg": {
+    "www/styles.css": {
+      "checksum": "1445c6780579a49ee4745829270da950"
+    },
+    "www/yellow-brain copy.svg": {
       "checksum": "4e06ff05d23867b8fc3af4a63104eeab"
+    },
+    "www/yellow-brain.svg": {
+      "checksum": "5a18125631630eeefa147c88d4e65345"
     }
   },
   "users": null

@@ -48,7 +48,7 @@ df_frecuencias_children <<- read.csv("data/network_data/df_frecuencias_children.
 
 # Filter db deleting NO NDD diseases asociated
 sysndd_ndd_phenotype <- read.csv("data/sysndd_ndd_phenotype.csv")
-genes_database <- filter_genes_by_phenotype(genes_database, sysndd_ndd_phenoype)
+genes_database <- filter_genes_by_phenotype(genes_database, sysndd_ndd_phenotype)
 
 all_genes <<-  data.frame(
   ENTREZID= names(genes_database),
@@ -184,7 +184,12 @@ ui_dash <- dashboardPage(
   ),
   dashboardBody(
     # waiter start ---
- 
+    tags$head(
+      includeCSS("www/styles.css")
+      # O alternativamente:
+      # tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+    ),
+    
     
     use_waiter(),
     
@@ -363,7 +368,7 @@ tags$head(
   "))
 ),
 
-
+                  
     
     # hoglight sidebar: 
 
@@ -956,7 +961,21 @@ server <- function(input, output, session) {
   
   # filtered database
  observeEvent(input$perform_search,{
+    
+    ## ─────────────────────────────────────────────────────────────────────────
+   ## Reset de los outputs
+   
+     plots$tissue_expression_plot <- NULL
+     plots$cellular_expression_plot <- NULL
 
+     tables$table_diseases <- NULL
+     tables$table_phenotypes <- NULL
+     tables$table_gene_ontology <- NULL
+     tables$table_kegg_pathways <- NULL
+     tables$table_genes <- NULL
+     
+     
+     
     print("PERFORM SEARCH")
    
     filters <- list()
@@ -1228,7 +1247,92 @@ server <- function(input, output, session) {
       )
     )
     
-    vals$query_ui <- query_ui
+    vals$query_ui <- fluidRow(
+      column(9,
+             query_ui
+      ),
+      column(3,
+             
+             fluidRow(
+               align = "center",
+               column(12,
+                      
+                      tagList(
+                        ## ---- BOTÓN ----
+                        # shinyWidgets::downloadBttn(
+                        #   outputId = "main_result_download_zip",
+                        #   label    =  "Download Results (.zip)",
+                        #   # style    = "simple",   # sin colores propios, los damos con CSS
+                        #   color    = NULL,
+                        #   size     = "md",
+                        #   block    = TRUE        # ocupa todo el ancho como los LAUNCH
+                        # )
+                        
+                        downloadButton(
+                          outputId = "main_result_download_zip",
+                          label    = "Download results (.zip)",
+                          class    = "btn-primary"      # opcional: color Bootstrap
+                        ),
+                        
+                        # tags$style(HTML("
+                        #      /* Ajustar solo el tamaño de letra del botón de descarga */
+                        #      #main_result_download_zip {
+                        #        font-size: 10px;   /* elige el tamaño que quieras */
+                        #        
+                        #      }
+                        #    "))
+                        
+                        tags$style(HTML("
+               
+               /* Botón de descarga – sin gradiente, bordes menos redondeados, centrado verticalmente */
+                  #main_result_download_zip{
+                    all: unset;                     /* borra estilos heredados del widget       */
+                    display: inline-flex;           /* icono + texto en línea y centrados       */
+                    align-items: center;            /* centra verticalmente el contenido        */
+                    gap: 6px;
+                    cursor: pointer;
+                  
+                    background: #F59C12;            /* naranja plano (sin gradiente)            */
+                    color: #FFFFFF;
+                  
+                    font-size: 15px;                /* ajusta tamaño de letra                   */
+                    font-weight: 400;
+                    font-family: Roboto, sans-serif;
+                    line-height: 1;
+                  
+                    border-radius: 4px;             /* esquinas menos redondeadas               */
+                    padding: 16px 36px;
+                  
+                    align-self: center;             /* centra el botón verticalmente en filas flex */
+                    text-decoration: none;          /* sin subrayado en hover/focus             */
+                  }
+                  
+                  #main_result_download_zip:hover,
+                  #main_result_download_zip:focus{
+                    filter: brightness(1.08);       /* ligero realce al pasar el ratón          */
+                  }
+
+
+                  "))
+                        
+                        
+                      )
+                      
+                      )
+             )
+             
+             # ----- Botón + CSS en el mismo tagList -------------------
+             
+             
+             
+             
+             
+             
+             
+             
+      )
+    )
+    
  
     # filter from input file 
     
@@ -1585,27 +1689,48 @@ server <- function(input, output, session) {
           
         
       })
- 
       
-      output$tissue_expression_plot <- renderPlotly({
-        # Asegurar que los datos están ordenados por `structure_name`
-        df_sorted <- mean_expression_by_ontology[order(mean_expression_by_ontology$structure_name), ]
+      # Asegurar que los datos están ordenados por `structure_name`
+      df_sorted <- mean_expression_by_ontology[order(mean_expression_by_ontology$structure_name), ]
+      
+      # Convertir `structure_name` en factor con niveles ordenados alfabéticamente
+      df_sorted$structure_name <- factor(df_sorted$structure_name, levels = unique(df_sorted$structure_name))
+      
+      
+      if (nrow(df_sorted) > 0) {
         
-        # Convertir `structure_name` en factor con niveles ordenados alfabéticamente
-        df_sorted$structure_name <- factor(df_sorted$structure_name, levels = unique(df_sorted$structure_name))
-        
-        p <- ggplot(df_sorted, aes(x = structure_name, y = mean_expression, group = 1)) +
+        tissue_expression_plot <- ggplot(df_sorted,
+                    aes(x = structure_name, y = mean_expression, group = 1)) +
           geom_line(color = "#f39c12", size = 1) +
           geom_point(size = 3, color = "#f39c12") +
-          labs(x = "Structure Name", y = "Mean Expression", title = "Mean Expression by Ontology") +
+          labs(x = "Structure Name",
+               y = "Mean Expression",
+               title = "Mean Expression by Ontology") +
           theme_minimal() +
           theme(
-            axis.text.x = element_text(angle = 45, hjust = 1),  # Rotación de nombres
-            plot.margin = margin(t = 10, r = 20, b = 100, l = 20)  # Más espacio en la parte inferior
+            axis.text.x  = element_text(angle = 45, hjust = 1),
+            plot.margin  = margin(t = 10, r = 20, b = 100, l = 20)
           )
         
-        ggplotly(p)
-      })
+        
+      } else {
+        
+        # Panel vacío con texto centrado -----------------------------
+        tissue_expression_plot <- ggplot() +
+          annotate("text",
+                   x = 0.5, y = 0.5, label = "No data available",
+                   size = 6, color = "grey50") +
+          theme_void() +                       # sin ejes ni fondo
+          xlim(0, 1) + ylim(0, 1)              # coord. normalizadas
+        
+        ggplotly(p_empty) %>%                  # quitar ejes en plotly también
+          layout(xaxis = list(visible = FALSE),
+                 yaxis = list(visible = FALSE))
+      }
+      
+      plots$tissue_expression_plot <- tissue_expression_plot
+      
+      output$tissue_expression_plot <- renderPlotly({  ggplotly(plots$tissue_expression_plot)})
       
     }
     
@@ -1634,7 +1759,97 @@ server <- function(input, output, session) {
     
   })
  
-
+ 
+ 
+ # MAIN INFO DOWNLOAD 
+ 
+ output$main_result_download_zip <- downloadHandler(
+   
+   # ── nombre del ZIP: fecha-hora ───────────────────────────────
+   filename = function(){
+     paste0("query_results_",
+            format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
+            ".zip")
+   },
+   
+   content = function(file){
+     
+     ## 1 ── carpeta temporal + subcarpeta “result” ──────────────
+     tmpdir   <- tempfile("export_")
+     res_dir  <- file.path(tmpdir, "result")
+     dir.create(res_dir, recursive = TRUE)
+     
+     ## helpers mínimos ─────────────────────────────────────────
+     safe_write <- function(obj, path){
+       if (!is.null(obj)) readr::write_csv(obj, path)
+     }
+     # safe_ggsave <- function(plt, path, w = 8, h = 6){
+     #   if (!is.null(plt)) ggplot2::ggsave(path, plot = plt, dpi = 300,
+     #                                      width = w, height = h)
+     # }
+     safe_ggsave <- function(plt, path, min_w = 16, min_h = 8, dpi = 300){
+       if (is.null(plt)) return(invisible())
+       
+       ## 1) Convierte a gtable y mide anchura en mm
+       gt   <- ggplot2::ggplotGrob(plt)
+       w_mm <- sum(gt$widths)             # ancho real
+       
+       ## 2) Pasa a pulgadas y compara con min_w
+       w_in <- max(grid::convertWidth(w_mm, "in", valueOnly = TRUE), min_w)
+       h_in <- min_h                      # usamos altura fija
+       
+       ## 3) Guarda con ggsave (Cairo para evitar recortes por fuentes)
+       ggplot2::ggsave(
+         filename = path,
+         plot     = plt,
+         width    = w_in,
+         height   = h_in,
+         units    = "in",
+         dpi      = dpi,
+         device   = grDevices::png,            # necesita paquete Cairo en Linux
+         bg       = "white"
+       )
+     }
+     
+     
+     ## 2 ── tablas CSV (solo si existen) ───────────────────────
+     safe_write(tables$table_diseases,       file.path(res_dir, "diseases_sysndd.csv"))
+     safe_write(tables$table_phenotypes,     file.path(res_dir, "phenotypes.csv"))
+     safe_write(tables$table_diseases,       file.path(res_dir, "diseases_hpo.csv"))
+     safe_write(tables$table_gene_ontology,  file.path(res_dir, "gene_ontology.csv"))
+     safe_write(tables$table_kegg_pathways,  file.path(res_dir, "kegg_pathways.csv"))
+     
+     ## 3 ── gráficos PNG (solo si existen) ─────────────────────
+     safe_ggsave(plots$tissue_expression_plot,
+                 file.path(res_dir, "tissue_expression_plot.png"),
+                 min_w = 16, min_h = 8)
+     
+     safe_ggsave(plots$cellular_expression_plot,
+                 file.path(res_dir, "cellular_expression_plot.png"),
+                 min_w = 10, min_h = 6)
+     
+     
+     # 
+     # safe_ggsave(plots$tissue_expression_plot,
+     #             file.path(res_dir, "tissue_expression_plot.png"),
+     #             w = 24, h = 8)
+     # 
+     # safe_ggsave(plots$cellular_expression_plot,
+     #             file.path(res_dir, "cellular_expression_plot.png"),
+     #             w = 10, h = 6)
+     
+     ## 4 ── crear ZIP con la carpeta “result/” ─────────────────
+     zip::zip(
+       zipfile = file,
+       files   = "result",   # lo que irá en la raíz del zip
+       root    = tmpdir,     # recorta la parte /tmp/…
+       mode    = "cherry"    # implementación interna de R
+     )
+   },
+   
+   contentType = "application/zip"
+ )
+ 
 
   ## TABS/PLOTS
 datatable_custom <- function(table){
@@ -5371,7 +5586,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                  # uiOutput("network_metrics"),
                  uiOutput("network_threshold"),
                  
-                 # materialSwitch(inputId = "network_physics", label = "Network physics", status = "warning"),
+                 # materialSwitch(inputId = "network_physics", label = "Network physics", status = "warning"),ç
+                 uiOutput("neighbors_cluster_button_ui"),
                  prettySwitch(
                    inputId = "network_physics",
                    label = "Network physics", 
@@ -5379,6 +5595,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                    value = T,
                    fill = TRUE
                  ),
+                 
                  hr(),
                  uiOutput("number_of_nodes_ui")
                ),
@@ -5391,61 +5608,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                )
              ),
              hr(),
-         #     fluidRow(
-         #       column(12,
-         #              box(
-         #                title = HTML("<strong>Network Explanation</strong>"),
-         #                width = 12,
-         #                solidHeader = TRUE,
-         #                collapsible = TRUE,
-         #                collapsed = TRUE,  # Starts collapsed
-         #                status = "info",
-         #                
-         #                # Explanation Content
-         #                HTML("
-         #                  <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
-         #                    <p>
-         #                      <strong>How is the network built?</strong><br>
-         #                      This network is constructed using the <strong>Jaccard index</strong> to measure 
-         #                      the similarity among different gene phenotypes. While genes may carry various 
-         #                      annotations, this analysis focuses strictly on phenotypic abnormalities classified under 
-         #                      <em>HP:0000118 (Phenotypic abnormality)</em> and all of its descendant terms.
-         #                    </p>
-         #                    <p>
-         #                      <strong>Why focus on phenotypic annotations?</strong><br>
-         #                      By filtering for phenotype-related annotations, we ensure that the network highlights 
-         #                      meaningful similarities based on shared clinical or biological traits. This provides 
-         #                      clearer insights into how genes may be functionally or clinically related.
-         #                    </p>
-         #                  </div>
-         #                ")
-         #              )
-         #              
-         #              
-         #              
-         #              
-         #              
-         #              
-         # #              HTML("
-         # #      <div style='text-align:justify; color:#FFFFFF;'>
-         # #        <p>
-         # #          <strong>Explanation of the Network:</strong><br>
-         # #          This network is constructed using the Jaccard index to measure the similarity among different gene phenotypes. 
-         # #          Although genes may carry various annotations (including non-phenotypic categories), 
-         # #          for the purpose of this analysis we focus strictly on phenotypic abnormalities 
-         # #          classified under <em>HP:0000118 (Phenotypic abnormality)</em> along with all of its descendant terms.
-         # #        </p>
-         # #        <p>
-         # #          By narrowing our scope to these phenotype-related annotations, 
-         # #          we ensure that the resulting network highlights meaningful similarities 
-         # #          based on shared clinical or biological traits. 
-         # #          This approach helps to provide clearer insights into how genes might be 
-         # #          functionally or clinically related.
-         # #        </p>
-         # #      </div>
-         # # ")
-         #       )
-         #     ),
+        
          fluidRow(
            align = "center",
            column(12,
@@ -5459,46 +5622,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                   )
          )
          
-         
-         # box(
-         #   title = HTML("<strong>Network Explanation</strong>"),
-         #   width = NULL,
-         #   solidHeader = TRUE,
-         #   collapsible = TRUE,
-         #   collapsed = TRUE,  # Starts collapsed
-         #   status = "warning",
-         #   
-         #   # Explanation Content
-         #   HTML("
-         #                  <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
-         #                    <p>
-         #                      <strong>How is the network built?</strong><br>
-         #                      This network is constructed using the <strong>Jaccard index</strong> to measure 
-         #                      the similarity among different gene phenotypes. While genes may carry various 
-         #                      annotations, this analysis focuses strictly on phenotypic abnormalities classified under 
-         #                      <em>HP:0000118 (Phenotypic abnormality)</em> and all of its descendant terms.
-         #                    </p>
-         #                    <p>
-         #                      <strong>Why focus on phenotypic annotations?</strong><br>
-         #                      By filtering for phenotype-related annotations, we ensure that the network highlights 
-         #                      meaningful similarities based on shared clinical or biological traits. This provides 
-         #                      clearer insights into how genes may be functionally or clinically related.
-         #                    </p>
-         #                  </div>
-         #                ")
-         # ,)
-         
-
-             
-             # fluidRow(
-             #   HTML("This network is based on the Jaccard index between gene phenotypes.
-             #          However the genes got some annotation that are not phenotypes are other
-             #          types so for the calclations only the phenotypes are considered (Phenotupic
-             #          bnormality HP:0000118) and all his children."),
-             #   
-             # ),
-             
-             
+ 
              
              
       ),
@@ -5562,6 +5686,42 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     )
     
   })
+  
+  
+  
+  observeEvent(input$help_vis_type, {
+    shinyalert(
+      title = "Neighbors vs. Cluster view",
+      html  = TRUE,
+      text  = HTML("
+                   <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
+                
+                  <p><strong>Neighborhood view</strong><br>
+                     Only the <em>first-degree neighbors</em> of the selected gene are shown.  
+                     Each edge represents a significant Jaccard-similarity relationship, so the
+                     sub-network isolates the gene’s most immediate functional context and
+                     removes extra clutter.
+                  </p>
+                  <br>
+                  <p><strong>Cluster view</strong><br>
+                     Displays the entire community (cluster) that the gene belongs to, including
+                     both direct and indirect connections identified with the same Jaccard
+                     similarity measure.  
+                     This broader module reveals cooperative pathways and co-regulated groups,
+                     but it is naturally denser and less focused than the neighborhood view.
+                  </p>
+                  <br>
+          
+                  <p>
+                    Toggle between these views to move from a concise, gene-centric snapshot
+                    to a wider systems-level perspective of the network.
+                  </p>
+                  </div>
+      "),
+      size  = "m"          # small popup
+    )
+  })  
+  
   
   observe({
     
@@ -5839,7 +5999,62 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       vals$network_data_filtered_by_gene <- network_data_filtered_by_gene
 
+      
+    
+      
+      
+      
+      
+      
     })
+    # neighbors_cluster_button UI
+   observe({
+
+       
+       if(is.null(input$selected_gene_network) || input$selected_gene_network == "full_net"){
+         button_ui  <- NULL
+       }else{
+         
+         button_ui <- tagList(
+           useShinyalert(),               # <-- activa shinyalert
+           
+           div(class = "style-simple",
+               radioGroupButtons(
+                 inputId = "neighbors_cluster_button",
+                 label   = tagList(
+                   "Visualization type",
+                   actionLink("help_vis_type", label = NULL,
+                              icon  = icon("question-circle"),
+                              class = "tiny-help")        # <-- icono enano
+                 ),
+                 choices   = c("Neighbors", "Cluster"),
+                 justified = TRUE
+               )
+           )
+         )
+         
+         
+         # button_ui <- tagList(
+         #   div(class = "style-simple",
+         #       radioGroupButtons(
+         #         inputId = "neighbors_cluster_button",
+         #         label = "Visualization type",
+         #         choices = c("Neighbors", "Cluster"),
+         #         justified = TRUE
+         #       )
+         #   )
+         # )
+         
+       }
+       
+       vals$neighbors_cluster_button_ui <- button_ui
+ 
+    
+     
+   })
+   
+   
+   output$neighbors_cluster_button_ui <- renderUI(vals$neighbors_cluster_button_ui)
     
     observeEvent(c(input$threshold_jaccard,vals$network_data_filtered_by_gene),
                  # ignoreNULL = T,
@@ -5987,6 +6202,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       output$network_table_ui <- renderUI({
         
+        
+        
         box(
           width = 12,
           title = "Network table",
@@ -5996,7 +6213,18 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           status = "warning",
           # fluidRow(
           # uiOutput("columns_selection_ui"),
-          dataTableOutput("network_datatable")
+          tags$div(
+                    class = "table-wrapper",
+                    style = "position:relative;",          # contenedor relativo
+                  
+                    dataTableOutput("network_datatable"),
+                    
+                    actionLink("table_help_button", NULL,   # icono flotante
+                               icon = icon("question-circle"),
+                               class = "tiny-help",
+                               style = "position:absolute; top:6px; left:350px;")
+                  )
+          # dataTableOutput("network_datatable")
           # )
         )
         
@@ -6005,6 +6233,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
 
       
+      # server.R  (o dentro de la función server)
+      
+   
       
       
       
@@ -6086,10 +6317,13 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                   ignoreNULL = TRUE,{
                     
                     
-              
-                    
+      
       print("Display network") 
                     
+                      
+      vals$neighbors_cluster_button <- input$neighbors_cluster_button
+    
+      
       selected_gene <- input$selected_gene_network     
       
       
@@ -6152,17 +6386,21 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           select(Columna, Fila) %>%
           unlist() %>%
           unique()
-
-        # Vecinos de segundo grado
-        second_degree_neighbors <- network_data_filtered %>%
-          filter(Columna %in% direct_neighbors | Fila %in% direct_neighbors) %>%
-          select(Columna, Fila) %>%
-          unlist() %>%
-          unique()
-
-        # Unir vecinos directos e indirectos
-        selected_nodes <- unique(c(selected_gene, direct_neighbors, second_degree_neighbors))
-
+        if(vals$neighbors_cluster_button == "Cluster"){
+          # Vecinos de segundo grado
+          second_degree_neighbors <- network_data_filtered %>%
+            filter(Columna %in% direct_neighbors | Fila %in% direct_neighbors) %>%
+            select(Columna, Fila) %>%
+            unlist() %>%
+            unique()
+          
+          # Unir vecinos directos e indirectos
+          selected_nodes <- unique(c(selected_gene, direct_neighbors, second_degree_neighbors))
+          
+        }else{
+          selected_nodes <- unique(c(selected_gene, direct_neighbors))
+        }
+   
         # Filtrar edges para incluir solo conexiones entre estos nodos
         filtered_edges <- network_data_filtered %>%
           filter(Columna %in% selected_nodes & Fila %in% selected_nodes)
@@ -6370,7 +6608,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
               #   this.selectNodes([6597]);
               # }"
               
-            )
+            )%>%
+            
+            ## ------------- BOTÓN DE DESCARGA PNG -----------------
+          visExport(type  = "png",             # formato
+                    name  = "gene_network",     # nombre del archivo
+                    label = "Download PNG",    # texto que se ve en el botón
+                    float = "left")            # posición     
+          
           
           
           # network_physics <- input$network_physics
@@ -6424,7 +6669,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             Shiny.onInputChange('edge_clicked', edges.edges[0]);
           }
         }"
-            )
+            )%>%
+            
+            ## ------------- BOTÓN DE DESCARGA PNG -----------------
+          visExport(type  = "png",             # formato
+                    name  = "gene_network",     # nombre del archivo
+                    label = "Download PNG",    # texto que se ve en el botón
+                    float = "left")            # posición     
+          
           
           
           if(input$network_physics == F){
@@ -7368,6 +7620,26 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     })
   
+  # server ----
+  observeEvent(input$table_help_button, {      # icono “?”
+    shinyalert(
+      title = "Table usage help",
+      size  = "m",                             # cuadro mediano
+      html  = TRUE,
+      text  = div(style = "text-align:left;",  # contenido alineado a la izquierda
+                  HTML("
+        <p><strong>Quick guide</strong></p>
+
+        <ul style='padding-left:16px; margin:0;'>
+          <li><strong>Sort columns</strong> — click the ▲/▼ arrows in any header to toggle ascending or descending order.</li>
+          <li><strong>Download</strong> — use the buttons in the top-left corner (Copy, CSV, Excel, PDF, Print) to export the current view.</li>
+          <li><strong>Search / filter</strong> — type keywords in the global search bar to instantly narrow rows; separate words with spaces to match all of them.</li>
+          <li><strong>Scroll</strong> — a horizontal scrollbar appears automatically when the table is wider than the screen; drag it to view hidden columns.</li>
+        </ul>
+      ")
+      )
+    )
+  })
   
   
   
