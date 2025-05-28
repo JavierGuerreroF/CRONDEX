@@ -1895,7 +1895,7 @@ compare_brain_tissue_expression <- function(data_df, genes_color){
   
   tissue_expression <- tissue_expression_calculator(tissue_expression_list)
   
-  disease_list <- split(disease_list_to_plot$Value.gene_symbol, disease_list_to_plot$Disease)
+  # disease_list <- split(disease_list_to_plot$Value.gene_symbol, disease_list_to_plot$Disease)
   
   gene_list <- tissue_expression
   # Convertir lista a data frame largo

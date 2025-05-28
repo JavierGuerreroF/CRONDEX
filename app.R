@@ -24,6 +24,7 @@ library(visNetwork)
 library(waiter)
 library(plotly)
 library(upsetjs)
+library(scales)   # para styleColorBar()
 
 
 # library(renv)
@@ -5627,8 +5628,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
              
       ),
       column(9,
-             
-             
+          
              box(title = NULL,
                  width = NULL,
                  solidHeader = FALSE,
@@ -6179,10 +6179,85 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       vals$network_data_to_DT <- network_data_to_DT
       
+      
+      
+
+      # output$network_datatable <- renderDataTable({
+      #   
+      #   # 1. Renombrar la columna y (opcionalmente) redondear
+      #   network_data_to_DT_renamed <- network_data_to_DT %>% 
+      #     rename(`distance (Jaccard)` = Jaccard)
+      #   
+      #   # 2. Crear el datatable
+      #   datatable(
+      #     network_data_to_DT_renamed %>%               # dataset
+      #       arrange(desc(`distance (Jaccard)`)),       # ya sale ordenado
+      #     rownames   = FALSE,
+      #     selection  = "single",
+      #     extensions = "Buttons",
+      #     options    = list(
+      #       dom        = "Bfrtip",
+      #       buttons    = c("copy", "csv", "excel", "pdf", "print"),
+      #       scrollX    = TRUE,
+      #       pageLength = 25,
+      #       # orden inicial: columna “distance (Jaccard)” de forma descendente
+      #       order      = list(
+      #         list(
+      #           which(names(network_data_to_DT_renamed) == "distance (Jaccard)") - 1,
+      #           "desc"
+      #         )
+      #       )
+      #     )
+      #   ) %>% 
+      #     
+      #     # 3. Pintar la “barrita” ➜ fondo degradado proporcional al valor
+      #     formatStyle(
+      #       "distance (Jaccard)",
+      #       background       = styleColorBar(
+      #         range(network_data_to_DT_renamed$`distance (Jaccard)`),
+      #         "steelblue"          # color base (cámbialo si quieres)
+      #       ),
+      #       backgroundSize   = "98% 60%",   # alto de la barra
+      #       backgroundRepeat = "no-repeat",
+      #       backgroundPosition = "center"
+      #     ) %>% 
+      #     
+      #     # 4. Mostrar el número con 3 decimales (opcional)
+      #     formatRound("distance (Jaccard)", digits = 3)
+      # })
+      
+      # output$tissue_expression_table <- renderDataTable({
+      #   datatable(
+      #     mean_expression_by_ontology,
+      #     rownames = F,
+      #     extensions = 'Buttons',
+      #     options = list(
+      #       dom = 'Bfrtip',
+      #       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #       scrollX = TRUE
+      #     )
+      #   ) %>% formatStyle('mean_expression',
+      #                     background = styleColorBar(dplyr::select(mean_expression_by_ontology,mean_expression), '#99c0ff',angle=-90),
+      #                     backgroundSize = '98% 88%',
+      #                     backgroundRepeat = 'no-repeat',
+      #                     backgroundPosition = 'center') %>%
+      #     formatSignif(columns = c("mean_expression"), digits = 3)
+      #   
+      #   
+      #   
+      # })
+      
+      
+      
       output$network_datatable <- renderDataTable({
         
+        # reordenar por la collumna Jaccard con el sort
+
         network_data_to_DT_renamed <- network_data_to_DT %>%
           rename(`distance (Jaccard)` = Jaccard)
+
+        network_data_to_DT_renamed <- network_data_to_DT %>% 
+          arrange(desc(Jaccard))  #
         
         datatable(
           network_data_to_DT_renamed,
@@ -6195,7 +6270,13 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             scrollX = TRUE,
             pageLength = 25
           )
-        ) 
+        )%>% formatStyle('Jaccard',
+                         background = styleColorBar(dplyr::select(network_data_to_DT_renamed,Jaccard), '#99c0ff',angle=-90),
+                         backgroundSize = '98% 88%',
+                         backgroundRepeat = 'no-repeat',
+                         backgroundPosition = 'center') %>%
+         formatSignif(columns = c("Jaccard"), digits = 3)
+
       })
       
 
@@ -7232,6 +7313,26 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
       }
 
+      network_ui_ouput<- tagList(   
+        div(
+          style = "background-color: #fcba3f; 
+                   border-left: 5px solid #0345c0;
+                   padding: 12px 16px; 
+                   margin-bottom: 12px;
+                   border-radius: 8px; 
+                   font-size: 15px;
+                   color: #333;
+                   box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
+          HTML('
+            <strong>Tip:</strong> You can click 
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
+            <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
+            </svg>
+            on the <b>edges</b> in the network or the <b>rows</b> in the table below to explore the full <b>gene-to-gene comparison</b>.
+          ')
+        ),
+        network_ui_ouput
+        )
       vals$network_ui_ouput <- network_ui_ouput
 
     })
