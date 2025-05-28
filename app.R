@@ -6530,7 +6530,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             
             size = "s",
             # title = "Full network displayed",
-            text = "No nodes to display, showing full network. <br><strong>Try using a different threshold.</strong>",
+            text = "No nodes to display. <br><strong>Try using a different threshold.</strong>",
             html = T,
             type = "error"
           )
