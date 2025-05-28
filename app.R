@@ -6718,7 +6718,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         })
         
         
-      } else {
+      } else if(selected_gene == "full_net") {
         output$network <- renderVisNetwork({
           
           
@@ -6774,6 +6774,27 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           }
           
           
+        })
+        
+      }else{
+        
+        print("else")
+        output$network <- renderVisNetwork({
+          visNetwork(
+            nodes  = data.frame(id = 1,
+                                label = "No data available for this gene with this threshold",
+                                shape = "box"),
+            edges  = data.frame(from = integer(0), to = integer(0)),
+            height = "200px"   # ← altura deseada
+          ) %>%
+            visNodes(
+              font  = list(size = 28, color = "#721c24"),
+              color = list(background = "#fff", border = "#721c24")#"#f8d7da"
+            ) %>%
+            visPhysics(enabled = FALSE) %>%
+            visInteraction(dragNodes = FALSE, dragView = FALSE, zoomView = FALSE) %>%
+            visOptions(highlightNearest = FALSE, nodesIdSelection = FALSE) %>%
+            visLayout(randomSeed = 1)
         })
         
       }
