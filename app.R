@@ -201,15 +201,9 @@ ui_dash <- dashboardPage(
     #     )
     #   )
     # )    
-    tags$li(
-      class = "dropdown navbar-left",
-      style = "position: absolute; left: 40px; top: 0px;",
-      div(
-        style = "padding: 15px 10px; margin: 0px;",
-        actionLink("back_to_main_window", "Back to Main Window",
-                   style = "color: white; text-decoration: none; font-size: 14px; cursor: pointer;")
-      )
-    )
+    
+    # vals$back_to_main_window_ui 
+    uiOutput("back_to_main_window_ui")
   ),
   
   # dashboardHeader(
@@ -771,7 +765,75 @@ server <- function(input, output, session) {
   # COVER TABS ---------------------------------------------------------------
   
   # New cover tab
-  
+  observe({
+    
+    if(vals$active_tab == "cover_tab" || is.null(vals$active_tab)){
+      back_to_main_window_ui <- NULL
+      
+    }else{
+      # back_to_main_window_ui <- tags$li(
+      #   class = "dropdown navbar-left",
+      #   style = "position: absolute; left: 40px; top: 0px;",
+      #   div(
+      #     style = "padding: 15px 10px; margin: 0px;",
+      #     actionLink("back_to_main_window", "Back to Main Window",
+      #                style = "color: white; text-decoration: none; font-size: 14px; cursor: pointer;")
+      #   )
+      # )
+      # --- Fragmento UI -----------------------------------------------------------
+      back_to_main_window_ui <- tagList(
+        # CSS del tooltip (puedes moverlo a tags$head si lo prefieres)
+        tags$style(HTML("
+    .btn-back {
+      position: relative;              /* referencia para el ::after */
+    }
+    .btn-back::after {
+      content: attr(data-title);       /* texto del tooltip            */
+      position: absolute;
+      left: 120%;                      /* sitúalo a la derecha del icono */
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,.75);     /* burbuja oscura semitransparente */
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+      opacity: 0;                      /* oculto por defecto            */
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 10;
+    }
+    .btn-back:hover::after {
+      opacity: 1;                      /* se muestra al hacer hover     */
+    }
+  ")),
+        
+        tags$li(
+          class = "dropdown navbar-left",
+          style = "position: absolute; left: 40px; top: 0px;",
+          div(
+            style = "padding: 15px 10px; margin: 0px;",
+            # Enlace con icono y tooltip basado en CSS
+            actionLink(
+              inputId = "back_to_main_window",
+              label   = icon("undo"),
+              class   = "btn-back",
+              `data-title` = "Back to Main Window",   # texto del tooltip
+              style   = "color: white; font-size: 18px; cursor: pointer;"
+            )
+          )
+        )
+      )
+      
+    }
+    
+    
+    vals$back_to_main_window_ui <- back_to_main_window_ui
+    output$back_to_main_window_ui <- renderUI({
+      vals$back_to_main_window_ui
+    })
+  })
   
   
   observe({
