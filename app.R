@@ -25,6 +25,7 @@ library(waiter)
 library(plotly)
 library(upsetjs)
 library(scales)   # para styleColorBar()
+library(grid)
 
 
 # library(renv)
@@ -41,11 +42,21 @@ genes_database <- readRDS("data/genes_database.rds")
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
 
+
+
 file_format_help <- readChar("data/file_format_help.txt", file.info("data/file_format_help.txt")$size)
 
-network_genes_data <- read.csv("data/network_data/network_genes_data_names.csv")
+network_genes_data <<- read.csv("data/network_data/network_genes_data_names.csv")
+cat("\n\n\033[32mNetwork genes data loaded\033[0m\n\n")
+print(str(network_genes_data))
 df_frecuencias_children <<- read.csv("data/network_data/df_frecuencias_children.csv")
 
+# children and parent phenotypes
+children_phenotypes <<- df_frecuencias_children$ID
+parent_phenotypes <<- setdiff(phenotypic_abnormality_subtree_db$ID,children_phenotypes)
+
+print(str(children_phenotypes))
+print(str(parent_phenotypes))
 
 # Filter db deleting NO NDD diseases asociated
 sysndd_ndd_phenotype <- read.csv("data/sysndd_ndd_phenotype.csv")
@@ -62,15 +73,18 @@ all_sources <<- sort(unique(all_sources))
 
 
 
-
-
-
-
 ## --- Filter
 
 
+all_modifications <<- join_df_from_name(genes_database,names(genes_database),"modifications")
+# all_modifications <<- sort(unique(all_modifications))
+all_modifications <<- data.frame(modification_name = sort(unique(all_modifications)))
 
-
+all_complexes <<- join_df_from_name(genes_database,names(genes_database),"complexes")
+# all_complexes <<- sort(unique(all_complexes))
+all_complexes <<- data.frame(complex_name = sort(unique(all_complexes)))
+                            
+                            
 
 all_phenotypes <<- join_df_from_name(genes_database,names(genes_database),"phenotypes")
 all_phenotypes <<- all_phenotypes[order(all_phenotypes$hpo_name),]
@@ -169,7 +183,33 @@ ui_dash <- dashboardPage(
       )
       
     )),
-    titleWidth = sideWidth
+    titleWidth = sideWidth,
+    # BOTÓN COMPLETAMENTE A LA DERECHA
+    
+    # tags$li(
+    #   class = "dropdown", # Clase común para ítems del header
+    #   conditionalPanel(
+    #     # La condición para mostrar el enlace: ¡solo si la pestaña NO es 'cover_tab'!
+    #     # condition = "input.activeTab != 'cover_tab'",
+    #     condition = "input.tabs != 'cover_tab'",
+    #     div(
+    #       # Mantenemos los estilos de posicionamiento aquí
+    #       style = "padding: 15px 10px; margin: 0px; position: absolute; left: 40px; top: 0px;",
+    #       actionLink("back_to_main_window", "Back to Main Window",
+    #                  # Los estilos iniciales del enlace
+    #                  style = "color: white; text-decoration: none; font-size: 14px; cursor: pointer;")
+    #     )
+    #   )
+    # )    
+    tags$li(
+      class = "dropdown navbar-left",
+      style = "position: absolute; left: 40px; top: 0px;",
+      div(
+        style = "padding: 15px 10px; margin: 0px;",
+        actionLink("back_to_main_window", "Back to Main Window",
+                   style = "color: white; text-decoration: none; font-size: 14px; cursor: pointer;")
+      )
+    )
   ),
   
   # dashboardHeader(
@@ -179,18 +219,26 @@ ui_dash <- dashboardPage(
   #   titleWidth = sideWidth
   # ),
   dashboardSidebar(
-    collapsed = F,
+    collapsed = T,
     width = sideWidth,
     sidebar_menu_ui
   ),
   dashboardBody(
+    shinyjs::useShinyjs(),
+    withMathJax(),  # Activa MathJax en la UI
+    tags$script(HTML("
+    Shiny.addCustomMessageHandler('mathjax', function(message) {
+      if (window.MathJax) {
+        MathJax.typeset();
+      }
+    });
+  ")),
     # waiter start ---
     tags$head(
       includeCSS("www/styles.css")
       # O alternativamente:
       # tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
-    
     
     use_waiter(),
     
@@ -689,6 +737,10 @@ ui <- ui_dash
 # SERVER
 server <- function(input, output, session) {
 
+  observe({
+    session$sendCustomMessage(type = 'mathjax', message = NULL)
+  })
+  
   output <<- output
   # Ejemplo de simular carga al inicio
   Sys.sleep(3)
@@ -718,6 +770,269 @@ server <- function(input, output, session) {
   
   # COVER TABS ---------------------------------------------------------------
   
+  # New cover tab
+  
+  
+  
+  observe({
+
+    cover_tab_ui <- tagList(
+      tags$head(
+        tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
+        tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = ""),
+        tags$link(
+          rel  = "stylesheet",
+          href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+        ),
+        tags$style(HTML("
+      body         { font-family:'Inter',sans-serif;margin:0;padding:0;font-size:16px; }
+
+      /* ---------- HERO ------------------------------------- */
+      .hero        { padding:20px 0 15px;border-bottom:1px solid #F2F2F2; }
+      .hero-inner  { width:100%;padding:0 20px;
+                     display:flex;align-items:center;gap:40px;flex-wrap:wrap;
+                     justify-content:center; }  /* centra todo el bloque */
+
+      /* ---------- LOGO BOX --------------------------------- */
+      .logo-box    { flex:0 0 220px;display:flex;justify-content:center; }
+      .logo-box img{ width:180px;height:180px;object-fit:contain; }
+
+      /* ---------- TEXTOS HERO ------------------------------ */
+      .hero-text   { flex:1;text-align:center;min-width:260px; }
+      .hero-title  { font-size:36px;font-weight:800;margin:0; }
+      .hero-title .orange { color:#F59E0B; }
+      .hero-sub    { font-size:20px;font-weight:700;margin:14px 0 20px; }
+
+      .btn-about   { background:#FBD38D;border:none;border-radius:6px;
+                     padding:11px 34px;font-size:17px;font-weight:600;cursor:pointer; }
+      .btn-about:hover { background:#FAC97A; }
+
+      /* ---------- CONTENEDOR GENERAL ----------------------- */
+      .row-box     { width:100%;padding:0 10px; }
+
+      /* ---------- FILA DE TARJETAS ------------------------- */
+      .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; }
+
+      /* ---------- TARJETAS GRANDES ------------------------- */
+      .card-lg     { flex:1 1 0;min-width:300px;border:2px solid;border-radius:10px;
+                     padding:38px 28px;box-sizing:border-box;
+                     display:flex;flex-direction:column;justify-content:flex-start; }
+      .card-blue   { border-color:#1E6AFF; }  .card-green{ border-color:#16A34A; }
+
+      .icon-lg     { font-size:46px;margin-bottom:8px;align-self:center; }
+      .text-blue   { color:#1E6AFF; }         .text-green{ color:#16A34A; }
+
+      .card-title  { font-size:24px;font-weight:700;margin:20px 0 12px;
+                     text-align:center;white-space:normal;overflow-wrap:anywhere; }
+      .card-desc   { color:#555;font-size:15px;line-height:1.5;margin-bottom:26px;
+                     text-align:center;white-space:normal;overflow-wrap:anywhere; flex:1; }
+
+      .btn-primary { border:none;border-radius:6px;padding:10px 26px;font-size:15px;
+                     font-weight:600;color:#FFF;cursor:pointer;align-self:center; }
+      .card-blue .btn-primary { background:#1E6AFF; }
+      .card-green .btn-primary{ background:#16A34A; }
+
+      /* ---------- PANEL INFERIOR --------------------------- */
+      .panel       { border:1px solid #E5E7EB;border-radius:10px;
+                     padding:32px 22px;margin:55px auto 0; }
+      .panel-title { font-size:20px;font-weight:700;text-align:center;margin-bottom:30px; }
+
+      .mini-wrap   { display:flex;justify-content:center;gap:90px;flex-wrap:wrap; }
+      .mini-card   { text-align:center;width:180px; }
+      .icon-mini   { font-size:30px;margin-bottom:6px; }
+      .text-purple { color:#A855F7; }  .text-orange{ color:#F97316; }
+
+      .mini-title  { font-size:15px;font-weight:600;margin:12px 0 18px; }
+      .btn-default { background:#FFF;border:1px solid #D1D5DB;border-radius:6px;
+                     padding:7px 22px;font-size:14px;cursor:pointer; }
+    "))
+      ),
+      
+      ## ---------------- HERO HEADER -----------------------------
+      div(class = "hero",
+          div(class = "hero-inner",
+              # div(class = "logo-box",      # <-- contenedor centrado
+              #     tags$a(
+              #       href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+              #       target = "_blank",
+              #       tags$img(src = "yellow-brain.svg",
+              #                title = "CRONDEX LOGO",
+              #                alt   = "app-logo")
+              #     )
+              # ),
+              # div(class = "hero-text",
+              #     h1(class = "hero-title",
+              #        span(class = "orange", "CROND"), "EX"),
+              #     div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+              #         class = "hero-sub"),
+              #     actionButton("btn_about", "About CRONDEX", class = "btn-about")
+              # )
+              # 
+              
+              fluidRow(
+                align = "center",
+                column(2,
+                       div(class = "logo-box",      # <-- contenedor centrado
+                           tags$a(
+                             href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+                             target = "_blank",
+                             tags$img(src = "yellow-brain.svg",
+                                      title = "CRONDEX LOGO",
+                                      alt   = "app-logo")
+                           )
+                       )
+                       
+                ),
+                
+                column(10,
+                       div(class = "hero-text",
+                           # h1(class = "hero-title",
+                           #    span(class = "orange", "CROND"), "EX"),
+                           h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+                              style = "font-size: 2.8em;"),
+                           div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+                               class = "hero-sub"),
+                           actionButton("btn_about", "About CRONDEX", class = "btn-about")
+                       )
+                )
+                
+              )
+              
+          )
+      ),
+      
+      ## ---------------- TARJETAS PRINCIPALES --------------------
+      div(class = "row-box",
+          div(class = "card-row",
+              div(class = "card-lg card-blue",
+                  div(icon("search"), class = "icon-lg text-blue"),
+                  div("Gene of Interest Query", class = "card-title text-blue"),
+                  p("Find genes with similar clinical phenotypes based on a gene of interest.",
+                    class = "card-desc"),
+                  actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")
+              ),
+              div(class = "card-lg card-green",
+                  div(icon("sliders"), class = "icon-lg text-green"),
+                  div("Criteria-Based Search", class = "card-title text-green"),
+                  p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
+                    class = "card-desc"),
+                  actionButton("btn_criteria", "Go to Tool", class = "btn-primary")
+              )
+          )
+      ),
+      
+      ## ---------------- PANEL INFERIOR --------------------------
+      div(class = "row-box panel",
+          div("Further Analysis Options", class = "panel-title"),
+          div(class = "mini-wrap",
+              div(class = "mini-card",
+                  div(icon("eye"), class = "icon-mini text-purple"),
+                  div("Single-Gene Query", class = "mini-title"),
+                  actionButton("btn_single", "Go to Tool", class = "btn-default")
+              ),
+              div(class = "mini-card",
+                  div(icon("exchange"), class = "icon-mini text-orange"),
+                  div("Compare Two Genes", class = "mini-title"),
+                  actionButton("btn_compare", "Go to Tool", class = "btn-default")
+              )
+          )
+      )
+    )
+    
+    
+
+    ## (Opcional) lanzar app mínima para probar ---------------------
+    ## server <- function(input, output, session) {}
+    ## shinyApp(ui, server)
+    output$cover_info <- renderUI({
+      box(width = 12, class = "cover-info-box",
+          title = NULL,
+           status = "primary", solidHeader = F,
+           collapsible = F, collapsed = FALSE,
+          cover_tab_ui
+
+
+      )
+    })
+    
+    
+
+  })
+  
+  ## Cambiar a network_tab
+  observeEvent(input$btn_gene_query, {
+    cat("Changing to network_tab from btn_gene_query\n")
+    updateTabItems(session, "tabs", selected = "network_tab")
+  })
+  
+  ## Volver a main_tab
+  observeEvent(input$btn_criteria, {
+    cat("Changing to main_tab from btn_criteria\n")
+    shinyjs::runjs("$('body').removeClass('sidebar-collapse');")
+    
+    updateTabItems(session, "tabs", selected = "main_tab")
+  })
+  ## Cambiar a network_tab
+  observeEvent(input$btn_single, {
+    cat("Changing to network_tab from btn_single\n")
+    shinyjs::runjs("$('body').removeClass('sidebar-collapse');")
+    updateTabItems(session, "tabs", selected = "main_tab")
+  })
+  
+  ## Volver a main_tab
+  observeEvent(input$btn_compare, {
+    cat("Changing to compare_tab from btn_compare\n")
+    updateTabItems(session, "tabs", selected = "compare_tab")
+  })
+  
+  observeEvent(input$back_to_main_window,ignoreNULL = T,ignoreInit = T, {
+    cat("Changing to cover_tab from back_to_main_window\n")
+    shinyjs::runjs("$('body').addClass('sidebar-collapse');")
+    updateTabItems(session, "tabs", selected = "cover_tab")
+  })
+  
+  # about btn
+  
+  observeEvent(   input$btn_about,
+                  ignoreNULL = TRUE,
+                  {
+              
+                    
+                    
+                    showModal(modalDialog(
+                      title=tagList(
+                      div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+                          h3(paste("About CRONDEX")),
+                          actionButton("close_modal", "×",
+                                       style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+                      )
+                      ),
+                      
+                      # UI elements
+                      {
+                        uiOutput("cover_info_old")
+                      },
+                      footer=tagList(
+                        #downloadButton(outputId = "dwnld_data", "Download Data"),
+                        modalButton('Close')),
+                      
+                      size = "m",
+                      easyClose = TRUE,
+                      fade = FALSE,
+                      tags$head(
+                        tags$style(HTML("
+                            .modal-dialog {
+                              max-width: 90% !important;
+                              width: 90% !important;
+                            }
+                          ")))
+                    ))
+                    
+                  })
+  
+  
+  
+  
   # cover tab 
   
   output$cover_html  <- renderUI({
@@ -726,7 +1041,7 @@ server <- function(input, output, session) {
   })
 
 
-  output$cover_info <- renderUI({
+  output$cover_info_old <- renderUI({
     box(
       width = 12,
       
@@ -954,7 +1269,7 @@ server <- function(input, output, session) {
     # Vector con los IDs de los pickers que quieras reiniciar
     picker_ids <- c("gene_selection", "phenotype_selection", "disease_selection",
                     "gene_ontology_subontology_selection", "gene_ontology_selection",
-                    "pathway_selection")
+                    "pathway_selection","complex_selection","modification_selection")
     lapply(picker_ids, \(id)
            updatePickerInput(session, id, selected = character(0))   # character(0) == NULL para Shiny
     )
@@ -975,6 +1290,8 @@ server <- function(input, output, session) {
      tables$table_kegg_pathways <- NULL
      tables$table_genes <- NULL
      
+     tables$table_complexes <- NULL
+     tables$table_modifications <- NULL
      
      
     print("PERFORM SEARCH")
@@ -994,6 +1311,20 @@ server <- function(input, output, session) {
     disease_filter <- input$disease_selection
     # if(is.null(disease_filter)){disease_filter <- all_diseases$disease_id}else{disease_filter <- disease_filter}
     filters$disease_filter <- as.character(disease_filter)
+    
+    
+    # filter by complex
+    complex_filter <- input$complex_selection
+    # if(is.null(complex_filter)){complex_filter <- all_complexes$complex_id}else{complex_filter <- complex_filter}
+    filters$complex_filter <- as.character(complex_filter)
+    
+    # filter by modification
+    modification_filter <- input$modification_selection
+    # if(is.null(modification_filter)){modification_filter <- all_modifications$modification_id}else{modification_filter <- modification_filter}
+    filters$modification_filter <- as.character(modification_filter)
+    
+    
+    
     
     # filter by gene ontology
     gene_ontology_filter <- input$gene_ontology_selection
@@ -1069,6 +1400,8 @@ server <- function(input, output, session) {
               make_row("Genes Entrez ID",           filters$gene_filter,                      "genes"),
               make_row("Phenotypes HPO ID",      filters$phenotype_filter,                 "phenotypes"),
               make_row("Diseases OMIM ID",        filters$disease_filter,                   "diseases"),
+              make_row("Complexes Epifactor",        filters$complex_filter,                   "complexes"),
+              make_row("Modifications Epifactor", filters$modification_filter,              "modifications"),
               make_row("GeneOntology ID",        filters$gene_ontology_filter,             "go"),
               make_row("GO Sub‑ontology", filters$gene_ontology_subontology_filter, "gosub"),
               make_row("Pathways KEGG ID",        filters$pathway_filter,                   "pathways")
@@ -1096,6 +1429,17 @@ server <- function(input, output, session) {
              diseases = if (length(filters$disease_filter) > 0L)
                dplyr::filter(all_diseases, disease_id %in% filters$disease_filter)
              else all_diseases,
+             
+             
+             complexes = if (length(filters$complex_filter) > 0L)
+               dplyr::filter(all_complexes, complex_name %in% filters$complex_filter)
+               # all_complexes[all_complexes %in% filters$complex_filter]
+             else all_complexes,
+             
+             modifications = if (length(filters$modification_filter) > 0L)
+               dplyr::filter(all_modifications, modification_name %in% filters$modification_filter)
+               # all_modifications[all_modifications %in% filters$modification_filter]
+             else all_modifications,
              
              go = if (length(filters$gene_ontology_filter) > 0L)
                dplyr::filter(all_gene_ontology, go_id %in% filters$gene_ontology_filter)
@@ -1150,6 +1494,8 @@ server <- function(input, output, session) {
     observeEvent(input$see_genes,      show_table_modal("genes",      "Genes"))
     observeEvent(input$see_phenotypes, show_table_modal("phenotypes", "Phenotypes"))
     observeEvent(input$see_diseases,   show_table_modal("diseases",   "Diseases"))
+    observeEvent(input$see_complexes,   show_table_modal("complexes",   "Complexes"))
+    observeEvent(input$see_modifications, show_table_modal("modifications", "Modifications"))
     observeEvent(input$see_go,         show_table_modal("go",         "Gene Ontology"))
     observeEvent(input$see_gosub,      show_table_modal("gosub",      "GO Sub‑ontology"))
     observeEvent(input$see_pathways,   show_table_modal("pathways",   "Pathways"))
@@ -1466,6 +1812,10 @@ server <- function(input, output, session) {
                                             vals$filters$source_filter,
                                             vals$filters$phenotype_filter, 
                                             vals$filters$disease_filter, 
+                                            
+                                            vals$filters$complex_filter,
+                                            vals$filters$modification_filter,
+                                            
                                             vals$filters$gene_ontology_filter, 
                                             vals$filters$gene_ontology_subontology_filter,
                                             vals$filters$pathway_filter)
@@ -1487,6 +1837,10 @@ server <- function(input, output, session) {
         # gene_information$phenotypes 
       tables$table_diseases <- if(is.null(gene_information$diseases)){data.frame()}else{gene_information$diseases}
         # gene_information$diseases
+      tables$table_complexes <- if(is.null(gene_information$complexes)){data.frame()}else{data.frame(Complexes = gene_information$complexes)}
+        # gene_information$complexes
+      tables$table_modifications <- if(is.null(gene_information$modifications)){data.frame()}else{data.frame(Modifications = gene_information$modifications)}
+        # gene_information$modifications
       tables$table_diseases_HPO <- if(is.null(gene_information$diseases_HPO)){data.frame()}else{gene_information$diseases_HPO}
         # gene_information$diseases_HPO
       tables$table_gene_ontology <- if(is.null(gene_information$gene_ontology)){data.frame()}else{gene_information$gene_ontology}
@@ -1499,6 +1853,10 @@ server <- function(input, output, session) {
       
       tables$table_phenotypes <- all_tables_list_precomputed$all_table_phenotypes_freqs
       tables$table_diseases <- all_tables_list_precomputed$all_table_diseases_freqs
+      
+      tables$table_complexes <- all_tables_list_precomputed$all_table_complexes_freqs
+      tables$table_modifications <- all_tables_list_precomputed$all_table_modifications_freqs
+      
       # tables$table_diseases_HPO <- all_tables_list_precomputed$all_table_diseases_HPO_freqs
       tables$table_diseases_HPO <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"diseases_HPO")
       
@@ -1513,6 +1871,10 @@ server <- function(input, output, session) {
       
       tables$table_phenotypes <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"phenotypes")
       tables$table_diseases <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"diseases")
+      
+      tables$table_complexes <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"complexes")
+      tables$table_modifications <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"modifications")
+      
       tables$table_diseases_HPO <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"diseases_HPO")
       tables$table_gene_ontology <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"gene_ontology")
       tables$table_kegg_pathways <- join_df_from_name_freqs(vals$gene_database_filtered,proteins_ncbi_ids_list,"kegg_pathways")
@@ -1919,6 +2281,18 @@ output$table_phenotypes <- renderDataTable({
    )
  }) 
  
+ output$table_complexes <- renderDataTable({
+   datatable_custom(
+     tables$table_complexes
+   )
+ })
+ 
+ output$table_modifications <- renderDataTable({
+   datatable_custom(
+     tables$table_modifications
+   )
+ })
+ 
  output$table_diseases_HPO <- renderDataTable({
    datatable_custom(
      tables$table_diseases_HPO
@@ -2202,6 +2576,43 @@ output$table_phenotypes <- renderDataTable({
               
               
             ),
+            # EPIFACTOR INFO
+            tagList(
+            fluidRow(align = "left",
+                     column(12,
+                            div(
+                              style = "margin: 10px;",  # Ajusta el valor según necesites
+                              tags$a(
+                                href = "https://hpo.jax.org/",
+                                tags$h1(
+                                  "Epifactor annotations",
+                                  title = "Epifactor annotations"
+                                ),
+                                target = "_blank"
+                              )
+                            )
+
+                     )
+
+            ),
+            box(
+              width = NULL,
+              fluidRow(
+                splitLayout(
+                  h3('Complexes'),
+                  h3('Modifications'),
+                ),
+                splitLayout(
+                  dataTableOutput('table_complexes'),
+                  dataTableOutput('table_modifications'),
+                )
+              )
+
+
+
+
+            )
+            ),
             
             # GO info
             fluidRow(align = "left",
@@ -2416,6 +2827,43 @@ output$table_phenotypes <- renderDataTable({
                 )
               )
               
+            ),
+            # EPIFACTOR ANNOTATION
+            tagList(
+              fluidRow(align = "left",
+                       column(12,
+                              div(
+                                style = "margin: 10px;",  # Ajusta el valor según necesites
+                                tags$a(
+                                  href = "https://hpo.jax.org/",
+                                  tags$h1(
+                                    "Epifactor annotations",
+                                    title = "Epifactor annotations"
+                                  ),
+                                  target = "_blank"
+                                )
+                              )
+
+                       )
+
+              ),
+              box(
+                width = NULL,
+                fluidRow(
+                  splitLayout(
+                    h3('Complexes'),
+                    h3('Modifications'),
+                  ),
+                  splitLayout(
+                    dataTableOutput('table_complexes'),
+                    dataTableOutput('table_modifications'),
+                  )
+                )
+
+
+
+
+              )
             ),
             
             # GO info
@@ -5081,6 +5529,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   
   output$comparison_text_genes  <- renderUI({
+    
     cat("\033[31m\n\ncomparison text genes------>\033[0m\n")
     print(vals$genes_selected)
     
@@ -6176,6 +6625,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # network_data_to_DT <- network_data_to_DT %>% select(vals$network_columns_selected)
       
       network_data_to_DT <- network_data_to_DT %>% dplyr::select(jaccard_columns)
+    
+      network_data_to_DT <- network_data_to_DT %>% arrange(desc(Jaccard))  #
       
       vals$network_data_to_DT <- network_data_to_DT
       
@@ -6360,14 +6811,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                       
                       
                       showModal(modalDialog(
-                        title=tagList(
-                        div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
-                            h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
-                            actionButton("close_modal", "×", 
-                                         style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
-                        )
-                        ),
-                        
+                        # title=tagList(
+                        # div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+                        #     h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
+                        #     actionButton("close_modal", "×",
+                        #                  style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+                        # )
+                        # ),
+
                         # UI elements
                         {
                           uiOutput("network_datatable_selected_row_ui")
@@ -6884,13 +7335,13 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         
         showModal(modalDialog(
-          title=tagList(
-            div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
-                h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
-                actionButton("close_modal", "×", 
-                             style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
-            )
-          ),
+          # title=tagList(
+          #   div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+          #       h4(paste( gene_1_symbol, "(ID:", gene_1, ") - ", gene_2_symbol, "(ID:", gene_2, ")")),
+          #       actionButton("close_modal", "×", 
+          #                    style = "background: none; border: none; font-size: 20px; color: black; cursor: pointer;")
+          #   )
+          # ),
           
           # UI elements
           {

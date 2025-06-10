@@ -161,6 +161,13 @@ names(input_list_pathways_CHOICES) <- all_pathways$kegg_name
 
 input_list_pathways_style <- rep("color: black",nrow(input_list_pathways))
 
+
+input_list_complexes <- all_complexes$complex_name
+input_list_complexes_style <- rep("color: black",length(input_list_complexes))
+
+input_list_modifications <- all_modifications$modification_name
+input_list_modifications_style <- rep("color: black",length(input_list_modifications))
+
 # sidebar menu ---------------------------------------------------------------
 
 
@@ -261,6 +268,10 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                       generic_picker_input("phenotype_selection","Phenotypes",input_list_phenotypes_CHOICES,input_list_phenotypes$SUBTEXT,style = input_list_phenotypes_style),
                                       generic_picker_input("disease_selection","Diseases",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
                                       generic_picker_input("gene_ontology_subontology_selection","Gene Ontology Subontology",input_list_gene_ontology_subontology,style = input_list_gene_ontology_subontology_style),
+                                      
+                                      generic_picker_input("modification_selection","Modifications",input_list_modifications, style = input_list_modifications_style),
+                                      generic_picker_input("complex_selection","Complexes",input_list_complexes, style =input_list_complexes_style),
+                                      
                                       generic_picker_input("gene_ontology_selection","Gene Ontology",input_list_gene_ontology_CHOICES,input_list_gene_ontology$SUBTEXT,style = input_list_gene_ontology_style),
                                       generic_picker_input("pathway_selection","Pathways",input_list_pathways_CHOICES,input_list_pathways$SUBTEXT,style = input_list_pathways_style),
                                       ),

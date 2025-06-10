@@ -1429,6 +1429,37 @@
         "Built": "R 4.4.0; ; 2024-04-06 17:05:53 UTC; unix"
       }
     },
+    "dendextend": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "dendextend",
+        "Type": "Package",
+        "Title": "Extending 'dendrogram' Functionality in R",
+        "Version": "1.19.0",
+        "Date": "2024-11-15",
+        "Authors@R": "c(person(\"Tal\", \"Galili\", role = c(\"aut\", \"cre\", \"cph\"), email =\n    \"tal.galili@gmail.com\", comment = \"https://www.r-statistics.com\"),\n    person(\"Yoav\", \"Benjamini\", email = \"ybenja@tau.ac.il\",role = \"ths\"),\n    person(\"Gavin\", \"Simpson\", role = \"ctb\"), person(\"Gregory\",\"Jefferis\", role\n    = c(\"aut\", \"ctb\"), email = \"jefferis@gmail.com\",\n    comment =\"imported code from his dendroextras package\"),\n    person(\"Marco\", \"Gallotta\", role = \"ctb\", comment =\n    \"a.k.a: marcog\") , person(\"Johan\", \"Renaudie\", role = \"ctb\", comment =\n    \"https://github.com/plannapus\"), person(\"The R Core Team\", role = \"ctb\",\n    comment = \"Thanks for the Infastructure, and code in the examples\"),\n    person(\"Kurt\", \"Hornik\", role = \"ctb\"), person(\"Uwe\", \"Ligges\",\n    role = \"ctb\"), person(\"Andrej-Nikolai\", \"Spiess\", role = \"ctb\"),\n    person(\"Steve\", \"Horvath\",email = \"SHorvath@mednet.ucla.edu\", role =\n    \"ctb\"), person(\"Peter\", \"Langfelder\",email = \"Peter.Langfelder@gmail.com\",\n    role = \"ctb\"), person(\"skullkey\", role = \"ctb\"), person(\"Mark\",\n    \"Van Der Loo\", email = \"mark.vanderloo@gmail.com\", comment =\n    \"https://github.com/markvanderloo d3dendrogram\", role = \"ctb\"),\n    person(\"Andrie\",\n    \"de Vries\", email = \"apdevries@gmail.com\", comment =\n    \"ggdendro author\", role = \"ctb\"),\n    person(\"Zuguang\",\n    \"Gu\", email = \"z.gu@dkfz-heidelberg.de\", comment =\n    \"circlize author\", role = \"ctb\"),    \n    person(\"Cath\", comment =\n    \"https://github.com/CathG\", role = \"ctb\"), person(\"John\",\n    \"Ma\", comment =\n    \"https://github.com/JohnMCMa\", role = \"ctb\"), person(\"Krzysiek\",\n    \"G\", comment =\n    \"https://github.com/storaged\", role = \"ctb\"), person(\"Manuela\",\n    \"Hummel\", email = \"m.hummel@dkfz.de\", comment =\n    \"https://github.com/hummelma\", role = \"ctb\"), \n    person(\"Chase\",\n    \"Clark\", comment =\n    \"https://github.com/chasemc\", role = \"ctb\"), \n    person(\"Lucas\",\n    \"Graybuck\", comment =\n    \"https://github.com/hypercompetent\", role = \"ctb\"), \n    person(\"jdetribol\", comment =\n    \"https://github.com/jdetribol\", role = \"ctb\"), \n    person(\"Ben\", \"Ho\", role = \"ctb\", email = \"ben.ho@sickkids.ca\", comment = \"https://github.com/SplitInf\"),\n    person(\"Samuel\", \"Perreault\", role = \"ctb\", email = \"samuel.perreault.3@ulaval.ca\", comment = \"https://github.com/samperochkin\"),\n    person(\"Christian\", \"Hennig\", role = \"ctb\", email = \"c.hennig@ucl.ac.uk\", comment = \"http://www.homepages.ucl.ac.uk/~ucakche/\"),\n    person(\"David\", \"Bradley\", role = \"ctb\", comment = \"https://github.com/DBradley27\"),\n    person(\"Houyun\", \"Huang\", role = \"ctb\", email = 'houyunhuang@163.com', comment = \"https://github.com/houyunhuang\"),\n    person(\"Patrick\", \"Schupp\", role = \"ctb\", email = 'pschupp@sonic.net', comment = \"https://github.com/pschupp\"),\n    person(\"Alec\", \"Buetow\", role = \"ctb\", email = 'alecbuetow@gmail.com', comment = \"https://github.com/alecbuetow\")\n    )",
+        "Description": "Offers a set of functions for extending\n    'dendrogram' objects in R, letting you visualize and compare trees of\n    'hierarchical clusterings'. You can (1) Adjust a tree's graphical parameters\n    - the color, size, type, etc of its branches, nodes and labels. (2)\n    Visually and statistically compare different 'dendrograms' to one another.",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "utils, stats, datasets, magrittr (>= 1.0.1), ggplot2, viridis",
+        "Suggests": "knitr, rmarkdown, testthat, seriation, colorspace, ape,\nmicrobenchmark, gplots, heatmaply, dynamicTreeCut, pvclust,\ncorrplot, DendSer, MASS, cluster, fpc, circlize (>= 0.2.5),\ncovr",
+        "Enhances": "ggdendro, dendroextras, Hmisc, data.table, rpart, WGCNA,\nmoduleColor, distory, phangorn, zoo",
+        "VignetteBuilder": "knitr",
+        "LazyData": "true",
+        "License": "GPL-2 | GPL-3",
+        "URL": "https://talgalili.github.io/dendextend/,\nhttps://github.com/talgalili/dendextend/,\nhttps://cran.r-project.org/package=dendextend,\nhttps://www.r-statistics.com/tag/dendextend/,\nhttps://doi.org/10.1093/bioinformatics/btv428",
+        "BugReports": "https://github.com/talgalili/dendextend/issues",
+        "RoxygenNote": "7.3.2",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-11-15 05:32:05 UTC; talgalili",
+        "Author": "Tal Galili [aut, cre, cph] (https://www.r-statistics.com),\n  Yoav Benjamini [ths],\n  Gavin Simpson [ctb],\n  Gregory Jefferis [aut, ctb] (imported code from his dendroextras\n    package),\n  Marco Gallotta [ctb] (a.k.a: marcog),\n  Johan Renaudie [ctb] (https://github.com/plannapus),\n  The R Core Team [ctb] (Thanks for the Infastructure, and code in the\n    examples),\n  Kurt Hornik [ctb],\n  Uwe Ligges [ctb],\n  Andrej-Nikolai Spiess [ctb],\n  Steve Horvath [ctb],\n  Peter Langfelder [ctb],\n  skullkey [ctb],\n  Mark Van Der Loo [ctb] (https://github.com/markvanderloo d3dendrogram),\n  Andrie de Vries [ctb] (ggdendro author),\n  Zuguang Gu [ctb] (circlize author),\n  Cath [ctb] (https://github.com/CathG),\n  John Ma [ctb] (https://github.com/JohnMCMa),\n  Krzysiek G [ctb] (https://github.com/storaged),\n  Manuela Hummel [ctb] (https://github.com/hummelma),\n  Chase Clark [ctb] (https://github.com/chasemc),\n  Lucas Graybuck [ctb] (https://github.com/hypercompetent),\n  jdetribol [ctb] (https://github.com/jdetribol),\n  Ben Ho [ctb] (https://github.com/SplitInf),\n  Samuel Perreault [ctb] (https://github.com/samperochkin),\n  Christian Hennig [ctb] (http://www.homepages.ucl.ac.uk/~ucakche/),\n  David Bradley [ctb] (https://github.com/DBradley27),\n  Houyun Huang [ctb] (https://github.com/houyunhuang),\n  Patrick Schupp [ctb] (https://github.com/pschupp),\n  Alec Buetow [ctb] (https://github.com/alecbuetow)",
+        "Maintainer": "Tal Galili <tal.galili@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-11-15 10:40:06 UTC",
+        "Built": "R 4.4.1; ; 2024-11-18 04:39:36 UTC; unix"
+      }
+    },
     "digest": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2833,6 +2864,27 @@
         "Date/Publication": "2025-02-03 14:20:02 UTC",
         "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-03 14:46:49 UTC; unix",
         "Archs": "openssl.so.dSYM"
+      }
+    },
+    "org.Hs.eg.db": {
+      "Source": "Bioconductor",
+      "Repository": "https://bioconductor.org/packages/3.19/data/annotation",
+      "description": {
+        "Package": "org.Hs.eg.db",
+        "Title": "Genome wide annotation for Human",
+        "Description": "Genome wide annotation for Human, primarily based on mapping using Entrez Gene identifiers.",
+        "Version": "3.19.1",
+        "Author": "Marc Carlson",
+        "Maintainer": "Bioconductor Package Maintainer <maintainer@bioconductor.org>",
+        "Depends": "R (>= 2.7.0), methods, AnnotationDbi (>= 1.65.2)",
+        "Suggests": "DBI, annotate, RUnit",
+        "License": "Artistic-2.0",
+        "organism": "Homo sapiens",
+        "species": "Human",
+        "biocViews": "OrgDb, AnnotationData, Homo_sapiens, humanLLMappings",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-04-19 16:31:36 UTC; ubuntu",
+        "Built": "R 4.4.0; ; 2025-02-05 10:57:21 UTC; unix"
       }
     },
     "pillar": {
@@ -4323,6 +4375,36 @@
         "Built": "R 4.4.1; ; 2025-01-24 22:06:42 UTC; unix"
       }
     },
+    "viridis": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "viridis",
+        "Type": "Package",
+        "Title": "Colorblind-Friendly Color Maps for R",
+        "Version": "0.6.5",
+        "Date": "2024-01-28",
+        "Authors@R": "c(\n      person(\"Simon\", \"Garnier\", email = \"garnier@njit.edu\", role = c(\"aut\", \"cre\")),\n      person(\"Noam\", \"Ross\", email = \"noam.ross@gmail.com\", role = c(\"ctb\", \"cph\")),\n      person(\"Bob\", \"Rudis\", email = \"bob@rud.is\", role = c(\"ctb\", \"cph\")),\n      person(\"Marco\", \"Sciaini\", email = \"sciaini.marco@gmail.com\", role = c(\"ctb\", \"cph\")),\n      person(\"Antônio Pedro\", \"Camargo\", role = c(\"ctb\", \"cph\")),\n      person(\"Cédric\", \"Scherer\", email = \"scherer@izw-berlin.de\", role = c(\"ctb\", \"cph\"))\n  )",
+        "Maintainer": "Simon Garnier <garnier@njit.edu>",
+        "Description": "Color maps designed to improve graph readability for readers with \n    common forms of color blindness and/or color vision deficiency. The color \n    maps are also perceptually-uniform, both in regular form and also when \n    converted to black-and-white for printing. This package also contains \n    'ggplot2' bindings for discrete and continuous color and fill scales. A lean\n    version of the package called 'viridisLite' that does not include the \n    'ggplot2' bindings can be found at \n    <https://cran.r-project.org/package=viridisLite>.",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 2.10), viridisLite (>= 0.4.0)",
+        "Imports": "ggplot2 (>= 1.0.1), gridExtra",
+        "Suggests": "hexbin (>= 1.27.0), scales, MASS, knitr, dichromat,\ncolorspace, httr, mapproj, vdiffr, svglite (>= 1.2.0),\ntestthat, covr, rmarkdown, maps, terra",
+        "LazyData": "true",
+        "VignetteBuilder": "knitr",
+        "URL": "https://sjmgarnier.github.io/viridis/,\nhttps://github.com/sjmgarnier/viridis/",
+        "BugReports": "https://github.com/sjmgarnier/viridis/issues",
+        "RoxygenNote": "7.3.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-01-28 16:20:23 UTC; simon",
+        "Author": "Simon Garnier [aut, cre],\n  Noam Ross [ctb, cph],\n  Bob Rudis [ctb, cph],\n  Marco Sciaini [ctb, cph],\n  Antônio Pedro Camargo [ctb, cph],\n  Cédric Scherer [ctb, cph]",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-01-29 10:10:02 UTC",
+        "Built": "R 4.4.0; ; 2024-04-06 17:01:13 UTC; unix"
+      }
+    },
     "viridisLite": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4577,6 +4659,32 @@
         "Archs": "yaml.so.dSYM"
       }
     },
+    "zip": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "zip",
+        "Title": "Cross-Platform 'zip' Compression",
+        "Version": "2.3.2",
+        "Authors@R": "c(\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Kuba\", \"Podgórski\", role = \"ctb\"),\n    person(\"Rich\", \"Geldreich\", role = \"ctb\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Cross-Platform 'zip' Compression Library. A replacement for\n    the 'zip' function, that does not require any additional external\n    tools on any platform.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/r-lib/zip, https://r-lib.github.io/zip/",
+        "BugReports": "https://github.com/r-lib/zip/issues",
+        "Suggests": "covr, pillar, processx, R6, testthat, withr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-02-01 22:18:43 UTC; gaborcsardi",
+        "Author": "Gábor Csárdi [aut, cre],\n  Kuba Podgórski [ctb],\n  Rich Geldreich [ctb],\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-02-01 23:00:02 UTC",
+        "Built": "R 4.4.1; aarch64-apple-darwin20; 2025-02-01 23:37:09 UTC; unix"
+      }
+    },
     "zlibbioc": {
       "Source": "Bioconductor",
       "Repository": "https://bioconductor.org/packages/3.19/bioc",
@@ -4612,16 +4720,19 @@
       "checksum": "f8dbf9c410509cfcb7239ba935224390"
     },
     "app.R": {
-      "checksum": "4c7fee49838015bfec68cb60db227e4a"
+      "checksum": "9ad56f5e4d46a214bc05a3217c4ecccf"
     },
     "data/.DS_Store": {
-      "checksum": "fccc1531a0baee5121fc4b4b96705e7a"
+      "checksum": "c6ab35f9b2f7e656072dac2bb6e66fb3"
     },
     "data/all_features_similarities.csv": {
       "checksum": "9832ab261a4d74c90e7f963caae76a98"
     },
-    "data/all_tables_list_precomputed.rds": {
+    "data/all_tables_list_precomputed_preepifactor.rds": {
       "checksum": "e012f9d306e796fdab03d6659a74bde0"
+    },
+    "data/all_tables_list_precomputed.rds": {
+      "checksum": "c9c6afc85104b967ddf2dc06289b7a0b"
     },
     "data/allen-brain-atlas/samples_annot_names.csv": {
       "checksum": "dd120d79c4cf24f62bd2067f5bc07fa3"
@@ -4647,14 +4758,17 @@
     "data/filter_from_file.txt": {
       "checksum": "77a617a5c8ed22fe7714210b8c39f975"
     },
+    "data/genes_database_before_epifactor.rds": {
+      "checksum": "c49d100d003f9897df92dedc27660c66"
+    },
     "data/genes_database.json": {
       "checksum": "fb15f5e546cb25109fde8693042f61dc"
     },
     "data/genes_database.rds": {
-      "checksum": "c49d100d003f9897df92dedc27660c66"
+      "checksum": "a9c0b3df939f2c9e219897aa04fe62ff"
     },
-    "data/network_data/.DS_Store": {
-      "checksum": "a5a1691eb8a2a4171b40f1a4b447bfe7"
+    "data/genes_epifactor.csv": {
+      "checksum": "d8437f21dd6bae6492c905c6172d8b12"
     },
     "data/network_data/all_net.csv": {
       "checksum": "d8f55e8054bdd70ee348e207c5e0f9f9"
@@ -4701,14 +4815,17 @@
     "data/sysndd_ndd_phenotype.csv": {
       "checksum": "f867c57e7adfd53bc7ab4793c7e06a5f"
     },
+    "dendrograma_genes.svg": {
+      "checksum": "6137e44f26d8f045bb2de288ffe69e2a"
+    },
+    "error_promises.rtf": {
+      "checksum": "8bd3b02fda6a5b37749b4faf09e0f9fd"
+    },
     "scripts/.DS_Store": {
-      "checksum": "29090a117af17647e5b0ba2f9c873445"
+      "checksum": "fd7508373a7134ac71376e50b36fa823"
     },
     "scripts/functions.R": {
-      "checksum": "4e01ecbd3c50b9bc17d083a6dec0a3ff"
-    },
-    "scripts/modules/.DS_Store": {
-      "checksum": "194577a7e20bdcc7afbb718f502c134c"
+      "checksum": "e8823253e0d0669c809f45c2b182e102"
     },
     "scripts/modules/interactive_euler.R": {
       "checksum": "8139fd2cae9f77a092c56b6d372fb757"
@@ -4720,13 +4837,16 @@
       "checksum": "00cbd34d8720a0395f2a47c31a20617e"
     },
     "scripts/modules/tabs.R": {
-      "checksum": "6914ca0c83f6b5ef789cb2274a16159e"
+      "checksum": "6e00ba82cb405cf51684e4091b40d09a"
     },
     "scripts/utils/.DS_Store": {
       "checksum": "194577a7e20bdcc7afbb718f502c134c"
     },
     "scripts/utils/all_tables_list_precomputed_GENERATOR.R": {
-      "checksum": "3aad7a2737d13dc5745cbfa59b4f33c5"
+      "checksum": "e5a0b3aea10668a05c28a61459d1d1a8"
+    },
+    "scripts/utils/genes_database_editor_EPIFACTOR.R": {
+      "checksum": "e638b3995c846f677c7ccd9f3b432dc6"
     },
     "scripts/utils/genes_database_editor.R": {
       "checksum": "b61748620dc1acc53dfc832f67746173"
@@ -4734,20 +4854,17 @@
     "scripts/utils/genes_database_ORPHANET_REMOVAL.R": {
       "checksum": "6c83445b27e89153b8f7f117fa1af705"
     },
+    "scripts/utils/network_distribution.R": {
+      "checksum": "326f1f399db8025a952e5714677bdc6d"
+    },
     "scripts/utils/network_names.R": {
       "checksum": "024281ca021fc54fbdfe6337bafda013"
-    },
-    "scripts/utils/network_test.R": {
-      "checksum": "30a957fb3dacb9f7992b0bf0a02df541"
     },
     "scripts/utils/one_gene_net.R": {
       "checksum": "ec7a0f87659436dbee3e5b8f1aeacb78"
     },
     "scripts/utils/sysndd_diseases_filter.R": {
       "checksum": "873a17fc10e12b74ec8399a17c3ea9af"
-    },
-    "www/.DS_Store": {
-      "checksum": "957cf1c8a32de3fcffd1547bd22ee71e"
     },
     "www/brain.svg": {
       "checksum": "d01c2f48e93c083de19d7a7e75db8e8c"
@@ -4769,9 +4886,6 @@
     },
     "www/icons/warning_icon.svg": {
       "checksum": "110daac102977d7feb9eb2f91e017f6e"
-    },
-    "www/images/.DS_Store": {
-      "checksum": "194577a7e20bdcc7afbb718f502c134c"
     },
     "www/images/brain-13-svgrepo-com.svg": {
       "checksum": "8a635a7dba42cca8434cae17a78668e8"

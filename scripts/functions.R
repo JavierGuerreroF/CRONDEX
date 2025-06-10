@@ -151,6 +151,36 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   print(str(phenotypes_table))
   phenotypes_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(phenotypes_table,genes_color)
   
+  # epifactor 
+  # complexes 
+  gene_1_complexes <- gene_1_data$complexes
+  gene_2_complexes <- gene_2_data$complexes
+  
+  complexes_table <- data.frame(
+    Gene = c(rep(gene_1_symbol, length(gene_1_complexes)), rep(gene_2_symbol, length(gene_2_complexes))),
+    Value = c(gene_1_complexes, gene_2_complexes)
+  )
+  
+  # indicacion de que es complexes 
+  cat("\033[33m","Estructura de la tabla complexes","\033[0m\n")
+  print(str(complexes_table))
+  complexes_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(complexes_table,genes_color)
+  # Modifications
+  gene_1_modifications <- gene_1_data$modifications
+  gene_2_modifications <- gene_2_data$modifications
+  modifications_table <- data.frame(
+    Gene = c(rep(gene_1_symbol, length(gene_1_modifications)), rep(gene_2_symbol, length(gene_2_modifications))),
+    Value = c(gene_1_modifications, gene_2_modifications)
+  )
+  cat("\033[33m","Estructura de la tabla modifications","\033[0m\n")
+  print(str(modifications_table))
+  modifications_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(modifications_table,genes_color)
+  
+  
+  
+  
+  
+  
   # gene ontology id
   gene_1_go <- gene_1_data$gene_ontology_id
   gene_2_go <- gene_2_data$gene_ontology_id
@@ -267,6 +297,16 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
       ),
       column(
         width = 12,
+        h2("Complexes Comparison", style = "text-align: left;"),
+        complexes_comparison_ui
+      ),
+      column(
+        width = 12,
+        h2("Modifications Comparison", style = "text-align: left;"),
+        modifications_comparison_ui
+      ),
+      column(
+        width = 12,
         h2("Gene Ontology Comparison", style = "text-align: left;"),
         gene_ontology_comparison_ui
       ),
@@ -292,10 +332,27 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   gene_comparison_ui <- tagList(
     fluidRow(
       column(12,
-             h2("Gene Comparison",style = "text-align: left;"),
-             h4(HTML(paste("<span style='color:", genes_color[1],"'>⬤</span><b>", gene_1_symbol, "</b>(ID:", gene_1,")"))),
-             h4(HTML(paste("<span style='color:", genes_color[2],"'>⬤</span><b>", gene_2_symbol, "</b>(ID:", gene_2,")"))),
-             h2("Phenotype Similarity (Jaccard index)",style= "text-align: left;"),
+             # h2("Gene Comparison",style = "text-align: left;"),
+             # h4(HTML(paste("<span style='color:", genes_color[1],"'>⬤</span><b>", gene_1_symbol, "</b>(ID:", gene_1,")"))),
+             # h4(HTML(paste("<span style='color:", genes_color[2],"'>⬤</span><b>", gene_2_symbol, "</b>(ID:", gene_2,")"))),
+             # 
+             
+             HTML(paste0(
+               "<div style='text-align:center;'>",
+               "<div style='font-size:2em;font-weight:700;'>Gene Comparison</div>",
+               "<div style='margin-top:6px;font-size:1.8em;'>",  
+                 "<span style='color:", genes_color[1], ";'>⬤</span>&nbsp;",
+               "<span style='font-weight:700;'>", gene_1_symbol, "</span> (ID:", gene_1, ")&nbsp;&nbsp;",
+               "<span style='color:", genes_color[2], ";'>⬤</span>&nbsp;",
+               "<span style='font-weight:700;'>", gene_2_symbol, "</span> (ID:", gene_2, ")",
+               "</div>",
+               "</div>"
+             )),
+             
+             
+             # h2("Phenotype Similarity (Jaccard index)",style= "text-align: left;"),
+             # withMathJax(HTML("Esta es una fórmula en línea: \\( a^2 + b^2 = c^2 \\)")),
+             hr(),
              jaccard_ui,
              hr(),
              old_comparison_ui
@@ -307,6 +364,12 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   
   cat("\n\n")
   cat("\033[35m","Finalizando la función 'genes_comparison_ui_generator'","\033[0m\n")
+  
+  gene_comparison_ui <-   shinycssloaders::withSpinner(
+    gene_comparison_ui,
+    type = 6, color = "#f39c12", size = 1
+  )
+  
   
   return(gene_comparison_ui)
 }
@@ -369,6 +432,12 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
           node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
           
+          A_children <- node_from_phenotypes_children <- node_from_phenotypes[node_from_phenotypes %in% children_phenotypes]
+          B_children <- node_to_phenotypes_children   <- node_to_phenotypes[node_to_phenotypes %in% children_phenotypes]
+          
+          A_parents <- node_from_phenotypes_parents <- node_from_phenotypes[node_from_phenotypes %in% parent_phenotypes]
+          B_parents <- node_to_phenotypes_parents   <- node_to_phenotypes[node_to_phenotypes %in% parent_phenotypes]
+          
           cat("\033[32m\n\nnode_from_phenotypes------>\033[0m\n")
           print(str(node_to_phenotypes))
           cat("\033[32m\n\nnode_to_phenotypes------>\033[0m\n")
@@ -377,13 +446,42 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
           # 3. Intersection and union
           intersection_phenotypes <- intersect(node_from_phenotypes, node_to_phenotypes)
           union_phenotypes        <- union(node_from_phenotypes, node_to_phenotypes)
+          distinct_gene_1_phenotypes <- setdiff(node_from_phenotypes, node_to_phenotypes)
+          distinct_gene_2_phenotypes <- setdiff(node_to_phenotypes, node_from_phenotypes)
 
-
+  
+          
           # 4. Compute Jaccard
           intersection_size <- length(intersection_phenotypes)
           union_size        <- length(union_phenotypes)
+          distinct_gene_1_size <- length(distinct_gene_1_phenotypes)
+          distinct_gene_2_size <- length(distinct_gene_2_phenotypes)
+          
           jaccard_index     <- intersection_size / union_size
-
+          
+          jaccard_children <- length(intersect(A_children, B_children))/length(union(A_children, B_children))
+          jaccard_parents <- length(intersect(A_parents, B_parents))/length(union(A_parents, B_parents))
+          
+          w_children <- length(unique(c(A_children,B_children)))/(length(unique(c(A_children,B_children)))+length(unique(c(A_parents,B_parents))))
+          w_parents <- length(unique(c(A_parents,B_parents)))/(length(unique(c(A_children,B_children)))+length(unique(c(A_parents,B_parents))))
+          
+          children_contribution_to_jaccard <- w_children*jaccard_children
+          parents_contribution_to_jaccard <- w_parents*jaccard_parents
+          
+          # cat en verde de todas estas metricas
+          cat("\033[32m\n\nJaccard index------>\033[0m\n")
+          print(paste("Jaccard index:", jaccard_index))
+          cat("\033[32m\n\nJaccard children------>\033[0m\n")
+          print(paste("Jaccard children:", jaccard_children))
+          cat("\033[32m\n\nJaccard parents------>\033[0m\n")
+          print(paste("Jaccard parents:", jaccard_parents))
+          cat("\033[32m\n\nJaccard index contribution children------>\033[0m\n")
+          print(paste("Jaccard index contribution children:", children_contribution_to_jaccard))
+          cat("\033[32m\n\nJaccard index contribution parents------>\033[0m\n")
+          print(paste("Jaccard index contribution parents:", parents_contribution_to_jaccard))
+          
+          
+          
 
 
           # 5. Create three subsets for table display
@@ -553,8 +651,15 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
             gene_1_symbol <- as.character(gene_1_data$gene_symbol)
             gene_2_symbol <- as.character(gene_2_data$gene_symbol)
             
-            gene_1_phenotypes_ids <- gene_1_data$phenotypes_id
-            gene_2_phenotypes_ids   <- gene_2_data$phenotypes_id
+            # node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
+            # node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
+            # corregido para que esten filtrados por Phenotipic Abnormality
+            gene_1_phenotypes_ids <- node_from_phenotypes
+            gene_2_phenotypes_ids   <- node_to_phenotypes
+            
+            # sin filtrar
+            # gene_1_phenotypes_ids <- gene_1_data$phenotypes_id
+            # gene_2_phenotypes_ids   <- gene_2_data$phenotypes_id
             
      
             euler_list <- list()
@@ -576,9 +681,118 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
             
           })
           
+          
+          output$eulerPlot_jaccard_children <- renderPlot({
+            
+            cat("\033[35m\n\nrenderPlot------>\033[0m\n")
+            print("Jaccard plot childnre")
+            # Filtrar info de la arista
+            gene_1_symbol <- as.character(gene_1_data$gene_symbol)
+            gene_2_symbol <- as.character(gene_2_data$gene_symbol)
+            
+            # node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
+            # node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
+            # corregido para que esten filtrados por Phenotipic Abnormality
+            gene_1_phenotypes_ids <- node_from_phenotypes_children
+            gene_2_phenotypes_ids   <- node_to_phenotypes_children
+            
+            # sin filtrar
+            # gene_1_phenotypes_ids <- gene_1_data$phenotypes_id
+            # gene_2_phenotypes_ids   <- gene_2_data$phenotypes_id
+            
+            
+            euler_list <- list()
+            
+            euler_list[[gene_1_symbol]] <- gene_1_phenotypes_ids
+            euler_list[[gene_2_symbol]] <- gene_2_phenotypes_ids
+            
+            
+            cat("\033[35m\n\nedge_id_split------>\033[0m\n")
+            
+            print(str(euler_list))
+            
+            
+            edge_euler_plot <- plot_euler_edge_jaccard(euler_list, gene_colors = genes_color)
+            
+            plot(edge_euler_plot) 
+            cat("\033[35m\n\nfinish_edge_id_split------>\033[0m\n")
+            
+            
+          })
+          
+          output$eulerPlot_jaccard_parents <- renderPlot({
+            
+            cat("\033[35m\n\nrenderPlot------>\033[0m\n")
+            print("Jaccard plot parents")
+            # Filtrar info de la arista
+            gene_1_symbol <- as.character(gene_1_data$gene_symbol)
+            gene_2_symbol <- as.character(gene_2_data$gene_symbol)
+            
+            # node_from_phenotypes <- node_from_phenotypes[node_from_phenotypes %in% phenotypes_id_to_filter]
+            # node_to_phenotypes   <- node_to_phenotypes[node_to_phenotypes %in% phenotypes_id_to_filter]
+            # corregido para que esten filtrados por Phenotipic Abnormality
+            gene_1_phenotypes_ids <- node_from_phenotypes_parents
+            gene_2_phenotypes_ids   <- node_to_phenotypes_parents
+            
+            # sin filtrar
+            # gene_1_phenotypes_ids <- gene_1_data$phenotypes_id
+            # gene_2_phenotypes_ids   <- gene_2_data$phenotypes_id
+            
+            
+            euler_list <- list()
+            
+            euler_list[[gene_1_symbol]] <- gene_1_phenotypes_ids
+            euler_list[[gene_2_symbol]] <- gene_2_phenotypes_ids
+            
+            
+            cat("\033[35m\n\nedge_id_split------>\033[0m\n")
+            
+            print(str(euler_list))
+            
+            
+            edge_euler_plot <- plot_euler_edge_jaccard(euler_list, gene_colors = genes_color)
+            
+            plot(edge_euler_plot) 
+            cat("\033[35m\n\nfinish_edge_id_split------>\033[0m\n")
+            
+            
+          })
+          
+          
+          output$contribution_plot <- renderPlot({
+            # Plot de la contribución de los padres y los hijos al índice de Jaccard
+         #
+            contribution_plot <- create_component_plot(children_contribution_to_jaccard, parents_contribution_to_jaccard,
+                                                            labels        = c("Children contribution", "Parent contribution"),
+                                                            colours       = c("orange", "steelblue"))
+                                                            # show_total    = TRUE) 
+            plot(contribution_plot)
+          })
 
           # WITH MODAL
-
+          
+          
+          
+          # jaccard distribution plot
+                    
+          subtitle <- paste0("Jaccard Index Distribution + ", gene_1_symbol, " / ", gene_2_symbol," Jaccard Index")
+          
+          
+          data_vec <- network_genes_data$Jaccard
+          # eliminar los 0 y los 1
+          # data_vec <- data_vec[data_vec != 0 & data_vec != 1]
+          
+          jaccard_distribution_plot <- violin_box_with_point(data_vec = data_vec, 
+                                                             point = jaccard_index, 
+                                                             title = NULL,
+                                                             subtitle = NULL,
+                                                             violin_color = 'lightblue')
+          # output$jaccard_distribution_plot <- renderPlotly({
+          #   jaccard_distribution_plot
+          # })
+          output$jaccard_distribution_plot <- renderPlot({
+            jaccard_distribution_plot
+          })
         }
     
     
@@ -587,55 +801,164 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
     # UI 
     jaccard_ui <- tagList(
 
- 
+      ### OLD
+      # fluidRow(
+      #   column(4,
+      #           # style = "display:flex; align-items:center;",   # opcional, centra verticalmente
+      # 
+      #          HTML("<h4>Jaccard Index Formula</h4>"),
+      #          # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
+      #          HTML(
+      #            paste0(
+      #              "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
+      #              intersection_size,
+      #              " / ",
+      #              union_size,
+      #              " = ",
+      #              round(jaccard_index, 3),
+      #              "</strong></p>"
+      #            )
+      #          )
+      # 
+      #   ),
+      #   column(3,
+      #          HTML(paste0(
+      #                  "<div style='
+      #                     background-color:#fdf6e3;
+      #                     border:2px solid #f39c12;
+      #                     padding:10px 15px;
+      #                     margin-top:10px;
+      #                     border-radius:8px;
+      #                     font-family:Arial,sans-serif;
+      #                     width:fit-content;
+      #                     max-width:250px;
+      #                 '>
+      #                    <span style='font-size:17px;'>Jaccard Index Value:&nbsp;</span>
+      #                    <span style='font-size:18px;font-weight:bold;color:#f39c12;'>",
+      #                                round(jaccard_index, 3),
+      #                                "</span>
+      #                 </div>"
+      #          ))
+      #   ),
+      #   column(5,
+      #          plotlyOutput("jaccard_distribution_plot", width = "100%", height = "150px"),
+      #          )
+      # ),
+      # 
+      # br(),
+      # # --- Plot output ---
+      # fluidRow(align = "center",
+      #          plotOutput("eulerPlot_jaccard")
+      # ),
       
+      
+      ### OLD
+ 
+      #·· New
       fluidRow(
-        column(6,
-               HTML("<h4>Jaccard Index Formula</h4>"),
-               # HTML("<p><strong>J(A, B) = |A &cap; B| / |A &cup; B|</strong></p>"),
-               HTML(
-                 paste0(
-                   "<p><strong>J(A, B) = |A &cap; B| / |A &cup; B| = ",
-                   intersection_size,
-                   " / ",
-                   union_size,
-                   " = ",
-                   round(jaccard_index, 3),
-                   "</strong></p>"
+        column(7,
+               fluidRow(
+                 withMathJax(
+                   HTML(paste0(
+                     "<h3>$$\\text{Phenotype Similarity} = \\mathbf{",
+                     round(jaccard_index, 2), "} = \\frac{", intersection_size,
+                     "}{\\left(", distinct_gene_1_size, " + ", intersection_size, " + ", distinct_gene_2_size,
+                     "\\right)} = \\frac{", intersection_size, "}{", union_size, "}$$</h3>"
+                   ))
                  )
-               )  
-          
-        ),
-        column(6,
-               HTML(paste0(
-                 "<div style='
-          background-color: #fdf6e3;
-          border: 2px solid #f39c12;
-          padding: 10px 15px;
-          margin-top: 10px;
-          border-radius: 8px;
-          font-family: Arial, sans-serif;
-          width: fit-content;
-          max-width: 250px;
-      '>
-        <p style='margin: 0; font-size: 14px;'>Jaccard Index Value:</p>
-        <p style='margin: 0; font-size: 24px; font-weight: bold; color: #f39c12;'>",
-                 round(jaccard_index, 3),
-                 "</p>
-      </div>"
-               )),
+                 
+                 # HTML(paste0("<h2>Phenoype Similarity = ",intersection_size,"/(",distinct_gene_1_size," + ",union_size," + ",distinct_gene_2_size,") = ", intersection_size, "/",union_size," = ",round(jaccard_index, 2),"</h2>"))
+               ),
+               fluidRow(
+                 tags$div(
+                   style = "
+      background-color: #ffffff;                 /* fondo blanco limpio */
+      border: 2px solid #ffffff;                 /* azul vivo (Tailwind blue-600) */
+      border-radius: 8px;                        /* esquinas suaves */
+      /*box-shadow: 0 2px 4px rgba(0,0,0,0.05);    /* sombra muy sutil */
+      padding: 18px;
+      width: 100%;
+    ",
+                   tags$h3(
+                     "SIMILARITY DISTRIBUTION",
+                     style = "
+        margin: 0 0 12px 0;
+        font-family: 'Montserrat', 'Segoe UI', sans-serif;  /* fuente moderna */
+        font-size: 1.6rem;
+        font-weight: 700;
+        text-transform: uppercase;              /* todo en mayúsculas */
+        letter-spacing: 1px;                    /* aire entre letras */
+        color: #000000;                         /* mismo azul del borde */
+        text-align: center;
+      "
+                   ),
+                   # plotlyOutput("jaccard_distribution_plot",
+                   #              width  = "100%",
+                   #              height = "150px")
+                   plotOutput("jaccard_distribution_plot", 
+                                width  = "100%",
+                                height = "150px")
+                 )
+               )
+               
+               ),
+        column(5,
+               fluidRow(align = "center",
+                        plotOutput("eulerPlot_jaccard")
+               )
                )
       ),
       
-      br(),
-      # --- Plot output ---
-      fluidRow(align = "center",
-               plotOutput("eulerPlot_jaccard")
-      ),
+      #· NEW
+      
+      
+      
+      
+      
+      
+      
       br(),
       # plotOutput("eulerPlot_edge"),
       box(
-        title = HTML("Children/parent proportion"),
+        title = HTML("Children/parent contribution"),
+        width = NULL,
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        collapsed = TRUE,  # Starts collapsed
+        status = "warning",
+        fluidRow(
+          align = "center",
+          column(
+            width = 6,
+            h3("Similarity by only children: ",tags$b(round(jaccard_children,2))),
+            # plotOutput("plot_gen1_only")
+            # ui.R o dentro de tu fluidPage()
+            plotOutput("eulerPlot_jaccard_children", width = "300px", height = "200px")
+            
+          ),
+          column(
+            width = 6,
+            h3("Similarity by only parents: ",tags$b(round(jaccard_parents,2))),
+            # h3(paste("Similarity by only parents:",jaccard_parents)),
+            plotOutput("eulerPlot_jaccard_parents", width = "300px", height = "200px")
+          )
+        ),
+        fluidRow(
+          align = "center",
+        
+          column(
+            width = 12,
+            h3("Full similarity contribution"),
+            plotOutput("contribution_plot", width = "600px", height = "200px")
+          )
+         
+        )
+        
+      ),
+      
+      # --- Three tables side by side ---
+      box(
+        title = HTML("Phenotypes tables"),
         width = NULL,
         solidHeader = TRUE,
         collapsible = TRUE,
@@ -661,18 +984,8 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
             h5(paste("Phenotypes only in", gene_2_symbol," (", node_to,")")),
             plotOutput("plot_gen2_only", width = "200px", height = "200px")
           )
-        )
+        ),
         
-      ),
-      
-      # --- Three tables side by side ---
-      box(
-        title = HTML("Phenotypes tables"),
-        width = NULL,
-        solidHeader = TRUE,
-        collapsible = TRUE,
-        collapsed = TRUE,  # Starts collapsed
-        status = "warning",
         fluidRow(
           column(
             width = 4,
@@ -1253,9 +1566,10 @@ comparison_ui_generator <- function(data_list, output, diseases_color,term_to_co
 ## CATEGORICAL GENES
 
 comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
-  
+  df_name <- deparse(substitute(data_df))
   print("CATEGORICAL")  
-  
+  # escribe un cata de colorines que difa el nombre del df
+  cat("\033[36m","df_name: ", df_name,"\033[0m\n")
   
   
   transform_to_matrix <- function(df) {
@@ -1291,19 +1605,39 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   # print(grepl("HP", data_df_result$entry))
   # print(any(grepl("HP", data_df_result$entry)))
   # # Comprobar si hay valores que contienen "HP" en la columna Value
+  print(str(data_df_result))
+  
   hp_logical <- any(grepl("HP", data_df_result$entry))
+  go_logical <- any(grepl("GO", data_df_result$entry))
+
   if(hp_logical){
+
     filtered_df <- all_phenotypes %>% filter(hpo_id %in% data_df_result$entry)
     data_df_result$term <- filtered_df$hpo_name
-  }else{
+  }else if(go_logical){
+
     filtered_df <- all_gene_ontology %>% filter(go_id %in% data_df_result$entry)
     data_df_result$term <- filtered_df$go_term
+  }else{
+
+    if(df_name == "complexes_table"){
+      print(str(all_complexes))
+      # complexes
+      filtered_df <- all_complexes %>% filter(complex_name %in% data_df_result$entry)
+      data_df_result$term <- filtered_df$complex_name
+    }else{
+      # modificactions
+      filtered_df <- all_modifications %>% filter(modification_name %in% data_df_result$entry)
+      data_df_result$term <- filtered_df$modification_name
+        
+      }
   }
+  cat("\033[33m","Estructura de la tabla data_df_result","\033[0m\n")
+  print(str(data_df_result)) 
   
   
   data_df_result <- data_df_result %>% relocate(term, .before = 1) 
 
-  
  
   sort_by_binary_priority <- function(df, col_A_index, col_B_index) {
     A <- df[[col_A_index]]
@@ -1319,37 +1653,69 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   }
   
   # Ver el resultado
-  data_df_result <- sort_by_binary_priority(data_df_result,3,4)
+  if(nrow(data_df_result) < 2){}else{data_df_result <- sort_by_binary_priority(data_df_result,3,4)}
   data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
   
   
   
   # 
-  
-  columns_to_color <- c(3,4)
-  
+
   
   
-  DT_table <- renderDT({
-    datatable(data_df_result,
-              options = list(
-                pageLength = 15, 
-                autoWidth = TRUE,
-                scrollX = TRUE ),
-              rownames = FALSE)%>%
-      formatStyle(
-        columns = columns_to_color[1],  # Aplicar color verde a las columnas 3 y 4
-        `text-align` = "center",
-        color = styleEqual(c("",  "⬤"), c('white', genes_color[1]))
-      ) %>%
-      formatStyle(
-        columns = columns_to_color[2],  # Aplicar color verde a las columnas 3 y 4
-        `text-align` = "center",
-        color = styleEqual(c("",  "⬤"), c('white', genes_color[2]))
-        
-      ) 
+  # 
+  if(!(hp_logical | go_logical)){
+    # quitar la columna term
+    data_df_result <- data_df_result %>% select(-term)
     
-  })
+    columns_to_color <- c(2,3)
+    
+    DT_table <- renderDT({
+      datatable(data_df_result,
+                options = list(
+                  pageLength = 15, 
+                  autoWidth = TRUE,
+                  scrollX = TRUE ),
+                rownames = FALSE)%>%
+        formatStyle(
+          columns = columns_to_color[1],  # Aplicar color verde a las columnas 3 y 4
+          `text-align` = "center",
+          color = styleEqual(c("",  "⬤"), c('white', genes_color[1]))
+        ) %>%
+        formatStyle(
+          columns = columns_to_color[2],  # Aplicar color verde a las columnas 3 y 4
+          `text-align` = "center",
+          color = styleEqual(c("",  "⬤"), c('white', genes_color[2]))
+          
+        ) 
+      
+    })
+    
+  }else{
+    columns_to_color <- c(3,4)
+    
+    DT_table <- renderDT({
+      datatable(data_df_result,
+                options = list(
+                  pageLength = 15, 
+                  autoWidth = TRUE,
+                  scrollX = TRUE ),
+                rownames = FALSE)%>%
+        formatStyle(
+          columns = columns_to_color[1],  # Aplicar color verde a las columnas 3 y 4
+          `text-align` = "center",
+          color = styleEqual(c("",  "⬤"), c('white', genes_color[1]))
+        ) %>%
+        formatStyle(
+          columns = columns_to_color[2],  # Aplicar color verde a las columnas 3 y 4
+          `text-align` = "center",
+          color = styleEqual(c("",  "⬤"), c('white', genes_color[2]))
+          
+        ) 
+      
+    })
+    
+  }
+  
   
   result_ui <- tagList(
     fluidRow(
@@ -2473,11 +2839,171 @@ field_to_genes_grep <- function(database_list, values,field) {
 
 
 
+# Contribution plot --------
 
 
+#---------------------------------------------------------
+# Horizontal stacked-bar plot (values 0–1) – large text
+# Total label centred by default, but user-tunable with total_y / total_hjust
+# create_component_plot <- function(a, b,
+#                                   labels        = c("Children contribution",
+#                                                     "Parent contribution"),
+#                                   colours       = c("#f5a623", "#377eb8"),
+#                                   total_in_title = TRUE,    # ← muestra el total en el título
+#                                   base_size     = 15,
+#                                   label_thresh  = 0.05,     # ancho mínimo para dejar la etiqueta dentro
+#                                   label_offset  = 0.015) {  # desplazamiento externo
+#   
+#   ## --- comprobaciones ----------------------------------------------------
+#   if (any(c(a, b) < 0 | c(a, b) > 1))
+#     stop("Each value must be between 0 and 1")
+#   
+#   total <- a + b
+#   
+#   ## --- datos -------------------------------------------------------------
+#   df <- data.frame(component = factor(labels, levels = labels),
+#                    value     = c(a, b))
+#   df$xmin <- c(0, head(cumsum(df$value), -1))
+#   df$xmax <- cumsum(df$value)
+#   
+#   ## --- decide dónde colocar cada etiqueta --------------------------------
+#   n <- nrow(df)
+#   df$inside <- df$value >= label_thresh                         # ¿cabe dentro?
+#   df$hjust  <- 0.5                                              # centrada por defecto
+#   df$pos    <- (df$xmin + df$xmax) / 2                          # centro por defecto
+#   
+#   for (i in seq_len(n)) {
+#     if (!df$inside[i]) {                                        # demasiado estrecho
+#       if (i == 1) {                                             # primer segmento
+#         df$pos[i]   <- df$xmax[i] + label_offset
+#         df$hjust[i] <- 0
+#       } else {                                                  # último segmento
+#         df$pos[i]   <- df$xmin[i] - label_offset
+#         df$hjust[i] <- 1
+#       }
+#     }
+#   }
+#   df$textcol <- ifelse(df$inside, "white", "black")
+#   
+#   ## --- límites del eje X -------------------------------------------------
+#   x_limit <- max(1, max(df$pos) + 0.03)    # amplía sólo si alguna etiqueta queda fuera
+#   
+#   ## --- gráfico -----------------------------------------------------------
+#   library(ggplot2)
+#   p <- ggplot(df) +
+#     geom_rect(aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1,
+#                   fill = component)) +
+#     
+#     geom_text(aes(x = pos, y = 0.5,
+#                   label  = formatC(value, format = "f", digits = 2),
+#                   hjust  = hjust,
+#                   colour = textcol),
+#               size = base_size * 0.4,
+#               show.legend = FALSE) +
+#     
+#     scale_x_continuous(limits = c(0, x_limit),
+#                        expand = expansion(mult = c(0, 0.02))) +
+#     scale_fill_manual(values = setNames(colours, labels)) +
+#     scale_colour_identity() +                        # toma los colores de textcol
+#     coord_cartesian(clip = "off") +                  # deja salir textos del panel
+#     
+#     theme_minimal(base_size = base_size) +
+#     theme(
+#       legend.position    = "bottom",
+#       legend.title       = element_blank(),
+#       panel.grid.major.y = element_blank(),
+#       panel.grid.minor   = element_blank(),
+#       axis.text.y        = element_blank(),
+#       axis.ticks.y       = element_blank()
+#     )
+#   
+#   ## --- texto con el total -----------------------------------------------
+#   if (total_in_title) {
+#     p <- p + labs(title = paste("Similarity =", formatC(total, format = "f", digits = 2)),
+#                   x = "Similarity", y = "")
+#   } else {
+#     p <- p + labs(title = NULL, x = "Similarity", y = "") +
+#       annotate("text",
+#                x = min(total, x_limit / 2),
+#                y = 1.05,                                   # justo encima de la barra
+#                label = paste("Similarity =", formatC(total, format = "f", digits = 2)),
+#                fontface = "bold",
+#                size = base_size * 0.45,
+#                hjust = 0.5)
+#   }
+#   
+#   p
+# }
 
 
-
+create_component_plot <- function(a, b,
+                                  labels  = c("Children contribution",
+                                              "Parent contribution"),
+                                  colours = c("#f5a623", "#377eb8"),
+                                  base_size    = 15,
+                                  label_thresh = 0.05,   # ancho mínimo para dejar la cifra dentro
+                                  label_offset = 0.015   # desplazamiento externo
+) {
+  
+  ## ---- comprobaciones ---------------------------------------------------
+  if (any(c(a, b) < 0 | c(a, b) > 1))
+    stop("Each value must be between 0 and 1")
+  
+  total <- a + b
+  
+  ## ---- datos ------------------------------------------------------------
+  df <- data.frame(component = factor(labels, levels = labels),
+                   value     = c(a, b))
+  df$xmin <- c(0, head(cumsum(df$value), -1))
+  df$xmax <- cumsum(df$value)
+  
+  ## ---- ubicación de las etiquetas --------------------------------------
+  df$inside <- df$value >= label_thresh
+  df$pos    <- (df$xmin + df$xmax) / 2     # centro del segmento
+  df$hjust  <- 0.5                         # centrado dentro
+  
+  if (!df$inside[1]) {                     # primer segmento demasiado estrecho
+    df$pos[1]   <- df$xmin[1] - label_offset
+    df$hjust[1] <- 1                       # texto a la derecha
+  }
+  if (!df$inside[2]) {                     # segundo segmento demasiado estrecho
+    df$pos[2]   <- df$xmax[2] + label_offset
+    df$hjust[2] <- 0                       # texto a la izquierda
+  }
+  
+  df$textcol <- ifelse(df$inside, "white", "black")
+  
+  ## ---- límites del eje --------------------------------------------------
+  x_left  <- min(0, min(df$pos) - 0.03)    # amplía a la izquierda si hace falta
+  x_right <- max(1, max(df$pos) + 0.03)    # …y a la derecha
+  ## ---- gráfico ----------------------------------------------------------
+  library(ggplot2)
+  ggplot(df) +
+    geom_rect(aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1,
+                  fill = component)) +
+    geom_text(aes(x = pos, y = 0.5,
+                  label  = formatC(value, format = "f", digits = 2),
+                  hjust  = hjust,
+                  colour = textcol),
+              size = base_size * 0.4,
+              show.legend = FALSE) +
+    scale_x_continuous(limits = c(x_left, x_right),
+                       expand = c(0, 0)) +
+    scale_fill_manual(values = setNames(colours, labels)) +
+    scale_colour_identity() +
+    coord_cartesian(clip = "off") +
+    labs(title = paste("Similarity =", formatC(total, format = "f", digits = 2)),
+         x = "Similarity", y = "") +
+    theme_minimal(base_size = base_size) +
+    theme(
+      legend.position    = "bottom",
+      legend.title       = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor   = element_blank(),
+      axis.text.y        = element_blank(),
+      axis.ticks.y       = element_blank()
+    )
+}
 
 
 
@@ -2566,7 +3092,7 @@ library(stringr)
 
 
 plot_euler_edge_jaccard <- function(sets_list, counts = TRUE, percent = FALSE, trunc = 25,
-                                    legend = TRUE, labels = TRUE, gene_colors = NULL,
+                                    legend = FALSE, labels = TRUE, gene_colors = NULL,
                                     font_size = 1.3, quantities_font_size = 1.3) {
   
   cat("\033[33m", "Running the function 'plot_euler_edge_jaccard'", "\033[0m\n")
@@ -2762,38 +3288,79 @@ join_df_from_name <- function(lista, nombres,field) {
 
 # freq
 
-join_df_from_name_freqs <- function(lista, nombres,field) {
-  # Filtrar la lista para obtener solo los elementos cuyos nombres están en el vector de nombres
-  elementos_seleccionados <- lista[nombres]
-  # Extraer y unir los data frames 'go'
-  lista_elementos <- lapply(elementos_seleccionados, function(x) x[[field]])
+# join_df_from_name_freqs <- function(lista, nombres,field) {
+#   # Filtrar la lista para obtener solo los elementos cuyos nombres están en el vector de nombres
+#   elementos_seleccionados <- lista[nombres]
+#   # Extraer y unir los data frames 'go'
+#   lista_elementos <- lapply(elementos_seleccionados, function(x) x[[field]])
+#   
+#   ## sin frecuencias
+#   # if (any(sapply(lista_elementos, is.data.frame))) {
+#   #   resultado <- unique(do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]])))
+#   # }else{    
+#   #   resultado <- unique(unlist(lapply(elementos_seleccionados, function(x) x[[field]])))
+#   # }
+#   
+#   ## con frecuencias
+#   if (any(sapply(lista_elementos, is.data.frame))) {
+#     resultado <- do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]]))
+#   }else{
+#     resultado <- unlist(lapply(elementos_seleccionados, function(x) x[[field]]))   
+#   }
+#   
+#   if(is.null(resultado) || nrow(resultado) == 0 ){return(NULL)
+#     break}
+#   freq <- as.data.frame(table(resultado[1]))
+#   
+#   resultado_unique <- unique(resultado)
+#   resultado_final <- merge(resultado_unique, freq, by.x = colnames(resultado_unique)[1], by.y = colnames(freq)[1], all.x = TRUE)
+#   
+#   resultado_final <- resultado_final[order(resultado_final$Freq,decreasing = TRUE),]
+#   
+#   return(resultado_final)
+# }
+
+join_df_from_name_freqs <- function(list_input, selected_names, field) {
+  # Filter the list to get only the elements whose names are in selected_names
+  selected_elements <- list_input[selected_names]
   
-  ## sin frecuencias
-  # if (any(sapply(lista_elementos, is.data.frame))) {
-  #   resultado <- unique(do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]])))
-  # }else{    
-  #   resultado <- unique(unlist(lapply(elementos_seleccionados, function(x) x[[field]])))
-  # }
+  # Extract the specified field from each selected element
+  extracted_fields <- lapply(selected_elements, function(x) x[[field]])
   
-  ## con frecuencias
-  if (any(sapply(lista_elementos, is.data.frame))) {
-    resultado <- do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]]))
-  }else{
-    resultado <- unlist(lapply(elementos_seleccionados, function(x) x[[field]]))   
+  # Check if any of the extracted elements is a data frame
+  has_dataframes <- any(sapply(extracted_fields, is.data.frame))
+  
+  if (has_dataframes) {
+    # Combine all data frames into one
+    combined_df <- do.call(rbind, extracted_fields)
+    
+    # Assume only one column is relevant
+    colname <- colnames(combined_df)[1]
+    
+    # Calculate frequencies
+    freq <- as.data.frame(table(combined_df[[colname]]))
+    colnames(freq) <- c(colname, "Freq")
+    
+    # Get unique rows to merge with frequencies
+    unique_df <- unique(combined_df)
+    
+    # Merge and sort by frequency
+    final_result <- merge(unique_df, freq, by = colname, all.x = TRUE)
+    final_result <- final_result[order(final_result$Freq, decreasing = TRUE), ]
+  } else {
+    # Combine all vectors into one
+    combined_vec <- unlist(extracted_fields)
+    
+    # Calculate frequencies
+    freq <- as.data.frame(table(combined_vec))
+    colnames(freq) <- c("value", "Freq")
+    
+    # Sort by frequency
+    final_result <- freq[order(freq$Freq, decreasing = TRUE), ]
   }
   
-  if(is.null(resultado) || nrow(resultado) == 0 ){return(NULL)
-    break}
-  freq <- as.data.frame(table(resultado[1]))
-  
-  resultado_unique <- unique(resultado)
-  resultado_final <- merge(resultado_unique, freq, by.x = colnames(resultado_unique)[1], by.y = colnames(freq)[1], all.x = TRUE)
-  
-  resultado_final <- resultado_final[order(resultado_final$Freq,decreasing = TRUE),]
-  
-  return(resultado_final)
+  return(final_result)
 }
-
 
 
 
@@ -2808,10 +3375,12 @@ filtrar_genes <- function(lista_genes,
                           source_filter = NULL,
                           phenotype_filter = NULL, 
                           disease_filter = NULL, 
+                          complex_filter = NULL,
+                          modification_filter = NULL,
                           gene_ontology_filter = NULL, 
                           gene_ontology_subontology_filter = NULL,
                           pathway_filter = NULL) {
-  filter_list <<- list(gene_filter,source_filter,phenotype_filter,disease_filter,gene_ontology_filter,gene_ontology_subontology_filter,pathway_filter)
+  filter_list <<- list(gene_filter,source_filter,phenotype_filter,disease_filter,complex_filter,modification_filter,gene_ontology_filter,gene_ontology_subontology_filter,pathway_filter)
   # print(str(filter_list))
 
 
@@ -2824,13 +3393,17 @@ filtrar_genes <- function(lista_genes,
     if(is.null(gen$source) || length(gen$source)==0){test_source <- NULL}else{test_source <- any(gen$source %in% source_filter) }
     if(is.null(gen$phenotypes_id) || length(gen$phenotypes_id)==0){test_phenotype_id <- NULL}else{test_phenotype_id <- any(gen$phenotypes_id %in% phenotype_filter)}
     if(is.null(gen$diseases_id) || length(gen$diseases_id)==0){test_disease_id <- NULL}else{test_disease_id <- any(gen$diseases_id %in% disease_filter)}
+    
+    if(is.null(gen$complexes) || length(gen$complexes)==0){test_complex <- NULL}else{test_complex <- any(gen$complexes %in% complex_filter)}
+    if(is.null(gen$modifications) || length(gen$modifications)==0){test_modification <- NULL}else{test_modification <- any(gen$modifications %in% modification_filter)}
+    
     if(is.null(gen$gene_ontology_id) || length(gen$gene_ontology_id)==0){test_gene_ontology_id <- NULL}else{test_gene_ontology_id <- any(gen$gene_ontology_id %in% gene_ontology_filter)}
     if(is.null(gen$go_subontology) || length(gen$go_subontology)==0){test_go_subontology <- NULL}else{test_go_subontology <- any(gen$go_subontology %in% gene_ontology_subontology_filter)}  
     if(is.null(gen$kegg_pathways_id) || length(gen$kegg_pathways_id)==0){test_pathway <- NULL}else{test_pathway <- any(gen$kegg_pathways_id %in% pathway_filter)}
     
 
     
-    test_list <- c(test_gene_id,test_source,test_phenotype_id,test_disease_id,test_gene_ontology_id,test_go_subontology,test_pathway)
+    test_list <- c(test_gene_id,test_source,test_phenotype_id,test_disease_id,test_complex,test_modification,test_gene_ontology_id,test_go_subontology,test_pathway)
     # if(gen$ncbi_gene_id=="144568"){print(test_list)}
     return(any(test_list))    
     
@@ -3214,12 +3787,55 @@ filter_database <- function(db, terms, field) {
 }
 
 
+# network_distribution VIOLIN+BOX
 
 
 
 
-
-
+violin_box_with_point <- function(data_vec,
+                                  point,
+                                  title        = NULL,
+                                  subtitle     = NULL,
+                                  violin_color = "lightblue",
+                                  label_digits = 2,
+                                  label_nudge  = 0.25) {
+  
+  # 1. Validaciones
+  stopifnot(is.numeric(data_vec), is.vector(data_vec))
+  stopifnot(is.numeric(point), length(point) == 1)
+  
+  # 2. Datos
+  df     <- data.frame(value = data_vec, category = "Jaccard")
+  pt_df  <- data.frame(category = "Jaccard", point = point)
+  
+  # 3. Gráfico
+  library(grid)  # asegura unit()
+  ggplot(df, aes(category, value)) +
+    geom_violin(fill = violin_color, colour = "black", alpha = .3, width = .8) +
+    geom_boxplot(width = .2, fill = violin_color, colour = "black",
+                 alpha = .6, outlier.shape = NA) +
+    geom_point(data = pt_df, aes(category, point),
+               colour = "red", size = 3) +
+    geom_label(
+      data      = pt_df,
+      aes(category, point),
+      label     = format(round(point, label_digits), nsmall = label_digits),
+      position  = position_nudge(x = label_nudge),
+      vjust     = 0,
+      fontface  = "bold",
+      size      = 7,
+      fill      = "white",
+      label.size = .25,
+      label.r    = grid::unit(0.1, "lines")
+    ) +
+    coord_flip() +
+    labs(title = title, x = NULL, y = subtitle) +
+    theme_minimal() +
+    theme(axis.text.y  = element_blank(),
+          axis.ticks.y = element_blank(),
+          plot.title   = element_text(hjust = .5),
+          plot.margin  = margin(t = 10, r = 20, b = 20, l = 20))
+}
 
 
 
