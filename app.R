@@ -218,6 +218,7 @@ ui_dash <- dashboardPage(
     sidebar_menu_ui
   ),
   dashboardBody(
+  
     shinyjs::useShinyjs(),
     withMathJax(),  # Activa MathJax en la UI
     tags$script(HTML("
@@ -236,17 +237,28 @@ ui_dash <- dashboardPage(
     
     use_waiter(),
     
+
+    # simple
+    # waiter_show_on_load(
+    #   html  = tagList(
+    #     spin_fading_circles(),  # cualquier spin_* de waiter
+    #     h4("Cargando datos…")
+    #   ),
+    #   color = "#333"            # fondo semitransparente
+    # ),
+    
+    # Calulated time
   #   waiterShowOnLoad(
   #     # color = "#666464",
   #     color = "#5f62a1",
-  #     
+  # 
   #     # color = "#333333",
-  #     
+  # 
   # 
   #     html = tagList(
   #       # 🌟 CROND Logo with Fade-in Animation
-  #       
-  #       
+  # 
+  # 
   #       tags$div(
   #         id = "logoContainer",
   #         style = "
@@ -260,7 +272,7 @@ ui_dash <- dashboardPage(
   #           style = "margin-top: 20px;"
   #         )
   #       ),
-  #       
+  # 
   # 
   #       tags$br(),
   #       # Mensaje con fade-in
@@ -284,8 +296,8 @@ ui_dash <- dashboardPage(
   #   font-size: 2em;
   #   text-align: center;
   #   transition: opacity 2s ease;
-  #   text-shadow: 
-  #     -1px -1px 0 #000,  
+  #   text-shadow:
+  #     -1px -1px 0 #000,
   #      1px -1px 0 #000,
   #     -1px  1px 0 #000,
   #      1px  1px 0 #000;
@@ -293,7 +305,7 @@ ui_dash <- dashboardPage(
   #         "Welcome to ",
   #         tags$span(style = "color: #e3b009;", "CROND!")
   #       ),
-  #       
+  # 
   #       tags$br(),
   # 
   #       # Botón con estilo “fancy”
@@ -322,6 +334,63 @@ ui_dash <- dashboardPage(
   #     )
   #   ),
 
+  
+# ONLY black
+  waiterShowOnLoad(
+  # color = "#5f62a1",
+  color = "#000",
+
+
+  html = tagList(
+    # # 🌟 Logo
+    # tags$div(
+    #   style = "text-align:center;opacity:1;",
+    #   tags$img(src = "yellow-brain.svg", width = "180px", style = "margin-top:20px;")
+    # ),
+    # 
+    # tags$br(),
+    # 
+    # # 🟡 Mensaje principal (sin animación y sin espacio entre CROND y EX)
+    # tags$div(
+    #   id = "welcomeMessage",
+    #   style = "
+    #     opacity:0;                /* empieza oculto */
+    #     color:white;
+    #     font-size:2em;
+    #     text-align:center;
+    #     transition:opacity 1s ease 0s;  /* 0.7 s de retraso */
+    #     text-shadow:
+    #       -1px -1px 0 #000, 1px -1px 0 #000,
+    #       -1px  1px 0 #000, 1px  1px 0 #000;
+    #   ",
+    #   "Welcome to ",
+    #   tags$span(style = "color:#e3b009;", "CROND"),
+    #   tags$span(style = "color:#000000;", "EX"),
+    #   "!"
+    # ),
+    # # 🟣 Mensaje secundario
+    # tags$div(
+    #   style = "
+    #     color:white;
+    #     font-size:1em;
+    #     text-align:center;
+    #     margin-top:4px;
+    #     opacity:1;
+    #   ",
+    #   "Loading content..."
+    # ),
+    # 
+    # tags$br(),
+
+    # 🔄 Spinner (opcional)
+    tags$div(
+      style = "text-align:center;",
+      spin_square_circle()
+    )
+  )
+),
+
+  
 
     # Script para manejar la aparición con setTimeout
     tags$script(HTML("
@@ -730,6 +799,7 @@ ui <- ui_dash
 
 # SERVER
 server <- function(input, output, session) {
+  server_start_time <- Sys.time()
 
   observe({
     session$sendCustomMessage(type = 'mathjax', message = NULL)
@@ -6772,6 +6842,39 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         network_data_to_DT_renamed <- network_data_to_DT %>% 
           arrange(desc(Jaccard))  #
         
+        if(is.null(input$selected_gene_network) || input$selected_gene_network == "full_net"){
+          print("CASO 1")
+        }else{
+          print("CASO 2")
+          target <- input$selected_gene_network          # gen elegido
+
+          network_data_to_DT_renamed %>%
+            # --- 2. quedarnos solo con las filas donde aparezca el gen ---
+            dplyr::filter(`Gene 1 symbol` == target |
+                            `Gene 2 symbol` == target) %>%
+
+            # --- 3. crear columnas vecinas ---
+            dplyr::mutate(
+              neighbor_gene_symbol = dplyr::if_else(`Gene 1 symbol` == target,
+                                                    `Gene 2 symbol`, `Gene 1 symbol`),
+
+              neighbor_gene_id     = dplyr::if_else(`Gene 1 symbol` == target,
+                                                    `Gene 2`,         `Gene 1`)
+            ) %>%
+
+            # --- 4. nos quedamos solo con lo necesario, ordenado por Jaccard ---
+            dplyr::select(Jaccard,
+                          neighbor_gene_symbol,
+                          neighbor_gene_id) %>%
+            dplyr::arrange(dplyr::desc(Jaccard)) 
+
+          print(str(network_data_to_DT_renamed))
+          network_data_to_DT_renamed <- network_data_to_DT_renamed %>% select(Jaccard, `Gene 2 symbol`, `Gene 2`)
+        }
+        
+        cat("\033[32m\n\nnetwork_data_to_DT_renamed------>\033[0m\n")
+        print(str(network_data_to_DT_renamed))
+        
         datatable(
           network_data_to_DT_renamed,
           rownames = F,
@@ -6781,7 +6884,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             dom = 'Bfrtip',
             buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
             scrollX = TRUE,
-            pageLength = 25
+            pageLength = 100
           )
         )%>% formatStyle('Jaccard',
                          background = styleColorBar(dplyr::select(network_data_to_DT_renamed,Jaccard), '#99c0ff',angle=-90),
@@ -6816,7 +6919,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                     actionLink("table_help_button", NULL,   # icono flotante
                                icon = icon("question-circle"),
                                class = "tiny-help",
-                               style = "position:absolute; top:6px; left:350px;")
+                               style = "position:absolute; top:6px; left:380px;")
                   )
           # dataTableOutput("network_datatable")
           # )
@@ -8280,6 +8383,13 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   # ------------------------------------------------------------------
   cat("\033[36m\n\nEND of SERVER------>\033[0m\n")
+  
+  
+  
+  server_end_time <- Sys.time()
+  
+  cat("⏱️ Server loading time:", round(difftime(server_end_time, server_start_time, units = "secs"), 2), "secs\n")
+  session$onFlushed(function() waiter_hide(), once = TRUE)
   
 }
 
