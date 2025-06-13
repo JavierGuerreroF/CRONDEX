@@ -887,7 +887,8 @@ server <- function(input, output, session) {
             # Enlace con icono y tooltip basado en CSS
             actionLink(
               inputId = "back_to_main_window",
-              label   = icon("undo"),
+              label     = tagList(icon("arrow-left"), "Back to Main Window"),
+              # label   = icon("back"),
               class   = "btn-back",
               `data-title` = "Back to Main Window",   # texto del tooltip
               style   = "color: white; font-size: 18px; cursor: pointer;"
