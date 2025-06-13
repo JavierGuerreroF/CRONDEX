@@ -3,6 +3,180 @@
 
 print("Loading tabs.R ...")
 
+## UI elements --
+cover_tab_ui <- tagList(
+  tags$head(
+    tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
+    tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = ""),
+    tags$link(
+      rel  = "stylesheet",
+      href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+    ),
+    tags$style(HTML("
+      body         { font-family:'Inter',sans-serif;margin:0;padding:0;font-size:16px; }
+
+      /* ---------- HERO ------------------------------------- */
+      .hero        { padding:20px 0 15px;border-bottom:1px solid #F2F2F2; }
+      .hero-inner  { width:100%;padding:0 20px;
+                     display:flex;align-items:center;gap:40px;flex-wrap:wrap;
+                     justify-content:center; }  /* centra todo el bloque */
+
+      /* ---------- LOGO BOX --------------------------------- */
+      .logo-box    { flex:0 0 220px;display:flex;justify-content:center; }
+      .logo-box img{ width:180px;height:180px;object-fit:contain; }
+
+      /* ---------- TEXTOS HERO ------------------------------ */
+      .hero-text   { flex:1;text-align:center;min-width:260px; }
+      .hero-title  { font-size:36px;font-weight:800;margin:0; }
+      .hero-title .orange { color:#F59E0B; }
+      .hero-sub    { font-size:20px;font-weight:700;margin:14px 0 20px; }
+
+      .btn-about   { background:#FBD38D;border:none;border-radius:6px;
+                     padding:11px 34px;font-size:17px;font-weight:600;cursor:pointer; }
+      .btn-about:hover { background:#FAC97A; }
+
+      /* ---------- CONTENEDOR GENERAL ----------------------- */
+      .row-box     { width:100%;padding:0 10px; }
+
+      /* ---------- FILA DE TARJETAS ------------------------- */
+      .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; }
+
+      /* ---------- TARJETAS GRANDES ------------------------- */
+      .card-lg     { flex:1 1 0;min-width:300px;border:2px solid;border-radius:10px;
+                     padding:38px 28px;box-sizing:border-box;
+                     display:flex;flex-direction:column;justify-content:flex-start; }
+      .card-blue   { border-color:#1E6AFF; }  .card-green{ border-color:#16A34A; }
+
+      .icon-lg     { font-size:46px;margin-bottom:8px;align-self:center; }
+      .text-blue   { color:#1E6AFF; }         .text-green{ color:#16A34A; }
+
+      .card-title  { font-size:24px;font-weight:700;margin:20px 0 12px;
+                     text-align:center;white-space:normal;overflow-wrap:anywhere; }
+      .card-desc   { color:#555;font-size:15px;line-height:1.5;margin-bottom:26px;
+                     text-align:center;white-space:normal;overflow-wrap:anywhere; flex:1; }
+
+      .btn-primary { border:none;border-radius:6px;padding:10px 26px;font-size:15px;
+                     font-weight:600;color:#FFF;cursor:pointer;align-self:center; }
+      .card-blue .btn-primary { background:#1E6AFF; }
+      .card-green .btn-primary{ background:#16A34A; }
+
+      /* ---------- PANEL INFERIOR --------------------------- */
+      .panel       { border:1px solid #E5E7EB;border-radius:10px;
+                     padding:32px 22px;margin:55px auto 0; }
+      .panel-title { font-size:20px;font-weight:700;text-align:center;margin-bottom:30px; }
+
+      .mini-wrap   { display:flex;justify-content:center;gap:90px;flex-wrap:wrap; }
+      .mini-card   { text-align:center;width:180px; }
+      .icon-mini   { font-size:30px;margin-bottom:6px; }
+      .text-purple { color:#A855F7; }  .text-orange{ color:#F97316; }
+
+      .mini-title  { font-size:15px;font-weight:600;margin:12px 0 18px; }
+      .btn-default { background:#FFF;border:1px solid #D1D5DB;border-radius:6px;
+                     padding:7px 22px;font-size:14px;cursor:pointer; }
+    "))
+  ),
+  
+  ## ---------------- HERO HEADER -----------------------------
+  div(class = "hero",
+      div(class = "hero-inner",
+          # div(class = "logo-box",      # <-- contenedor centrado
+          #     tags$a(
+          #       href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+          #       target = "_blank",
+          #       tags$img(src = "yellow-brain.svg",
+          #                title = "CRONDEX LOGO",
+          #                alt   = "app-logo")
+          #     )
+          # ),
+          # div(class = "hero-text",
+          #     h1(class = "hero-title",
+          #        span(class = "orange", "CROND"), "EX"),
+          #     div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+          #         class = "hero-sub"),
+          #     actionButton("btn_about", "About CRONDEX", class = "btn-about")
+          # )
+          # 
+          
+          fluidRow(
+            align = "center",
+            column(2,
+                   div(class = "logo-box",      # <-- contenedor centrado
+                       tags$a(
+                         href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+                         target = "_blank",
+                         tags$img(src = "yellow-brain.svg",
+                                  title = "CRONDEX LOGO",
+                                  alt   = "app-logo")
+                       )
+                   )
+                   
+            ),
+            
+            column(10,
+                   div(class = "hero-text",
+                       # h1(class = "hero-title",
+                       #    span(class = "orange", "CROND"), "EX"),
+                       h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+                          style = "font-size: 2.8em;"),
+                       div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+                           class = "hero-sub"),
+                       actionButton("btn_about", "About CRONDEX", class = "btn-about")
+                   )
+            )
+            
+          )
+          
+      )
+  ),
+  
+  ## ---------------- TARJETAS PRINCIPALES --------------------
+  div(class = "row-box",
+      div(class = "card-row",
+          div(class = "card-lg card-blue",
+              div(icon("search"), class = "icon-lg text-blue"),
+              div("Gene of Interest Query", class = "card-title text-blue"),
+              p("Find genes with similar clinical phenotypes based on a gene of interest.",
+                class = "card-desc"),
+              actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")
+          ),
+          div(class = "card-lg card-green",
+              div(icon("sliders"), class = "icon-lg text-green"),
+              div("Criteria-Based Search", class = "card-title text-green"),
+              p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
+                class = "card-desc"),
+              actionButton("btn_criteria", "Go to Tool", class = "btn-primary")
+          )
+      )
+  ),
+  
+  ## ---------------- PANEL INFERIOR --------------------------
+  div(class = "row-box panel",
+      div("Further Analysis Options", class = "panel-title"),
+      div(class = "mini-wrap",
+          div(class = "mini-card",
+              div(icon("eye"), class = "icon-mini text-purple"),
+              div("Single-Gene Query", class = "mini-title"),
+              actionButton("btn_single", "Go to Tool", class = "btn-default")
+          ),
+          div(class = "mini-card",
+              div(icon("exchange"), class = "icon-mini text-orange"),
+              div("Compare Two Genes", class = "mini-title"),
+              actionButton("btn_compare", "Go to Tool", class = "btn-default")
+          )
+      )
+  )
+)
+
+
+cover_info <- box(width = 12, class = "cover-info-box",
+    title = NULL,
+    status = "primary", solidHeader = F,
+    collapsible = F, collapsed = FALSE,
+    cover_tab_ui
+    
+    
+)
+
 
 
 
@@ -335,7 +509,8 @@ cover_tab <- tabItem(tabName = "cover_tab",
                      
                      fluidRow(
                        column(12,
-                              uiOutput("cover_info")
+                              cover_info
+                              # uiOutput("cover_info")
                        )
                      )
                      

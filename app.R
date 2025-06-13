@@ -336,59 +336,59 @@ ui_dash <- dashboardPage(
 
   
 # ONLY black
-  waiterShowOnLoad(
-  # color = "#5f62a1",
-  color = "#000",
-
-
-  html = tagList(
-    # # 🌟 Logo
-    # tags$div(
-    #   style = "text-align:center;opacity:1;",
-    #   tags$img(src = "yellow-brain.svg", width = "180px", style = "margin-top:20px;")
-    # ),
-    # 
-    # tags$br(),
-    # 
-    # # 🟡 Mensaje principal (sin animación y sin espacio entre CROND y EX)
-    # tags$div(
-    #   id = "welcomeMessage",
-    #   style = "
-    #     opacity:0;                /* empieza oculto */
-    #     color:white;
-    #     font-size:2em;
-    #     text-align:center;
-    #     transition:opacity 1s ease 0s;  /* 0.7 s de retraso */
-    #     text-shadow:
-    #       -1px -1px 0 #000, 1px -1px 0 #000,
-    #       -1px  1px 0 #000, 1px  1px 0 #000;
-    #   ",
-    #   "Welcome to ",
-    #   tags$span(style = "color:#e3b009;", "CROND"),
-    #   tags$span(style = "color:#000000;", "EX"),
-    #   "!"
-    # ),
-    # # 🟣 Mensaje secundario
-    # tags$div(
-    #   style = "
-    #     color:white;
-    #     font-size:1em;
-    #     text-align:center;
-    #     margin-top:4px;
-    #     opacity:1;
-    #   ",
-    #   "Loading content..."
-    # ),
-    # 
-    # tags$br(),
-
-    # 🔄 Spinner (opcional)
-    tags$div(
-      style = "text-align:center;",
-      spin_square_circle()
-    )
-  )
-),
+#   waiterShowOnLoad(
+#   # color = "#5f62a1",
+#   color = "#000",
+# 
+# 
+#   html = tagList(
+#     # # 🌟 Logo
+#     # tags$div(
+#     #   style = "text-align:center;opacity:1;",
+#     #   tags$img(src = "yellow-brain.svg", width = "180px", style = "margin-top:20px;")
+#     # ),
+#     # 
+#     # tags$br(),
+#     # 
+#     # # 🟡 Mensaje principal (sin animación y sin espacio entre CROND y EX)
+#     # tags$div(
+#     #   id = "welcomeMessage",
+#     #   style = "
+#     #     opacity:0;                /* empieza oculto */
+#     #     color:white;
+#     #     font-size:2em;
+#     #     text-align:center;
+#     #     transition:opacity 1s ease 0s;  /* 0.7 s de retraso */
+#     #     text-shadow:
+#     #       -1px -1px 0 #000, 1px -1px 0 #000,
+#     #       -1px  1px 0 #000, 1px  1px 0 #000;
+#     #   ",
+#     #   "Welcome to ",
+#     #   tags$span(style = "color:#e3b009;", "CROND"),
+#     #   tags$span(style = "color:#000000;", "EX"),
+#     #   "!"
+#     # ),
+#     # # 🟣 Mensaje secundario
+#     # tags$div(
+#     #   style = "
+#     #     color:white;
+#     #     font-size:1em;
+#     #     text-align:center;
+#     #     margin-top:4px;
+#     #     opacity:1;
+#     #   ",
+#     #   "Loading content..."
+#     # ),
+#     # 
+#     # tags$br(),
+# 
+#     # 🔄 Spinner (opcional)
+#     tags$div(
+#       style = "text-align:center;",
+#       spin_square_circle()
+#     )
+#   )
+# ),
 
   
 
