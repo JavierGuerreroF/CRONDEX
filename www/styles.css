@@ -160,13 +160,14 @@
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 /* Estilo 6: Sobrio y simple */
+.style-simple #search_mode_button .btn-group,
 .style-simple #neighbors_cluster_button .btn-group {
   border-radius: 6px;
   border: 1px solid #dee2e6;
   background: #ffffff;
   overflow: hidden;
 }
-
+.style-simple #search_mode_button .btn,
 .style-simple #neighbors_cluster_button .btn {
   background: #ffffff;
   border: none;
@@ -177,21 +178,22 @@
   transition: all 0.2s ease;
   border-right: 1px solid #dee2e6;
 }
-
+.style-simple #search_mode_button .btn:last-child, 
 .style-simple #neighbors_cluster_button .btn:last-child {
   border-right: none;
 }
-
+.style-simple #search_mode_button .btn:hover, 
 .style-simple #neighbors_cluster_button .btn:hover {
   background: #f8f9fa;
   color: #212529;
 }
 
+.style-simple #search_mode_button .btn.active,
 .style-simple #neighbors_cluster_button .btn.active {
   background: #659af0;
   color: #ffffff;
 }
-
+.style-simple #search_mode_button .btn.active:hover,
 .style-simple #neighbors_cluster_button .btn:focus {
   box-shadow: none;
   outline: none;
@@ -199,6 +201,7 @@
 
 
 /* Label personalizado */
+#search_mode_button > label,
 #neighbors_cluster_button > label {
   font-weight: 600;
   color: #495057;

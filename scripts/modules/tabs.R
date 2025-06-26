@@ -4,6 +4,7 @@
 print("Loading tabs.R ...")
 
 ## UI elements --
+
 cover_tab_ui <- tagList(
   tags$head(
     tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
@@ -19,7 +20,7 @@ cover_tab_ui <- tagList(
       .hero        { padding:20px 0 15px;border-bottom:1px solid #F2F2F2; }
       .hero-inner  { width:100%;padding:0 20px;
                      display:flex;align-items:center;gap:40px;flex-wrap:wrap;
-                     justify-content:center; }  /* centra todo el bloque */
+                     justify-content:center; }
 
       /* ---------- LOGO BOX --------------------------------- */
       .logo-box    { flex:0 0 220px;display:flex;justify-content:center; }
@@ -39,16 +40,18 @@ cover_tab_ui <- tagList(
       .row-box     { width:100%;padding:0 10px; }
 
       /* ---------- FILA DE TARJETAS ------------------------- */
-      .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; }
+      .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; justify-content:center; }
 
       /* ---------- TARJETAS GRANDES ------------------------- */
-      .card-lg     { flex:1 1 0;min-width:300px;border:2px solid;border-radius:10px;
+      .card-lg     { flex:1 1 0;min-width:300px;border:4px solid;border-radius:10px;max-width:800px;
                      padding:38px 28px;box-sizing:border-box;
                      display:flex;flex-direction:column;justify-content:flex-start; }
-      .card-blue   { border-color:#1E6AFF; }  .card-green{ border-color:#16A34A; }
+      .card-blue   { border-color:#1E6AFF; }
+      .card-green  { border-color:#16A34A; }
 
       .icon-lg     { font-size:46px;margin-bottom:8px;align-self:center; }
-      .text-blue   { color:#1E6AFF; }         .text-green{ color:#16A34A; }
+      .text-blue   { color:#1E6AFF; }
+      .text-green  { color:#16A34A; }
 
       .card-title  { font-size:24px;font-weight:700;margin:20px 0 12px;
                      text-align:center;white-space:normal;overflow-wrap:anywhere; }
@@ -57,50 +60,37 @@ cover_tab_ui <- tagList(
 
       .btn-primary { border:none;border-radius:6px;padding:10px 26px;font-size:15px;
                      font-weight:600;color:#FFF;cursor:pointer;align-self:center; }
-      .card-blue .btn-primary { background:#1E6AFF; }
-      .card-green .btn-primary{ background:#16A34A; }
+      .card-blue .btn-primary  { background:#1E6AFF; }
+      .card-green .btn-primary { background:#16A34A; }
 
       /* ---------- PANEL INFERIOR --------------------------- */
-      .panel       { border:1px solid #E5E7EB;border-radius:10px;
-                     padding:32px 22px;margin:55px auto 0; }
+      .panel       { flex:1 1 300px;max-width:700px;
+                     border:2px solid #9c9c9c;  /* ← 9c9c9c 7d7e80 ahora violeta y 2 px */
+                     border-radius:10px;
+                     padding:32px 22px;
+                     margin:55px auto 0; }
+
       .panel-title { font-size:20px;font-weight:700;text-align:center;margin-bottom:30px; }
 
       .mini-wrap   { display:flex;justify-content:center;gap:90px;flex-wrap:wrap; }
       .mini-card   { text-align:center;width:180px; }
       .icon-mini   { font-size:30px;margin-bottom:6px; }
-      .text-purple { color:#A855F7; }  .text-orange{ color:#F97316; }
+      .text-purple { color:#A855F7; }
+      .text-orange { color:#F97316; }
 
       .mini-title  { font-size:15px;font-weight:600;margin:12px 0 18px; }
       .btn-default { background:#FFF;border:1px solid #D1D5DB;border-radius:6px;
                      padding:7px 22px;font-size:14px;cursor:pointer; }
     "))
   ),
-  
+
   ## ---------------- HERO HEADER -----------------------------
   div(class = "hero",
       div(class = "hero-inner",
-          # div(class = "logo-box",      # <-- contenedor centrado
-          #     tags$a(
-          #       href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
-          #       target = "_blank",
-          #       tags$img(src = "yellow-brain.svg",
-          #                title = "CRONDEX LOGO",
-          #                alt   = "app-logo")
-          #     )
-          # ),
-          # div(class = "hero-text",
-          #     h1(class = "hero-title",
-          #        span(class = "orange", "CROND"), "EX"),
-          #     div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
-          #         class = "hero-sub"),
-          #     actionButton("btn_about", "About CRONDEX", class = "btn-about")
-          # )
-          # 
-          
           fluidRow(
             align = "center",
             column(2,
-                   div(class = "logo-box",      # <-- contenedor centrado
+                   div(class = "logo-box",
                        tags$a(
                          href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
                          target = "_blank",
@@ -109,63 +99,75 @@ cover_tab_ui <- tagList(
                                   alt   = "app-logo")
                        )
                    )
-                   
             ),
-            
             column(10,
                    div(class = "hero-text",
-                       # h1(class = "hero-title",
-                       #    span(class = "orange", "CROND"), "EX"),
-                       h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+                       h1(HTML('<span style=\"color:#f39c12;font-family:Tahoma,sans-serif;\">CROND</span><span style=\"color:black;font-family:Tahoma,sans-serif;\">EX</span>'),
                           style = "font-size: 2.8em;"),
                        div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
                            class = "hero-sub"),
                        actionButton("btn_about", "About CRONDEX", class = "btn-about")
                    )
             )
-            
           )
-          
       )
   ),
-  
+
   ## ---------------- TARJETAS PRINCIPALES --------------------
   div(class = "row-box",
       div(class = "card-row",
-          div(class = "card-lg card-blue",
+          div(class = "card-lg card-blue",   br(),br(),
               div(icon("search"), class = "icon-lg text-blue"),
               div("Gene of Interest Query", class = "card-title text-blue"),
               p("Find genes with similar clinical phenotypes based on a gene of interest.",
                 class = "card-desc"),
-              actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")
+              actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")   ,br(),br()
           ),
-          div(class = "card-lg card-green",
+          div(class = "card-lg card-green",   br(),br(),
               div(icon("sliders"), class = "icon-lg text-green"),
               div("Criteria-Based Search", class = "card-title text-green"),
               p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
                 class = "card-desc"),
-              actionButton("btn_criteria", "Go to Tool", class = "btn-primary")
+              actionButton("btn_criteria", "Go to Tool", class = "btn-primary"),br(),br()
           )
       )
   ),
-  
+
   ## ---------------- PANEL INFERIOR --------------------------
   div(class = "row-box panel",
+      br(),
       div("Further Analysis Options", class = "panel-title"),
       div(class = "mini-wrap",
-          div(class = "mini-card",
-              div(icon("eye"), class = "icon-mini text-purple"),
-              div("Single-Gene Query", class = "mini-title"),
-              actionButton("btn_single", "Go to Tool", class = "btn-default")
-          ),
           div(class = "mini-card",
               div(icon("exchange"), class = "icon-mini text-orange"),
               div("Compare Two Genes", class = "mini-title"),
               actionButton("btn_compare", "Go to Tool", class = "btn-default")
+          ),
+          div(class = "mini-card",
+              div(icon("eye"), class = "icon-mini text-purple"),
+              div("Single-Gene Query", class = "mini-title"),
+              actionButton("btn_single", "Go to Tool", class = "btn-default")
           )
-      )
+          
+      ),
+      br()
   )
 )
+
+
+
+
+  ### ---------- renderUI ----------
+  output$cover_info <- renderUI({
+    ## La clase cover-info-box se usa para anular el borde del box
+    box(width = 12, class = "cover-info-box",
+        title = NULL, status = "primary",
+        solidHeader = FALSE, collapsible = FALSE,
+        cover_tab_ui
+    )
+  })
+  
+
 
 
 cover_info <- box(width = 12, class = "cover-info-box",
@@ -348,10 +350,10 @@ input_list_modifications_style <- rep("color: black",length(input_list_modificat
 sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                    shinyjs::useShinyjs(),
                                   
-                                   
-                                   sidebarMenu(
+                                   div(id = "navList",
+                                   # tagList(
                                      menuItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),
-                                     
+
                                      menuItem(HTML("&nbsp;&nbsp;&nbsp; Analysis"), icon = icon("flask"),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Compare"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome"))
@@ -362,68 +364,88 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Gene Set Visualizer"), tabName = "plots_tab", icon = icon("bar-chart", lib = "font-awesome")),
                                               menuSubItem(HTML("&nbsp;&nbsp;&nbsp; Variants"), tabName = "variants_tab", icon = icon("dna", lib = "font-awesome"))
                                      ),
-                                   
-                                     
-                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome"))
+
+
+                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome")),
+                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Single Gene Query"), tabName = "single_gene_query_tab", icon = icon("magnifying-glass", lib = "font-awesome")),
+                                     menuItem(HTML("&nbsp;&nbsp;&nbsp; Criteria-Based Search"), tabName = "criteria_based_search_tab", icon = icon("filter", lib = "font-awesome"))
                                    ),
                                    
                                    
-                                   
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Database presentation"), tabName = "cover_tab", icon = icon("brain", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Main information"), tabName = "main_tab", icon = icon("database", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Gene Set Visualizer"), tabName = "plots_tab", icon = icon("bar-chart", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Variants"), tabName = "variants_tab", icon = icon("dna", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Compare"), tabName = "compare_tab", icon = icon("code-compare", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; Network"), tabName = "network_tab", icon = icon("circle-nodes", lib = "font-awesome")),
-                                   # menuItem(HTML("&nbsp;&nbsp;&nbsp; CROND-GPT"), tabName = "gpt_tab", icon = icon("comments", lib = "font-awesome")),
-                                   # 
-                                   # 
+                          
                                    hr(),
+                                   conditionalPanel(
+                                     
+                                     condition = "input.tabs == 'main_tab' | input.tabs == 'plots_tab' | input.tabs == 'variants_tab' | input.tabs == 'criteria_based_search_tab' | input.tabs == 'single_gene_query_tab'",
+                                     id = "perform_search_panel",
+                                    
+                                     fluidRow(column(12,align = "center",
+                                                     
+                                                     
+                                                     actionBttn(
+                                                       inputId = "perform_search",
+                                                       label   = "Perform search",
+                                                       style   = "unite",
+                                                       color   = "warning",
+                                                       size    = "lg",
+                                                       # block   = TRUE          # ocupa el 100 % del contenedor
+                                                     )
+                                                     
+                                                     # actionBttn(
+                                                     #   inputId = "perform_search",
+                                                     #   label = "Perform search",
+                                                     #   style = "unite", 
+                                                     #   color = "warning"
+                                                     # )
+                                     )
+                                     )
+                                     
+                                   ),
+                                   conditionalPanel(
+                                     condition = "input.tabs == 'single_gene_query_tab'",
+                                     id = "gene_selection_panel",
+                                     hr(),
+                                     generic_picker_input("gene_selection","Genes",input_list_genes_CHOICES,input_list_genes$SUBTEXT,style = input_list_genes_style),
+                                   ),
                                    
                                   conditionalPanel(
                                     
-                                    condition = "input.tabs == 'main_tab' | input.tabs == 'plots_tab' | input.tabs == 'variants_tab' ",
+                                    condition = "input.tabs == 'main_tab' | input.tabs == 'plots_tab' | input.tabs == 'variants_tab' | input.tabs == 'criteria_based_search_tab'",
                                     id = "filters_panel_full",
-                                    fluidRow(column(12,align = "center",
-                                                    
-                                                    
-                                                    actionBttn(
-                                                      inputId = "perform_search",
-                                                      label   = "Perform search",
-                                                      style   = "unite",
-                                                      color   = "warning",
-                                                      size    = "lg",
-                                                      # block   = TRUE          # ocupa el 100 % del contenedor
-                                                    )
-                                                    
-                                                    # actionBttn(
-                                                    #   inputId = "perform_search",
-                                                    #   label = "Perform search",
-                                                    #   style = "unite", 
-                                                    #   color = "warning"
-                                                    # )
-                                    )
-                                    ),
-                                    hr(),
-                                    fluidRow(column(12,
-                                                    align = "center",
-                                                    
-                                                    # materialSwitch(
-                                                    #   inputId = "show_filters",
-                                                    #   label = "Show filters", 
-                                                    #   value = T,
-                                                    #   status = "warning"
-                                                    # ),
-                                                    
-
-                                                    )),
+                                    # hr(),
+                                    # fluidRow(column(12,
+                                    #                 align = "center",
+                                    #                 
+                                    #                 # materialSwitch(
+                                    #                 #   inputId = "show_filters",
+                                    #                 #   label = "Show filters", 
+                                    #                 #   value = T,
+                                    #                 #   status = "warning"
+                                    #                 # ),
+                                    #                 
+                                    # 
+                                    #                 )),
                                     tagList( #)
                                     # conditionalPanel(
                                     #   condition = "input.show_filters == true",
                                     #   id = "filters_panel",
                                       # file input
                                       
-
+                                      div(class = "style-simple",
+                                          radioGroupButtons(
+                                            inputId = "search_mode_button",
+                                            label   = tagList(
+                                              "Search Mode"
+                                              # actionLink("help_search_mode", label = NULL,
+                                              #            icon  = icon("question-circle"),
+                                              #            class = "tiny-help")        # <-- icono enano
+                                            ),
+                                            choices   = list("Union"= "union", "Intersection" = "intersection"),
+                                            justified = TRUE
+                                          )
+                                      ),
+                                      hr(),
+                                      
                                       
                                       tagList(
                                       # PICKER INPUTS
@@ -435,18 +457,19 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                         color = "warning",
                                         size = "sm"
                                       ),
-                                      
+                            
                                       # picker inputs
-                                      generic_picker_input("gene_selection","Genes",input_list_genes_CHOICES,input_list_genes$SUBTEXT,style = input_list_genes_style),
+                                      # generic_picker_input("gene_selection","Genes",input_list_genes_CHOICES,input_list_genes$SUBTEXT,style = input_list_genes_style),
                                       # generic_picker_input("source_selection","Source",input_list_sources_CHOICES,style = input_list_sources_style),
                                       generic_picker_input("phenotype_selection","Phenotypes",input_list_phenotypes_CHOICES,input_list_phenotypes$SUBTEXT,style = input_list_phenotypes_style),
                                       generic_picker_input("disease_selection","Diseases",input_list_diseases_CHOICES,input_list_diseases$SUBTEXT,style = input_list_diseases_style),
-                                      generic_picker_input("gene_ontology_subontology_selection","Gene Ontology Subontology",input_list_gene_ontology_subontology,style = input_list_gene_ontology_subontology_style),
                                       
                                       generic_picker_input("modification_selection","Modifications",input_list_modifications, style = input_list_modifications_style),
                                       generic_picker_input("complex_selection","Complexes",input_list_complexes, style =input_list_complexes_style),
                                       
                                       generic_picker_input("gene_ontology_selection","Gene Ontology",input_list_gene_ontology_CHOICES,input_list_gene_ontology$SUBTEXT,style = input_list_gene_ontology_style),
+                                      # generic_picker_input("gene_ontology_subontology_selection","Gene Ontology Subontology",input_list_gene_ontology_subontology,style = input_list_gene_ontology_subontology_style),
+                                      
                                       generic_picker_input("pathway_selection","Pathways",input_list_pathways_CHOICES,input_list_pathways$SUBTEXT,style = input_list_pathways_style),
                                       ),
                                       hr(),
@@ -611,6 +634,38 @@ gpt_tab <- tabItem(tabName = "gpt_tab",
                        
                        
 )
+
+
+single_gene_query_tab <- tabItem(tabName = "single_gene_query_tab",
+                        
+                        fluidRow(
+                          column(12,
+                                 shinycssloaders::withSpinner(
+                                   uiOutput("single_gene_query_info"),
+                                   type = 6, color = "#f39c12", size = 1
+                                 )
+                          )
+                        )
+                        
+                        
+                        
+)
+
+criteria_based_search_tab <- tabItem(tabName = "criteria_based_search_tab",
+                        
+                        fluidRow(
+                          column(12,
+                                 shinycssloaders::withSpinner(
+                                   uiOutput("criteria_based_search_info"),
+                                   type = 6, color = "#f39c12", size = 1
+                                 )
+                          )
+                        )
+                        
+                        
+                        
+) 
+
 print("tabs.R loaded")
 
 ############## TABS FILE

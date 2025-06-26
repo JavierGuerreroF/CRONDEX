@@ -26,7 +26,8 @@ library(plotly)
 library(upsetjs)
 library(scales)   # para styleColorBar()
 library(grid)
-
+library(purrr)
+library(htmltools)   # htmlEscape
 
 # library(renv)
 # refresh()
@@ -41,7 +42,6 @@ print("Scripts loaded")
 genes_database <- readRDS("data/genes_database.rds")
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
-
 
 
 file_format_help <- readChar("data/file_format_help.txt", file.info("data/file_format_help.txt")$size)
@@ -389,6 +389,9 @@ ui_dash <- dashboardPage(
 #     )
 #   )
 # ),
+
+# hide sidebar
+tags$style(HTML("#navList { display:none; }")),
 
   
 
@@ -785,7 +788,9 @@ tags$head(
       plots_tab,
       compare_tab,
       network_tab,
-      gpt_tab
+      gpt_tab,
+      single_gene_query_tab,
+      criteria_based_search_tab
     ),
     
     
@@ -887,7 +892,10 @@ server <- function(input, output, session) {
             # Enlace con icono y tooltip basado en CSS
             actionLink(
               inputId = "back_to_main_window",
-              label     = tagList(icon("arrow-left"), "Back to Main Window"),
+              tagList(
+                HTML("Back to Main Window&nbsp;&nbsp;"), 
+                icon("arrow-left")
+              ),
               # label   = icon("back"),
               class   = "btn-back",
               `data-title` = "Back to Main Window",   # texto del tooltip
@@ -907,190 +915,192 @@ server <- function(input, output, session) {
   })
   
   
-  observe({
-
-    cover_tab_ui <- tagList(
-      tags$head(
-        tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
-        tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = ""),
-        tags$link(
-          rel  = "stylesheet",
-          href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
-        ),
-        tags$style(HTML("
-      body         { font-family:'Inter',sans-serif;margin:0;padding:0;font-size:16px; }
-
-      /* ---------- HERO ------------------------------------- */
-      .hero        { padding:20px 0 15px;border-bottom:1px solid #F2F2F2; }
-      .hero-inner  { width:100%;padding:0 20px;
-                     display:flex;align-items:center;gap:40px;flex-wrap:wrap;
-                     justify-content:center; }  /* centra todo el bloque */
-
-      /* ---------- LOGO BOX --------------------------------- */
-      .logo-box    { flex:0 0 220px;display:flex;justify-content:center; }
-      .logo-box img{ width:180px;height:180px;object-fit:contain; }
-
-      /* ---------- TEXTOS HERO ------------------------------ */
-      .hero-text   { flex:1;text-align:center;min-width:260px; }
-      .hero-title  { font-size:36px;font-weight:800;margin:0; }
-      .hero-title .orange { color:#F59E0B; }
-      .hero-sub    { font-size:20px;font-weight:700;margin:14px 0 20px; }
-
-      .btn-about   { background:#FBD38D;border:none;border-radius:6px;
-                     padding:11px 34px;font-size:17px;font-weight:600;cursor:pointer; }
-      .btn-about:hover { background:#FAC97A; }
-
-      /* ---------- CONTENEDOR GENERAL ----------------------- */
-      .row-box     { width:100%;padding:0 10px; }
-
-      /* ---------- FILA DE TARJETAS ------------------------- */
-      .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; }
-
-      /* ---------- TARJETAS GRANDES ------------------------- */
-      .card-lg     { flex:1 1 0;min-width:300px;border:2px solid;border-radius:10px;
-                     padding:38px 28px;box-sizing:border-box;
-                     display:flex;flex-direction:column;justify-content:flex-start; }
-      .card-blue   { border-color:#1E6AFF; }  .card-green{ border-color:#16A34A; }
-
-      .icon-lg     { font-size:46px;margin-bottom:8px;align-self:center; }
-      .text-blue   { color:#1E6AFF; }         .text-green{ color:#16A34A; }
-
-      .card-title  { font-size:24px;font-weight:700;margin:20px 0 12px;
-                     text-align:center;white-space:normal;overflow-wrap:anywhere; }
-      .card-desc   { color:#555;font-size:15px;line-height:1.5;margin-bottom:26px;
-                     text-align:center;white-space:normal;overflow-wrap:anywhere; flex:1; }
-
-      .btn-primary { border:none;border-radius:6px;padding:10px 26px;font-size:15px;
-                     font-weight:600;color:#FFF;cursor:pointer;align-self:center; }
-      .card-blue .btn-primary { background:#1E6AFF; }
-      .card-green .btn-primary{ background:#16A34A; }
-
-      /* ---------- PANEL INFERIOR --------------------------- */
-      .panel       { border:1px solid #E5E7EB;border-radius:10px;
-                     padding:32px 22px;margin:55px auto 0; }
-      .panel-title { font-size:20px;font-weight:700;text-align:center;margin-bottom:30px; }
-
-      .mini-wrap   { display:flex;justify-content:center;gap:90px;flex-wrap:wrap; }
-      .mini-card   { text-align:center;width:180px; }
-      .icon-mini   { font-size:30px;margin-bottom:6px; }
-      .text-purple { color:#A855F7; }  .text-orange{ color:#F97316; }
-
-      .mini-title  { font-size:15px;font-weight:600;margin:12px 0 18px; }
-      .btn-default { background:#FFF;border:1px solid #D1D5DB;border-radius:6px;
-                     padding:7px 22px;font-size:14px;cursor:pointer; }
-    "))
-      ),
-      
-      ## ---------------- HERO HEADER -----------------------------
-      div(class = "hero",
-          div(class = "hero-inner",
-              # div(class = "logo-box",      # <-- contenedor centrado
-              #     tags$a(
-              #       href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
-              #       target = "_blank",
-              #       tags$img(src = "yellow-brain.svg",
-              #                title = "CRONDEX LOGO",
-              #                alt   = "app-logo")
-              #     )
-              # ),
-              # div(class = "hero-text",
-              #     h1(class = "hero-title",
-              #        span(class = "orange", "CROND"), "EX"),
-              #     div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
-              #         class = "hero-sub"),
-              #     actionButton("btn_about", "About CRONDEX", class = "btn-about")
-              # )
-              # 
-              
-              fluidRow(
-                align = "center",
-                column(2,
-                       div(class = "logo-box",      # <-- contenedor centrado
-                           tags$a(
-                             href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
-                             target = "_blank",
-                             tags$img(src = "yellow-brain.svg",
-                                      title = "CRONDEX LOGO",
-                                      alt   = "app-logo")
-                           )
-                       )
-                       
-                ),
-                
-                column(10,
-                       div(class = "hero-text",
-                           # h1(class = "hero-title",
-                           #    span(class = "orange", "CROND"), "EX"),
-                           h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
-                              style = "font-size: 2.8em;"),
-                           div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
-                               class = "hero-sub"),
-                           actionButton("btn_about", "About CRONDEX", class = "btn-about")
-                       )
-                )
-                
-              )
-              
-          )
-      ),
-      
-      ## ---------------- TARJETAS PRINCIPALES --------------------
-      div(class = "row-box",
-          div(class = "card-row",
-              div(class = "card-lg card-blue",
-                  div(icon("search"), class = "icon-lg text-blue"),
-                  div("Gene of Interest Query", class = "card-title text-blue"),
-                  p("Find genes with similar clinical phenotypes based on a gene of interest.",
-                    class = "card-desc"),
-                  actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")
-              ),
-              div(class = "card-lg card-green",
-                  div(icon("sliders"), class = "icon-lg text-green"),
-                  div("Criteria-Based Search", class = "card-title text-green"),
-                  p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
-                    class = "card-desc"),
-                  actionButton("btn_criteria", "Go to Tool", class = "btn-primary")
-              )
-          )
-      ),
-      
-      ## ---------------- PANEL INFERIOR --------------------------
-      div(class = "row-box panel",
-          div("Further Analysis Options", class = "panel-title"),
-          div(class = "mini-wrap",
-              div(class = "mini-card",
-                  div(icon("eye"), class = "icon-mini text-purple"),
-                  div("Single-Gene Query", class = "mini-title"),
-                  actionButton("btn_single", "Go to Tool", class = "btn-default")
-              ),
-              div(class = "mini-card",
-                  div(icon("exchange"), class = "icon-mini text-orange"),
-                  div("Compare Two Genes", class = "mini-title"),
-                  actionButton("btn_compare", "Go to Tool", class = "btn-default")
-              )
-          )
-      )
-    )
-    
-    
-
-    ## (Opcional) lanzar app mínima para probar ---------------------
-    ## server <- function(input, output, session) {}
-    ## shinyApp(ui, server)
-    output$cover_info <- renderUI({
-      box(width = 12, class = "cover-info-box",
-          title = NULL,
-           status = "primary", solidHeader = F,
-           collapsible = F, collapsed = FALSE,
-          cover_tab_ui
-
-
-      )
-    })
-    
-    
-
-  })
+  # observe({
+  # 
+  #   # cover_tab_ui <- tagList(
+  #   #   tags$head(
+  #   #     tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
+  #   #     tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = ""),
+  #   #     tags$link(
+  #   #       rel  = "stylesheet",
+  #   #       href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+  #   #     ),
+  #   #     tags$style(HTML("
+  #   #   body         { font-family:'Inter',sans-serif;margin:0;padding:0;font-size:16px; }
+  #   # 
+  #   #   /* ---------- HERO ------------------------------------- */
+  #   #   .hero        { padding:20px 0 15px;border-bottom:1px solid #F2F2F2; }
+  #   #   .hero-inner  { width:100%;padding:0 20px;
+  #   #                  display:flex;align-items:center;gap:40px;flex-wrap:wrap;
+  #   #                  justify-content:center; }  /* centra todo el bloque */
+  #   # 
+  #   #   /* ---------- LOGO BOX --------------------------------- */
+  #   #   .logo-box    { flex:0 0 220px;display:flex;justify-content:center; }
+  #   #   .logo-box img{ width:180px;height:180px;object-fit:contain; }
+  #   # 
+  #   #   /* ---------- TEXTOS HERO ------------------------------ */
+  #   #   .hero-text   { flex:1;text-align:center;min-width:260px; }
+  #   #   .hero-title  { font-size:36px;font-weight:800;margin:0; }
+  #   #   .hero-title .orange { color:#F59E0B; }
+  #   #   .hero-sub    { font-size:20px;font-weight:700;margin:14px 0 20px; }
+  #   # 
+  #   #   .btn-about   { background:#FBD38D;border:none;border-radius:6px;
+  #   #                  padding:11px 34px;font-size:17px;font-weight:600;cursor:pointer; }
+  #   #   .btn-about:hover { background:#FAC97A; }
+  #   # 
+  #   #   /* ---------- CONTENEDOR GENERAL ----------------------- */
+  #   #   .row-box     { width:100%;padding:0 10px; }
+  #   # 
+  #   #   /* ---------- FILA DE TARJETAS ------------------------- */
+  #   #   .card-row    { display:flex;gap:20px;flex-wrap:wrap;align-items:stretch; }
+  #   # 
+  #   #   /* ---------- TARJETAS GRANDES ------------------------- */
+  #   #   .card-lg     { flex:1 1 0;min-width:300px;border:2px solid;border-radius:10px;
+  #   #                  padding:38px 28px;box-sizing:border-box;
+  #   #                  display:flex;flex-direction:column;justify-content:flex-start; }
+  #   #   .card-blue   { border-color:#1E6AFF; }  .card-green{ border-color:#16A34A; }
+  #   # 
+  #   #   .icon-lg     { font-size:46px;margin-bottom:8px;align-self:center; }
+  #   #   .text-blue   { color:#1E6AFF; }         .text-green{ color:#16A34A; }
+  #   # 
+  #   #   .card-title  { font-size:24px;font-weight:700;margin:20px 0 12px;
+  #   #                  text-align:center;white-space:normal;overflow-wrap:anywhere; }
+  #   #   .card-desc   { color:#555;font-size:15px;line-height:1.5;margin-bottom:26px;
+  #   #                  text-align:center;white-space:normal;overflow-wrap:anywhere; flex:1; }
+  #   # 
+  #   #   .btn-primary { border:none;border-radius:6px;padding:10px 26px;font-size:15px;
+  #   #                  font-weight:600;color:#FFF;cursor:pointer;align-self:center; }
+  #   #   .card-blue .btn-primary { background:#1E6AFF; }
+  #   #   .card-green .btn-primary{ background:#16A34A; }
+  #   # 
+  #   #   /* ---------- PANEL INFERIOR --------------------------- */
+  #   #   .panel       { border:1px solid #E5E7EB;border-radius:10px;
+  #   #                  padding:32px 22px;margin:55px auto 0; }
+  #   # 
+  #   #   .panel-title { font-size:20px;font-weight:700;text-align:center;margin-bottom:30px; }
+  #   # 
+  #   #   .mini-wrap   { display:flex;justify-content:center;gap:90px;flex-wrap:wrap; }
+  #   #   .mini-card   { text-align:center;width:180px; }
+  #   #   .icon-mini   { font-size:30px;margin-bottom:6px; }
+  #   #   .text-purple { color:#A855F7; }  .text-orange{ color:#F97316; }
+  #   # 
+  #   #   .mini-title  { font-size:15px;font-weight:600;margin:12px 0 18px; }
+  #   #   .btn-default { background:#FFF;border:1px solid #D1D5DB;border-radius:6px;
+  #   #                  padding:7px 22px;font-size:14px;cursor:pointer; }
+  #   # "))
+  #   #   ),
+  #   # 
+  #   #   ## ---------------- HERO HEADER -----------------------------
+  #   #   div(class = "hero",
+  #   #       div(class = "hero-inner",
+  #   #           # div(class = "logo-box",      # <-- contenedor centrado
+  #   #           #     tags$a(
+  #   #           #       href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+  #   #           #       target = "_blank",
+  #   #           #       tags$img(src = "yellow-brain.svg",
+  #   #           #                title = "CRONDEX LOGO",
+  #   #           #                alt   = "app-logo")
+  #   #           #     )
+  #   #           # ),
+  #   #           # div(class = "hero-text",
+  #   #           #     h1(class = "hero-title",
+  #   #           #        span(class = "orange", "CROND"), "EX"),
+  #   #           #     div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+  #   #           #         class = "hero-sub"),
+  #   #           #     actionButton("btn_about", "About CRONDEX", class = "btn-about")
+  #   #           # )
+  #   #           #
+  #   # 
+  #   #           fluidRow(
+  #   #             align = "center",
+  #   #             column(2,
+  #   #                    div(class = "logo-box",      # <-- contenedor centrado
+  #   #                        tags$a(
+  #   #                          href   = "https://jgf-bioinfo.shinyapps.io/CRONDEX/",
+  #   #                          target = "_blank",
+  #   #                          tags$img(src = "yellow-brain.svg",
+  #   #                                   title = "CRONDEX LOGO",
+  #   #                                   alt   = "app-logo")
+  #   #                        )
+  #   #                    )
+  #   # 
+  #   #             ),
+  #   # 
+  #   #             column(10,
+  #   #                    div(class = "hero-text",
+  #   #                        # h1(class = "hero-title",
+  #   #                        #    span(class = "orange", "CROND"), "EX"),
+  #   #                        h1(HTML('<span style="color: #f39c12; font-family: Tahoma, sans-serif;">CROND</span><span style="color: black; font-family: Tahoma, sans-serif;">EX</span>'),
+  #   #                           style = "font-size: 2.8em;"),
+  #   #                        div("ChROmatin and NeuroDevelopmental Disorder Protein Explorer",
+  #   #                            class = "hero-sub"),
+  #   #                        actionButton("btn_about", "About CRONDEX", class = "btn-about")
+  #   #                    )
+  #   #             )
+  #   # 
+  #   #           )
+  #   # 
+  #   #       )
+  #   #   ),
+  #   # 
+  #   #   ## ---------------- TARJETAS PRINCIPALES --------------------
+  #   #   div(class = "row-box",
+  #   #       div(class = "card-row",
+  #   #           div(class = "card-lg card-blue",
+  #   #               div(icon("search"), class = "icon-lg text-blue"),
+  #   #               div("Gene of Interest Query", class = "card-title text-blue"),
+  #   #               p("Find genes with similar clinical phenotypes based on a gene of interest.",
+  #   #                 class = "card-desc"),
+  #   #               actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")
+  #   #           ),
+  #   #           div(class = "card-lg card-green",
+  #   #               div(icon("sliders"), class = "icon-lg text-green"),
+  #   #               div("Criteria-Based Search", class = "card-title text-green"),
+  #   #               p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
+  #   #                 class = "card-desc"),
+  #   #               actionButton("btn_criteria", "Go to Tool", class = "btn-primary")
+  #   #           )
+  #   #       )
+  #   #   ),
+  #   # 
+  #   #   ## ---------------- PANEL INFERIOR --------------------------
+  #   #   div(class = "row-box panel",
+  #   #       div("Further Analysis Options", class = "panel-title"),
+  #   #       div(class = "mini-wrap",
+  #   # 
+  #   #           div(class = "mini-card",
+  #   #               div(icon("exchange"), class = "icon-mini text-orange"),
+  #   #               div("Compare Two Genes", class = "mini-title"),
+  #   #               actionButton("btn_compare", "Go to Tool", class = "btn-default")
+  #   #           ),
+  #   #           div(class = "mini-card",
+  #   #               div(icon("eye"), class = "icon-mini text-purple"),
+  #   #               div("Single-Gene Query", class = "mini-title"),
+  #   #               actionButton("btn_single", "Go to Tool", class = "btn-default")
+  #   #           )
+  #   #       )
+  #   #   )
+  #   # )
+  # 
+  # 
+  # 
+  #   ## (Opcional) lanzar app mínima para probar ---------------------
+  #   ## server <- function(input, output, session) {}
+  #   ## shinyApp(ui, server)
+  #   output$cover_info <- renderUI({
+  #     box(width = 12, class = "cover-info-box",
+  #         title = NULL,
+  #          status = "primary", solidHeader = F,
+  #          collapsible = F, collapsed = FALSE,
+  #         cover_tab_ui
+  # 
+  # 
+  #     )
+  #   })
+  # 
+  # 
+  # 
+  # })
   
   ## Cambiar a network_tab
   observeEvent(input$btn_gene_query, {
@@ -1103,13 +1113,13 @@ server <- function(input, output, session) {
     cat("Changing to main_tab from btn_criteria\n")
     shinyjs::runjs("$('body').removeClass('sidebar-collapse');")
     
-    updateTabItems(session, "tabs", selected = "main_tab")
+    updateTabItems(session, "tabs", selected = "criteria_based_search_tab")
   })
   ## Cambiar a network_tab
   observeEvent(input$btn_single, {
     cat("Changing to network_tab from btn_single\n")
     shinyjs::runjs("$('body').removeClass('sidebar-collapse');")
-    updateTabItems(session, "tabs", selected = "main_tab")
+    updateTabItems(session, "tabs", selected = "single_gene_query_tab")
   })
   
   ## Volver a main_tab
@@ -1426,8 +1436,9 @@ server <- function(input, output, session) {
      tables$table_complexes <- NULL
      tables$table_modifications <- NULL
      
-     
-    print("PERFORM SEARCH")
+     # ne vez de un simple print ponme un cat con VARIOS colores para que lo pueda ver mejor en la consola
+     cat("\033[32mPerforming search with filters...\033[0m\n")
+
    
     filters <- list()
     # filter by gene
@@ -1479,8 +1490,29 @@ server <- function(input, output, session) {
     source_filter <-  input$source_selection
     filters$source_filter <- as.character(source_filter)
     
+    # cat en color verde de filters for perform search
+    cat("\033[32mFilters for perform search:\033[0m\n")
     print(str(filters))
 
+    selected_tab <- input[["activeTab"]]
+
+    
+      
+    
+    if(selected_tab == "criteria_based_search_tab"){filters$gene_filter <- c()} 
+      
+      
+    if(selected_tab == "single_gene_query_tab"){
+      filters$phenotype_filter <- c()
+      filters$disease_filter <- c()
+      filters$complex_filter <- c()
+      filters$modification_filter <- c()
+      filters$gene_ontology_filter <- c()
+      filters$gene_ontology_subontology_filter <- c()
+      filters$pathway_filter <- c()
+    } 
+    
+      
     ##############################################################################
     ##  SERVER block — paste inside your
     ##  server(function(input, output, session) { … })
@@ -1932,7 +1964,8 @@ server <- function(input, output, session) {
 
       # vals$filters <- filters
       vals$filters <- combined_list
-      
+      cat("\033[32mFilters for perform search:\033[0m\n")
+      print(str(vals$filters))
     
     if(all(is.null(filters))){
       vals$gene_database_filtered <- genes_database
@@ -2253,6 +2286,422 @@ server <- function(input, output, session) {
     
     
     
+    # if(input$search_mode_button == "intersection"){
+      
+      
+      # SEARCH in INTERSECTION MODE
+      
+      cat("\033[33m\n\nSEARCH IN INTERSECTION MODE\033[0m\n")
+      # cat filters
+      cat("\033[35m\n\nFILTERS<<------\033[0m\n")
+      print(vals$filters)
+      
+      filters <- vals$filters
+      
+      
+      # gene_subset <- input$gene_subset_selection
+      source_subset <- filters$source_filter
+      phenotype_subset <- filters$phenotype_filter
+      disease_subset <- filters$disease_filter
+      gene_ontology_subset <- filters$gene_ontology_filter
+      gene_ontology_subontology_subset <- filters$gene_ontology_subontology_filter
+      pathway_subset <- filters$pathway_filter
+      
+      modifications_subset <- filters$modification_filter
+      complexes_subset <- filters$complex_filter
+      
+      full_list <- c(source_subset, phenotype_subset, disease_subset, gene_ontology_subset, gene_ontology_subontology_subset,modifications_subset,complexes_subset)
+      print("full list")
+      print(head(full_list))
+      print("SET CREATION")
+      # if(length(full_list) < 16){
+        
+        # MARK POINT
+        
+        # print(source_subset)
+        
+        source_sets <- field_to_genes(vals$gene_database_filtered,source_subset,"source")
+        
+        phenotype_sets <- field_to_genes(vals$gene_database_filtered,phenotype_subset,"phenotypes_id")
+        names(phenotype_sets) <- setNames(all_phenotypes$hpo_name, all_phenotypes$hpo_id )[names(phenotype_sets)]
+        
+        disease_sets <- field_to_genes(vals$gene_database_filtered,disease_subset,"diseases_id")
+        names(disease_sets) <- setNames(all_diseases$disease_name, all_diseases$disease_id )[names(disease_sets)]    
+        
+        gene_ontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subset,"gene_ontology_id")
+        names(gene_ontology_sets) <- setNames(all_gene_ontology$go_term, all_gene_ontology$go_id )[names(gene_ontology_sets)]
+        
+        gene_ontology_subontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subontology_subset,"gene_ontology_subontology")
+        
+        pathway_sets <- field_to_genes(vals$gene_database_filtered,pathway_subset,"kegg_pathways_id")
+        names(pathway_sets) <- setNames(all_pathways$kegg_name, all_pathways$kegg_pathway_id )[names(pathway_sets)]
+        
+        modifications_sets <- field_to_genes(vals$gene_database_filtered,modifications_subset,"modifications")
+        complexes_sets <- field_to_genes(vals$gene_database_filtered,complexes_subset,"complexes")
+        # Crear una lista de todas las listas obtenidas
+        all_sets <- c(source_sets, phenotype_sets, disease_sets, gene_ontology_sets, gene_ontology_subontology_sets,pathway_sets, modifications_sets,complexes_sets)
+        vals$number_of_selected_sets <- length(all_sets)
+        
+      # }else{
+        # all_sets <- rep(1,16)
+      # }
+      
+        print(str(head(all_sets)))
+        
+        
+        ##·· TOO MUCH SETS  ·····················································
+          
+    #     if(length(all_sets) > vals$max_sets){## 0 · dependencia extra  ----------------------------------------------
+    #       if (!requireNamespace("shinyalert", quietly = TRUE)) install.packages("shinyalert")
+    #       library(shinyalert)
+    #       
+    #       ## 1 · funciones auxiliares  -------------------------------------------
+    #       to_ul <- function(vec, n_trunc = Inf) {
+    #         if (length(vec) > n_trunc) vec <- c(vec[seq_len(n_trunc)], "…")
+    #         paste0(
+    #           "<ul style='padding-left:1em;margin:0;'>",
+    #           paste0("<li>", sapply(vec, htmltools::htmlEscape), "</li>", collapse = ""),
+    #           "</ul>"
+    #         )
+    #       }
+    #       
+    #       get_intersections <- function(sets) {
+    #         t0 <- Sys.time()                               # ── inicio cronómetro
+    #         
+    #         n <- length(sets)
+    #         idx_list <- unlist(
+    #           lapply(1:n, \(k) combn(seq_len(n), k, simplify = FALSE)),
+    #           recursive = FALSE
+    #         )
+    #         
+    #         res <- purrr::map_dfr(idx_list, \(idx) {
+    #           intsct <- Reduce(intersect, sets[idx])
+    #           tibble::tibble(
+    #             Sets_vec     = list(names(sets)[idx]),
+    #             Elements_vec = list(intsct),
+    #             Degree       = length(idx),
+    #             Size         = length(intsct)
+    #           )
+    #         }) |>
+    #           dplyr::arrange(dplyr::desc(Size), dplyr::desc(Degree))
+    #         
+    #         t1 <- Sys.time()                               # ── fin cronómetro
+    #         cat(sprintf(
+    #           "\033[32mget_intersections(): %d sets processed in %.2f seconds\033[0m\n",
+    #           n,
+    #           as.numeric(difftime(t1, t0, units = "secs"))
+    #         ))
+    #         
+    #         res
+    #       }
+    #       
+    #       max_degree_intersections <- function(sets) {
+    #         stopifnot(length(sets) > 0)
+    #         
+    #         # ── paso 1 · tabla larga el–set ─────────────────────────────────────
+    #         long <- purrr::imap_dfr(sets, \(v, nm) tibble::tibble(el = v, set = nm)) |>
+    #           dplyr::distinct()
+    #         
+    #         # ── paso 2 · matriz binaria presencia/ausencia ──────────────────────
+    #         wide <- long |>
+    #           dplyr::mutate(value = 1L) |>
+    #           tidyr::pivot_wider(names_from = set,
+    #                              values_from = value,
+    #                              values_fill = 0L)
+    #         set_cols <- setdiff(names(wide), "el")
+    #         m        <- as.matrix(wide[, set_cols, drop = FALSE])
+    #         
+    #         # ── paso 3 · firma, grado y agregación ──────────────────────────────
+    #         sig        <- apply(m, 1L, paste0, collapse = "")
+    #         degree_vec <- rowSums(m)
+    #         
+    #         inter_tbl <- tibble::tibble(signature = sig,
+    #                                     degree    = degree_vec) |>
+    #           dplyr::count(signature, degree, name = "Size")
+    #         
+    #         # ── paso 4 · sólo grado máximo (> 0 elementos) ──────────────────────
+    #         max_deg <- max(inter_tbl$degree)
+    #         inter_tbl |>
+    #           dplyr::filter(degree == max_deg, Size > 0) |>
+    #           dplyr::mutate(
+    #             Sets_vec = purrr::map(signature,
+    #                                   \(s) set_cols[ strsplit(s, "")[[1]] == "1" ]),
+    #             Elements_vec = list(character())          # opcional, vacío
+    #           ) |>
+    #           dplyr::select(Sets_vec, Elements_vec, Degree = degree, Size)
+    #       }
+    #       
+    #       ## 2 · elige la estrategia ------------------------------------------------
+    #       sets   <- all_sets                         # tus sets reales
+    #       n_sets <- length(sets)
+    #       
+    #       if (n_sets > 30) {
+    #         shinyalert::shinyalert(
+    #           title = "Notice",
+    #           text  = paste(
+    #             "There are", n_sets, "sets. To avoid exhausting memory,",
+    #             "only the intersections with the highest degree will be displayed."
+    #           ),
+    #           type = "info",
+    #           closeOnEsc = TRUE, closeOnClickOutside = TRUE
+    #         )
+    #         inters <- get_intersections(sets[1:30])
+    #       } else {
+    #         inters <- get_intersections(sets)
+    #       }
+    #       
+    #       ## 3 · parámetros fijos para la tabla ------------------------------------
+    #       minsize   <- 1
+    #       mindegree <- 1
+    #       truncSets  <- 3
+    #       truncElems <- 3
+    #       showElems  <- TRUE
+    #       
+    #       ## 4 · reactive con HTML truncado ----------------------------------------
+    #       data_prepared <- reactive({
+    #         inters |>
+    #           dplyr::filter(Size >= minsize, Degree >= mindegree) |>
+    #           dplyr::mutate(
+    #             Sets_trunc = vapply(Sets_vec,     to_ul, character(1), n_trunc = truncSets),
+    #             Elements_trunc = vapply(Elements_vec, to_ul, character(1), n_trunc = truncElems),
+    #             Sets_full  = vapply(Sets_vec,     to_ul, character(1)),
+    #             Elements_full = vapply(Elements_vec, to_ul, character(1))
+    #           )
+    #       })
+    #       
+    #       ## 5 · renderDT (igual que antes salvo showElems) -------------------------
+    #       output$table_intersections <- renderDT({
+    #         df <- data_prepared()
+    #         
+    #         dt_data <- data.frame(
+    #           Show          = "&oplus;",
+    #           Sets          = df$Sets_trunc,
+    #           Degree        = df$Degree,
+    #           Size          = df$Size,
+    #           Elements      = df$Elements_trunc,
+    #           Sets_full     = df$Sets_full,
+    #           Elements_full = df$Elements_full,
+    #           check.names = FALSE
+    #         )
+    #         
+    #         datatable(
+    #           dt_data,
+    #           escape   = FALSE,
+    #           rownames = FALSE,
+    #           filter   = "top",
+    #           extensions = "Buttons",
+    #           options = list(
+    #             columnDefs = list(
+    #               list(className = "details-control dt-center", targets = 0),
+    #               list(className = "dt-left",   targets = 1),           # Sets
+    #               list(className = "dt-center", targets = 2:3),         # Degree/Size
+    #               list(className = "dt-left",   targets = 4),           # Elements
+    #               list(visible = showElems, targets = 4),
+    #               list(visible = FALSE, targets = 5:6)
+    #             ),
+    #             order      = list(list(3, "desc"), list(2, "desc")),
+    #             pageLength = 15,
+    #             dom        = "Bfrtip",
+    #             buttons    = c("copy", "csv", "excel", "print"),
+    #             scrollX    = TRUE
+    #           ),
+    #           callback = JS("
+    #   table.on('click', 'td.details-control', function() {
+    #     var tr = $(this).closest('tr');
+    #     var row = table.row(tr);
+    #     if (row.child.isShown()) {
+    #       row.child.hide();
+    #       tr.removeClass('shown');
+    #       $(this).html('&oplus;');
+    #     } else {
+    #       var d = row.data();
+    #       var html = '<div style=\"padding:0.5em 2em;\">' +
+    #                  '<strong>Sets:</strong><br>' + d[5] + '<br>';
+    #       if (d[6]) html += '<strong>Elements:</strong><br>' + d[6];
+    #       html += '</div>';
+    #       row.child(html).show();
+    #       tr.addClass('shown');
+    #       $(this).html('&ominus;');
+    #     }
+    #   });
+    # ")
+    #         )
+    #       })
+    #       
+    #       ## 6 · UI parcial que insertas donde corresponda --------------------------
+    #       sets_table_intersections_ui <- tagList(
+    #         fluidRow(
+    #           column(12, DTOutput("table_intersections"))
+    #         )
+    #       )
+    #       vals$sets_table_intersections_ui <- sets_table_intersections_ui
+    #     }
+            # if(length(all_sets) > vals$max_sets){
+            #   
+            #   sets_table_intersections_ui <- tagList(
+            #             fluidRow(
+            #               column(12, h1("Too much sets selected")
+            #               )
+            #             )
+            #           )
+            #   vals$sets_table_intersections_ui <- sets_table_intersections_ui
+            # }
+        ## ---- when too many sets are selected ---------------------------------
+        ## --- Too many sets selected -----------------------------------------
+        if (length(all_sets) > vals$max_sets) {
+          
+          sets_table_intersections_ui <- tagList(
+            fluidRow(
+              column(
+                width = 12,
+                tags$div(
+                  # simple coloured banner
+                  style = "
+            margin-top: 2rem;
+            padding: 18px;
+            border-radius: 6px;
+            background-color: #fff3cd;   /* soft yellow */
+            border: 1px solid #ffecb5;
+            font-size: 1.65rem;",
+                  
+                  tags$h4(
+                    style = "margin-top: 0; color: #856404;font-size: 2rem;",
+                    "Too many sets selected"
+                  ),
+                  
+                  # main message
+                  HTML(sprintf(
+                    "You selected <strong>%d</strong> sets, but the limit for a full ",
+                    length(all_sets)
+                  )),
+                  HTML(sprintf(
+                    "intersection calculation is <strong>%d</strong>. ", vals$max_sets
+                  )),
+                  
+                  # explanatory sentence
+                  "To keep the app responsive and avoid exhausting memory, ",
+                  "intersections are computed only when the number of sets ",
+                  "is within that limit."
+                )
+              )
+            )
+          )
+          
+          vals$sets_table_intersections_ui <- sets_table_intersections_ui
+        }
+        
+        
+      
+      vals$all_sets <- all_sets
+      cat("\033[35m\n\n<<------ALL SETS\033[0m\n")
+      print(str(all_sets))
+      
+      
+      vals$total_proteins_in_sets <- unique(unlist(all_sets))
+      # upset plot
+      # plots$upset_plot <- plot_UpSetR(vals$subset)
+      
+      # euler plot
+      # plots$euler_plot <- plot(euler(create_presence_matrix(vals$subset)), 
+      #                          quantities = selected_metrics,
+      #                          legend = legend,
+      #                          labels = labels
+      # )
+      
+      if(is.null(vals$all_sets)){vals$all_sets <- list()}
+      # plots
+      print(length(vals$all_sets))
+      # print("upset ")
+      # print(str(all_sets))
+      if(length(vals$all_sets) > 1 && length(vals$all_sets) < 16){
+        # upset plot
+        # plotOutput("upset_plot")
+        
+        upset_plot <- plot_UpSetR(all_sets)
+        output$upset_plot <- renderPlot({
+          upset_plot
+        })
+        
+        
+        # euler plot
+        # plotOutput("euler_plot")
+        # cat en color verde "euler inter"
+        # cat("\033[31m\n\nEULER INTERSECT------>>\033[0m\n")
+        # euler_intersections <- euler_intersections(all_sets)
+        # cat("\033[31m\n\n<<------>>\033[0m\n")
+        
+        # print(euler_intersections)
+        cat("\033[31m\n\n<<------EULER INTERSECT\033[0m\n")
+        
+        
+        euler_plot <- plot_euler(all_sets,
+                                 input$euler_plot_legend,
+                                 input$euler_plot_labels,
+                                 input$euler_plot_counts,
+                                 input$euler_plot_percent) #,input$euler_plot_trunc)
+        output$euler_plot <- renderPlot({
+          euler_plot
+        })
+        
+        ## interactive plots
+        # Renderizamos el gráfico
+        output$upset_plot_interactive <- renderUpsetjs({
+          upsetjs() %>%
+            upsetjs::fromList(all_sets) %>%
+            chartLayout(
+              width.ratios = c(0.1, 0.3, 0.6)
+            ) %>%
+            chartFontSizes(
+              font.family = NULL,
+              chart.label = NULL,
+              set.label = NULL,
+              axis.tick = "14px",
+              bar.label = "14px",
+              legend = NULL,
+              title = NULL,
+              description = NULL,
+              export.label = NULL,
+              value.label = NULL
+            ) %>%
+            generateDistinctIntersections() %>%
+            interactiveChart()  # Gráfico interactivo
+        })
+        
+        output$euler_plot_interactive <- renderUpsetjs({
+          upsetjsEulerDiagram() %>%
+            upsetjs::fromList(all_sets) %>%
+            interactiveChart()  # Gráfico interactivo
+        })
+        
+        
+        
+      }
+      
+      
+      
+      
+      
+      
+      
+    # }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   })
  
  
@@ -2396,6 +2845,13 @@ output$table_phenotypes <- renderDataTable({
   # Definir la jerarquía con etiquetas 'children' y 'parent'
   table_phenotypes$hierarchy <- ifelse(table_phenotypes$hpo_id %in% df_frecuencias_children$ID, 'children', 'parent')
   
+  cat("\033[35mTABLE PHENOTYPES\033[0m\n")
+  print(str(table_phenotypes))
+  # # si no es una tabla, hacerla que sea una tabla con estas columans: term, hierarchy
+  # if(!is.data.frame(table_phenotypes)){ 
+  #   table_phenotypes <- data.frame(hpo_id = NULL, hpo_name= NULL,hierarchy = NULL)}
+  # print(str(table_phenotypes))
+  
   # Crear la tabla sin modificar la estructura original
   datatable_custom(table_phenotypes) %>%
     
@@ -2484,10 +2940,1623 @@ output$table_phenotypes <- renderDataTable({
  #   )
  # }) 
  
+ ##·· SINGLE GENE QUERY UI
+ observe({
+   
+   
+   if(is.null(vals$database_size)) {
+     vals$database_size <- 0
+   }
+   
+   if(vals$database_size == 1) {
+     vals$gene_information <- vals$gene_database_filtered[[1]]
+   }
+   
+   result_single_gene_query_ui <- tagList(
+     
+     if(vals$database_size == 0 || is.null(vals$database_size)) {
+       # box(title = NULL,
+       #     width = 12,
+       #     solidHeader = FALSE,
+       #     collapsible = FALSE,
+       #     br(), br(), br(), br(), br(), br(), br(),
+       #     fluidRow(align = "center", h2("No data available")),
+       #     fluidRow(align = "center", h3("Please, perform a search.")),
+       #     br(), br(), br(), br(), br(), br(), br(),
+       #     
+       #   )
+       
+       
+       box(
+         title = NULL,
+         width = NULL,
+         solidHeader = FALSE,
+         collapsible = FALSE,
+         
+         # Spacing for a clean layout
+         br(), br(),
+         
+         # 📢 Title: No Data Available
+         fluidRow(
+           align = "center",
+           column(12,
+                  div(style = "text-align: center;",
+                      tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+                      h1("No Data Available", style = "color: #993232; font-size: 2.5em;"),
+                      h3("Please perform a search using the filters in the left sidebar.", style = "color: #555;")
+                  )
+           )
+         ),
+         #993232
+         # original red e74c3c new red 993232
+         br(),
+         
+         # 📌 Instructions for the User
+         fluidRow(
+           column(12,
+                  div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+                      h3("📖 How to Start Your Search"),
+                      p("To explore the CROND database, follow these steps:"),
+                      tags$ul(
+                        tags$li("🔹 Use the sidebar filters to refine your search criteria."),
+                        tags$li("🔹 Select genes, diseases, phenotypes, or pathways of interest."),
+                        tags$li("🔹 Click on 'Search' to display the results."),
+                        tags$li("🔹 The main database will update with relevant data.")
+                      )
+                  )
+           )
+         ),
+         
+         br(),
+         
+         # 🖱️ Button to Guide User to the Sidebar
+         fluidRow(
+           align = "center",
+           actionButton(
+             "highlight_sidebar", "🔍 Where to Search?",
+             style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+           )
+         ),
+         
+         br()
+       )
+       
+       
+       
+       
+     } else if(vals$database_size == 1) {
+       box(title = "Protein information:",
+           width = NULL,
+           solidHeader = FALSE,
+           collapsible = FALSE,
+           fluidRow(
+             align = "center",
+             column(width = 12,
+                    # h2("Protein information"),
+                    div(
+                      style = "margin: 10px;",  # Ajusta el valor según necesites
+                      h1(vals$gene_information$gene_symbol),
+                      h5(vals$gene_information$ncbi_gene_id),
+                      h4(vals$gene_information$description)
+                    )
+                    
+             )
+           ),
+           hr(),
+           fluidRow(
+             column(12,
+                    
+                    box(
+                      width = 12,
+                      # title = "Cellular expression",
+                      title = HTML('Cellular expression <a href="https://brainrnaseq.org/" target="_blank" style="color: #337ab7; font-size: 0.8em;">Go to Brain RNA-Seq </a>'),
+                      collapsible = T,
+                      collapsed = T,
+                      solidHeader = T,
+                      status = "warning",
+                      # fluidRow(
+                      
+                      uiOutput("cellular_expression_ui")
+                      
+                      # )
+                    )
+                    # h3("Cellular expression"),
+                    # uiOutput("cellular_expression_ui")
+             ),
+           ),
+           fluidRow(
+             column(12,
+                    
+                    box(
+                      width = 12,
+                      # title = "Brain tissue expression",
+                      title = HTML('Brain tissue expression <a href="https://human.brain-map.org/static/download" target="_blank" style="color: #337ab7; font-size: 0.8em;">Go to Allen Brain Atlas</a>'),
+                      collapsible = T,
+                      collapsed = T,
+                      solidHeader = T,
+                      status = "warning",
+                      div(
+                        style = "overflow-x: auto; width: 100%;",  # Scroll horizontal
+                        plotlyOutput("tissue_expression_plot", height = "700px", width = "2000px")  # Ancho mayor que la box
+                      ),
+                      
+                      dataTableOutput("tissue_expression_table")
+                      # )
+                    )
+                    
+                    # h3("Tissue expression"),
+                    # dataTableOutput("tissue_expression_table")
+                    # 
+                    
+             )
+           ),
+           
+           hr(),
+           # SysNDD info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://sysndd.dbmr.unibe.ch/",
+                               tags$img(src="images/brain-sysndd.png",
+                                        title="SysNDD database",
+                                        width="5%",
+                                        height="5%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               h3('Diseases SysNDD'),
+               br(),
+               p(HTML("All genes with no annotation are annotated in SysNDD database with <em><a href='http://purl.obolibrary.org/obo/MONDO_0001071' target='_blank'>Intellectual disability 
+         MONDO:0001071</a></em>")),
+               dataTableOutput('table_diseases')
+             )
+             
+           ),
+           # HPO info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://hpo.jax.org/",
+                               tags$img(src="images/hpo-logo.png",
+                                        title="Human Phenotype Ontology",
+                                        alt="HPO-logo",
+                                        width="20%",
+                                        height="10%"
+                               ),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               splitLayout(
+                 h3('Phenotypes'),
+                 h3('Diseases HPO'),
+               ),
+               splitLayout(
+                 dataTableOutput('table_phenotypes'),
+                 dataTableOutput('table_diseases_HPO'),
+               )
+             ),
+             fluidRow(
+               uiOutput("phenotypes_network_neighborhood_ui")
+               
+             )
+             
+             
+             
+             
+           ),
+           # EPIFACTOR INFO
+           tagList(
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href = "https://hpo.jax.org/",
+                                 tags$h1(
+                                   "Epifactor annotations",
+                                   title = "Epifactor annotations"
+                                 ),
+                                 target = "_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 splitLayout(
+                   h3('Complexes'),
+                   h3('Modifications'),
+                 ),
+                 splitLayout(
+                   dataTableOutput('table_complexes'),
+                   dataTableOutput('table_modifications'),
+                 )
+               )
+               
+               
+               
+               
+             )
+           ),
+           
+           # GO info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://geneontology.org/",
+                               tags$img(src="images/GO_logo.png",
+                                        title="Gene Ontology",
+                                        width="20%",
+                                        height="20%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               h3('Gene ontology'),
+               dataTableOutput('table_gene_ontology')
+             )
+             
+           ),
+           # KEGG info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://www.genome.jp/kegg/",
+                               tags$img(src="images/KEGG_logo.gif",
+                                        title="KEGG",
+                                        width="10%",
+                                        height="10%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               h3('KEGG pathways'),
+               dataTableOutput('table_kegg_pathways')
+             )
+             
+           )  
+           
+       )
+     } else if(vals$database_size > 1) {
+       
+       
+       # MULTIPLE PROTEINS
+       box(title = "Multiple proteins",
+           width = NULL,
+           solidHeader = FALSE,
+           collapsible = FALSE,
+           
+           # PROTEIN LIST
+           fluidRow(
+             # align = "center",
+             column(2,
+                    div(
+                      style = "margin: 10px;",  # Ajusta el valor según necesites
+                      h2(paste0(length(vals$proteins_list))),
+                      p(" Proteins selected")
+                    ),
+             ),
+             column(2,
+                    div(
+                      style = "margin: 10px;",
+                      actionBttn(
+                        inputId = "show_genes_list_modal",
+                        label = "Show genes list",
+                        style = "bordered",
+                        color = "primary",
+                        # icon = icon("sliders")
+                      )
+                      # Ajusta el valor según necesites
+                    )
+                    
+             ),
+             
+             # column(2,
+             #        div(
+             #          style = "margin: 10px;",
+             #          switchInput(
+             #            inputId = "show_filters",
+             #            label = "Show filters",
+             #            labelWidth = "100px",
+             #            # icon = icon("sliders")
+             #          )
+             #          # Ajusta el valor según necesites
+             #        )
+             #        
+             # ),
+             
+             column(width = 8,
+                    # h2("Protein information"),
+                    fluidRow(
+                      align = "left",
+                      div(
+                        style = "margin: 10px;",  # Ajusta el valor según necesites
+                        h3(vals$selected_proteins_list_text)
+                      )
+                      
+                    )
+                    
+             )
+           ),
+           
+           
+           
+           hr(),
+           
+           
+           # conditionalPanel(
+           #   condition = "input.show_filters == true",
+           #   dataTableOutput("gene_selection_df"),
+           #   # fluidRow(
+           #   #   column(2,
+           #   #          div(
+           #   #            style = "margin: 10px;",
+           #   #            DT::dataTableOutput(as.data.frame(input$gene_selection))
+           #   #          )
+           #   #   ),
+           #   #   
+           #   # ),
+           #   # 
+           #   hr()
+           # ),
+           
+           
+           ## MUlTIPLE PROTEINS INFO
+           # SysNDD info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://sysndd.dbmr.unibe.ch/",
+                               tags$img(src="images/brain-sysndd.png",
+                                        title="SysNDD database",
+                                        width="5%",
+                                        height="5%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               h3('Diseases SysNDD'),
+               br(),
+               p(HTML("All genes with no annotation are annotated in SysNDD database with <em><a href='http://purl.obolibrary.org/obo/MONDO_0001071' target='_blank'>Intellectual disability 
+         MONDO:0001071</a></em>")),
+               dataTableOutput('table_diseases')
+             )
+             
+             
+           ),
+           # HPO info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://hpo.jax.org/",
+                               tags$img(src="images/hpo-logo.png",
+                                        title="Human Phenotype Ontology",
+                                        alt="HPO-logo",
+                                        width="20%",
+                                        height="10%"),
+                               target="_blank"
+                             )
+                             
+                             # tags$a(
+                             #   href="https://hpo.jax.org/",
+                             #   tags$img(src="images/GO_logo.png",#"images/HPO_logo.png",
+                             #            title="Human Phenotype Ontology",
+                             #            alt="HPO-logo",
+                             #            # width="20%",
+                             #            # height="20%"
+                             #            ),
+                             #   target="_blank"
+                             #       )
+                             
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               splitLayout(
+                 h3('Phenotypes'),
+                 h3('Diseases'),
+               ),
+               splitLayout(
+                 dataTableOutput('table_phenotypes'),
+                 dataTableOutput('table_diseases_HPO'),
+               )
+             )
+             
+           ),
+           # EPIFACTOR ANNOTATION
+           tagList(
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href = "https://hpo.jax.org/",
+                                 tags$h1(
+                                   "Epifactor annotations",
+                                   title = "Epifactor annotations"
+                                 ),
+                                 target = "_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 splitLayout(
+                   h3('Complexes'),
+                   h3('Modifications'),
+                 ),
+                 splitLayout(
+                   dataTableOutput('table_complexes'),
+                   dataTableOutput('table_modifications'),
+                 )
+               )
+               
+               
+               
+               
+             )
+           ),
+           
+           # GO info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://geneontology.org/",
+                               tags$img(src="images/GO_logo.png",
+                                        title="Gene Ontology",
+                                        width="20%",
+                                        height="20%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             
+             
+             # 
+             # actionBttn(
+             #   inputId = "gene_ontology_euler_plot",
+             #   label = "Euler plot", 
+             #   style = "bordered",
+             #   color = "primary",
+             #   # icon = icon("sliders")
+             # )
+             
+             # distinto de 1 ROW
+             
+             fluidRow(
+               h3('Gene Ontology')
+             ),
+             fluidRow(
+               dataTableOutput('table_gene_ontology')
+             )
+             
+           ),
+           # KEGG info
+           fluidRow(align = "left",
+                    column(12,
+                           div(
+                             style = "margin: 10px;",  # Ajusta el valor según necesites
+                             tags$a(
+                               href="https://www.genome.jp/kegg/",
+                               tags$img(src="images/KEGG_logo.gif",
+                                        title="KEGG",
+                                        width="10%",
+                                        height="10%"),
+                               target="_blank"
+                             )
+                           )
+                           
+                    )
+                    
+           ),
+           box(
+             width = NULL,
+             fluidRow(
+               column(4,
+                      h3('KEGG pathways')
+               ),
+               column(8,
+                      actionBttn(
+                        inputId = "kegg_euler_plot",
+                        label = "Euler plot", 
+                        style = "bordered",
+                        color = "primary",
+                        # icon = icon("sliders")
+                      )
+                      
+                      
+               )
+             ),
+             
+             fluidRow(
+               # h3('KEGG pathways'),
+               dataTableOutput('table_kegg_pathways')
+             )
+             
+           )  
+           
+           
+           
+           # Aquí puedes añadir más contenido para múltiples proteínas
+       )
+     }
+   )
+   
+   single_gene_query_info <- tagList(
+     fluidRow(
+       column(12,
+              vals$query_ui
+       )
+     ),
+     fluidRow(
+       column(12,
+              result_single_gene_query_ui
+       )
+     )
+   )
+   
+   output$single_gene_query_info <- renderUI({single_gene_query_info})
+ })
+ 
+ ###··· CRITERIA BASED SEARCH
+ observe({
+   
+   
+   if(is.null(vals$database_size)) {
+     vals$database_size <- 0
+   }
+   
+   if(vals$database_size == 1) {
+     vals$gene_information <- vals$gene_database_filtered[[1]]
+   }
+   
+   
+   if(input$search_mode_button == "union"){
+     result_criteria_based_search_ui <-  tagList(
+       # result_main_info_ui <- tagList(
+       
+       if(vals$database_size == 0 || is.null(vals$database_size)) {
+         # box(title = NULL,
+         #     width = 12,
+         #     solidHeader = FALSE,
+         #     collapsible = FALSE,
+         #     br(), br(), br(), br(), br(), br(), br(),
+         #     fluidRow(align = "center", h2("No data available")),
+         #     fluidRow(align = "center", h3("Please, perform a search.")),
+         #     br(), br(), br(), br(), br(), br(), br(),
+         #     
+         #   )
+         
+         
+         box(
+           title = NULL,
+           width = NULL,
+           solidHeader = FALSE,
+           collapsible = FALSE,
+           
+           # Spacing for a clean layout
+           br(), br(),
+           
+           # 📢 Title: No Data Available
+           fluidRow(
+             align = "center",
+             column(12,
+                    div(style = "text-align: center;",
+                        tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+                        h1("No Data Available", style = "color: #993232; font-size: 2.5em;"),
+                        h3("Please perform a search using the filters in the left sidebar.", style = "color: #555;")
+                    )
+             )
+           ),
+           #993232
+           # original red e74c3c new red 993232
+           br(),
+           
+           # 📌 Instructions for the User
+           fluidRow(
+             column(12,
+                    div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+                        h3("📖 How to Start Your Search"),
+                        p("To explore the CROND database, follow these steps:"),
+                        tags$ul(
+                          tags$li("🔹 Use the sidebar filters to refine your search criteria."),
+                          tags$li("🔹 Select genes, diseases, phenotypes, or pathways of interest."),
+                          tags$li("🔹 Click on 'Search' to display the results."),
+                          tags$li("🔹 The main database will update with relevant data.")
+                        )
+                    )
+             )
+           ),
+           
+           br(),
+           
+           # 🖱️ Button to Guide User to the Sidebar
+           fluidRow(
+             align = "center",
+             actionButton(
+               "highlight_sidebar", "🔍 Where to Search?",
+               style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+             )
+           ),
+           
+           br()
+         )
+         
+         
+         
+         
+       } else if(vals$database_size == 1) {
+         box(title = "Protein information:",
+             width = NULL,
+             solidHeader = FALSE,
+             collapsible = FALSE,
+             fluidRow(
+               align = "center",
+               column(width = 12,
+                      # h2("Protein information"),
+                      div(
+                        style = "margin: 10px;",  # Ajusta el valor según necesites
+                        h1(vals$gene_information$gene_symbol),
+                        h5(vals$gene_information$ncbi_gene_id),
+                        h4(vals$gene_information$description)
+                      )
+                      
+               )
+             ),
+             hr(),
+             fluidRow(
+               column(12,
+                      
+                      box(
+                        width = 12,
+                        # title = "Cellular expression",
+                        title = HTML('Cellular expression <a href="https://brainrnaseq.org/" target="_blank" style="color: #337ab7; font-size: 0.8em;">Go to Brain RNA-Seq </a>'),
+                        collapsible = T,
+                        collapsed = T,
+                        solidHeader = T,
+                        status = "warning",
+                        # fluidRow(
+                        
+                        uiOutput("cellular_expression_ui")
+                        
+                        # )
+                      )
+                      # h3("Cellular expression"),
+                      # uiOutput("cellular_expression_ui")
+               ),
+             ),
+             fluidRow(
+               column(12,
+                      
+                      box(
+                        width = 12,
+                        # title = "Brain tissue expression",
+                        title = HTML('Brain tissue expression <a href="https://human.brain-map.org/static/download" target="_blank" style="color: #337ab7; font-size: 0.8em;">Go to Allen Brain Atlas</a>'),
+                        collapsible = T,
+                        collapsed = T,
+                        solidHeader = T,
+                        status = "warning",
+                        div(
+                          style = "overflow-x: auto; width: 100%;",  # Scroll horizontal
+                          plotlyOutput("tissue_expression_plot", height = "700px", width = "2000px")  # Ancho mayor que la box
+                        ),
+                        
+                        dataTableOutput("tissue_expression_table")
+                        # )
+                      )
+                      
+                      # h3("Tissue expression"),
+                      # dataTableOutput("tissue_expression_table")
+                      # 
+                      
+               )
+             ),
+             
+             hr(),
+             # SysNDD info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://sysndd.dbmr.unibe.ch/",
+                                 tags$img(src="images/brain-sysndd.png",
+                                          title="SysNDD database",
+                                          width="5%",
+                                          height="5%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 h3('Diseases SysNDD'),
+                 br(),
+                 p(HTML("All genes with no annotation are annotated in SysNDD database with <em><a href='http://purl.obolibrary.org/obo/MONDO_0001071' target='_blank'>Intellectual disability 
+         MONDO:0001071</a></em>")),
+                 dataTableOutput('table_diseases')
+               )
+               
+             ),
+             # HPO info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://hpo.jax.org/",
+                                 tags$img(src="images/hpo-logo.png",
+                                          title="Human Phenotype Ontology",
+                                          alt="HPO-logo",
+                                          width="20%",
+                                          height="10%"
+                                 ),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 splitLayout(
+                   h3('Phenotypes'),
+                   h3('Diseases HPO'),
+                 ),
+                 splitLayout(
+                   dataTableOutput('table_phenotypes'),
+                   dataTableOutput('table_diseases_HPO'),
+                 )
+               ),
+               fluidRow(
+                 uiOutput("phenotypes_network_neighborhood_ui")
+                 
+               )
+               
+               
+               
+               
+             ),
+             # EPIFACTOR INFO
+             tagList(
+               fluidRow(align = "left",
+                        column(12,
+                               div(
+                                 style = "margin: 10px;",  # Ajusta el valor según necesites
+                                 tags$a(
+                                   href = "https://hpo.jax.org/",
+                                   tags$h1(
+                                     "Epifactor annotations",
+                                     title = "Epifactor annotations"
+                                   ),
+                                   target = "_blank"
+                                 )
+                               )
+                               
+                        )
+                        
+               ),
+               box(
+                 width = NULL,
+                 fluidRow(
+                   splitLayout(
+                     h3('Complexes'),
+                     h3('Modifications'),
+                   ),
+                   splitLayout(
+                     dataTableOutput('table_complexes'),
+                     dataTableOutput('table_modifications'),
+                   )
+                 )
+                 
+                 
+                 
+                 
+               )
+             ),
+             
+             # GO info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://geneontology.org/",
+                                 tags$img(src="images/GO_logo.png",
+                                          title="Gene Ontology",
+                                          width="20%",
+                                          height="20%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 h3('Gene ontology'),
+                 dataTableOutput('table_gene_ontology')
+               )
+               
+             ),
+             # KEGG info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://www.genome.jp/kegg/",
+                                 tags$img(src="images/KEGG_logo.gif",
+                                          title="KEGG",
+                                          width="10%",
+                                          height="10%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 h3('KEGG pathways'),
+                 dataTableOutput('table_kegg_pathways')
+               )
+               
+             )  
+             
+         )
+       } else if(vals$database_size > 1) {
+         
+         
+         # MULTIPLE PROTEINS
+         box(title = "Multiple proteins",
+             width = NULL,
+             solidHeader = FALSE,
+             collapsible = FALSE,
+             
+             # PROTEIN LIST
+             fluidRow(
+               # align = "center",
+               column(2,
+                      div(
+                        style = "margin: 10px;",  # Ajusta el valor según necesites
+                        h2(paste0(length(vals$proteins_list))),
+                        p(" Proteins selected")
+                      ),
+               ),
+               column(2,
+                      div(
+                        style = "margin: 10px;",
+                        actionBttn(
+                          inputId = "show_genes_list_modal",
+                          label = "Show genes list",
+                          style = "bordered",
+                          color = "primary",
+                          # icon = icon("sliders")
+                        )
+                        # Ajusta el valor según necesites
+                      )
+                      
+               ),
+               
+               # column(2,
+               #        div(
+               #          style = "margin: 10px;",
+               #          switchInput(
+               #            inputId = "show_filters",
+               #            label = "Show filters",
+               #            labelWidth = "100px",
+               #            # icon = icon("sliders")
+               #          )
+               #          # Ajusta el valor según necesites
+               #        )
+               #        
+               # ),
+               
+               column(width = 8,
+                      # h2("Protein information"),
+                      fluidRow(
+                        align = "left",
+                        div(
+                          style = "margin: 10px;",  # Ajusta el valor según necesites
+                          h3(vals$selected_proteins_list_text)
+                        )
+                        
+                      )
+                      
+               )
+             ),
+             
+             
+             
+             hr(),
+             
+             
+             # conditionalPanel(
+             #   condition = "input.show_filters == true",
+             #   dataTableOutput("gene_selection_df"),
+             #   # fluidRow(
+             #   #   column(2,
+             #   #          div(
+             #   #            style = "margin: 10px;",
+             #   #            DT::dataTableOutput(as.data.frame(input$gene_selection))
+             #   #          )
+             #   #   ),
+             #   #   
+             #   # ),
+             #   # 
+             #   hr()
+             # ),
+             
+             
+             ## MUlTIPLE PROTEINS INFO
+             # SysNDD info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://sysndd.dbmr.unibe.ch/",
+                                 tags$img(src="images/brain-sysndd.png",
+                                          title="SysNDD database",
+                                          width="5%",
+                                          height="5%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 h3('Diseases SysNDD'),
+                 br(),
+                 p(HTML("All genes with no annotation are annotated in SysNDD database with <em><a href='http://purl.obolibrary.org/obo/MONDO_0001071' target='_blank'>Intellectual disability 
+         MONDO:0001071</a></em>")),
+                 dataTableOutput('table_diseases')
+               )
+               
+               
+             ),
+             # HPO info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://hpo.jax.org/",
+                                 tags$img(src="images/hpo-logo.png",
+                                          title="Human Phenotype Ontology",
+                                          alt="HPO-logo",
+                                          width="20%",
+                                          height="10%"),
+                                 target="_blank"
+                               )
+                               
+                               # tags$a(
+                               #   href="https://hpo.jax.org/",
+                               #   tags$img(src="images/GO_logo.png",#"images/HPO_logo.png",
+                               #            title="Human Phenotype Ontology",
+                               #            alt="HPO-logo",
+                               #            # width="20%",
+                               #            # height="20%"
+                               #            ),
+                               #   target="_blank"
+                               #       )
+                               
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 splitLayout(
+                   h3('Phenotypes'),
+                   h3('Diseases'),
+                 ),
+                 splitLayout(
+                   dataTableOutput('table_phenotypes'),
+                   dataTableOutput('table_diseases_HPO'),
+                 )
+               )
+               
+             ),
+             # EPIFACTOR ANNOTATION
+             tagList(
+               fluidRow(align = "left",
+                        column(12,
+                               div(
+                                 style = "margin: 10px;",  # Ajusta el valor según necesites
+                                 tags$a(
+                                   href = "https://hpo.jax.org/",
+                                   tags$h1(
+                                     "Epifactor annotations",
+                                     title = "Epifactor annotations"
+                                   ),
+                                   target = "_blank"
+                                 )
+                               )
+                               
+                        )
+                        
+               ),
+               box(
+                 width = NULL,
+                 fluidRow(
+                   splitLayout(
+                     h3('Complexes'),
+                     h3('Modifications'),
+                   ),
+                   splitLayout(
+                     dataTableOutput('table_complexes'),
+                     dataTableOutput('table_modifications'),
+                   )
+                 )
+                 
+                 
+                 
+                 
+               )
+             ),
+             
+             # GO info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://geneontology.org/",
+                                 tags$img(src="images/GO_logo.png",
+                                          title="Gene Ontology",
+                                          width="20%",
+                                          height="20%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               
+               
+               # 
+               # actionBttn(
+               #   inputId = "gene_ontology_euler_plot",
+               #   label = "Euler plot", 
+               #   style = "bordered",
+               #   color = "primary",
+               #   # icon = icon("sliders")
+               # )
+               
+               # distinto de 1 ROW
+               
+               fluidRow(
+                 h3('Gene Ontology')
+               ),
+               fluidRow(
+                 dataTableOutput('table_gene_ontology')
+               )
+               
+             ),
+             # KEGG info
+             fluidRow(align = "left",
+                      column(12,
+                             div(
+                               style = "margin: 10px;",  # Ajusta el valor según necesites
+                               tags$a(
+                                 href="https://www.genome.jp/kegg/",
+                                 tags$img(src="images/KEGG_logo.gif",
+                                          title="KEGG",
+                                          width="10%",
+                                          height="10%"),
+                                 target="_blank"
+                               )
+                             )
+                             
+                      )
+                      
+             ),
+             box(
+               width = NULL,
+               fluidRow(
+                 column(4,
+                        h3('KEGG pathways')
+                 ),
+                 column(8,
+                        actionBttn(
+                          inputId = "kegg_euler_plot",
+                          label = "Euler plot", 
+                          style = "bordered",
+                          color = "primary",
+                          # icon = icon("sliders")
+                        )
+                        
+                        
+                 )
+               ),
+               
+               fluidRow(
+                 # h3('KEGG pathways'),
+                 dataTableOutput('table_kegg_pathways')
+               )
+               
+             )  
+             
+             
+             
+             # Aquí puedes añadir más contenido para múltiples proteínas
+         )
+       }
+     )
+     
+   }else{
+
+     
+     
+     result_criteria_based_search_ui <- tagList(
+       
+       # output$plots_info <- renderUI({
+         
+         if(vals$database_size > 1) {
+           
+           
+           # MULTIPLE PROTEINS
+           box(title = "Multiple proteins",
+               width = 12,
+               solidHeader = FALSE,
+               collapsible = FALSE,
+               
+               # PROTEIN LIST
+               fluidRow(
+                 # align = "center",
+                 column(2,
+                        div(
+                          style = "margin: 10px;",  # Ajusta el valor según necesites
+                          h2(paste0(length(vals$proteins_list))),
+                          p(" Proteins selected")
+                        ),
+                 ),
+                 column(2,
+                        div(
+                          style = "margin: 10px;",
+                          actionBttn(
+                            inputId = "show_genes_list_modal",
+                            label = "Show genes list",
+                            style = "bordered",
+                            color = "primary",
+                            # icon = icon("sliders")
+                          )
+                          # Ajusta el valor según necesites
+                        )
+                        
+                 ),
+                 column(width = 8,
+                        # h2("Protein information"),
+                        fluidRow(
+                          align = "left",
+                          div(
+                            style = "margin: 10px;",  # Ajusta el valor según necesites
+                            h3(vals$selected_proteins_list_text)
+                          )
+                          
+                        )
+                        
+                 )
+               ),
+               
+               
+               
+               hr(),
+           
+               fluidRow(
+                 column(12,
+                        shinycssloaders::withSpinner(
+                          # uiOutput("rendered_interactive_plots"),
+                          uiOutput("intersection_search_ui"),
+                          type = 6, color = "#f39c12", size = 1
+                        )
+                        
+                 )
+                 
+                 
+                 
+               )
+               
+               # subset selection
+               
+               
+               
+               
+               
+               
+               # Aquí puedes añadir más contenido para múltiples proteínas
+           )
+         }else{
+           
+           
+           # box(title = NULL,
+           #     width = 12,
+           #     solidHeader = FALSE,
+           #     collapsible = FALSE,
+           #     br(), br(), br(), br(), br(), br(), br(),
+           #     fluidRow(align = "center", h2("Not enough data available")),
+           #     fluidRow(align = "center", h3("Please, perform a search to render the plots")),
+           #     br(), br(), br(), br(), br(), br(), br(),
+           #     
+           # )
+           
+           box(
+             title = NULL,
+             width = 12,
+             solidHeader = FALSE,
+             collapsible = FALSE,
+             
+             # Spacing for a clean layout
+             br(), br(),
+             
+             # 📢 Title: Not Enough Data Available
+             fluidRow(
+               align = "center",
+               column(12,
+                      div(style = "text-align: center;",
+                          tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+                          h1("Not Enough Data Available", style = "color: #993232; font-size: 2.5em;"),
+                          h3("Please perform a search using the filters in the left sidebar to generate plots.", style = "color: #555;")
+                      )
+               )
+             ),
+             
+             br(),
+             
+             # 📌 What This Tab Does
+             fluidRow(
+               column(12,
+                      div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+                          h3("📊 Visualizing Annotation Intersections"),
+                          p("This tab allows you to analyze how different gene annotations intersect, using:"),
+                          tags$ul(
+                            tags$li("🔹 ", tags$strong("UpSet Plots:"), " Show complex intersections between multiple annotation sets (e.g., genes annotated with both GO terms and diseases)."),
+                            tags$li("🔹 ", tags$strong("Euler Diagrams:"), " Provide a Venn-like representation of overlapping categories (e.g., shared pathways among selected genes)."),
+                            tags$li("🔹 ", tags$strong("Custom Filtering:"), " Use the sidebar filters to refine your selection based on gene annotations.")
+                          )
+                      )
+               )
+             ),
+             
+             br(),
+             
+             # 🖱️ Button to Guide User to the Sidebar
+             fluidRow(
+               align = "center",
+               actionButton(
+                 "highlight_sidebar", "🔍 Where to Search?",
+                 style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+               )
+             ),
+             
+             br()
+           )
+           
+         }
+       # })
+       
+       
+       
+       
+       
+       
+       
+       
+       
+     )
+     
+     
+     
+     
+   }
+   
+   
+   
+   
+   criteria_based_search_info <- tagList(
+     fluidRow(
+       column(12,
+              vals$query_ui
+       )
+     ),
+     fluidRow(
+       column(12,
+              result_criteria_based_search_ui
+       )
+     )
+   )
+   
+   output$criteria_based_search_info <- renderUI({criteria_based_search_info})
+ })
+ 
+ # intersection_search_ui 
+ 
+ vals$max_sets <- 20
+
+ output$intersection_search_ui <- renderUI({
+   
+   max_sets <- vals$max_sets
+   
+   if(is.null(vals$all_sets) ){
+     
+     column(12,
+            br(), br(), br(), br(), br(), br(), br(),
+            fluidRow(
+              align = "center",
+              h2("No rendered plots yet")
+            ),
+            br(), br(), br(), br(), br(), br(), br(),
+     )
+     
+     # return(NULL)
+   }else if(length(vals$all_sets) < 2){
+     
+     column(12,
+            br(), br(), br(), br(), br(), br(), br(),
+            fluidRow(
+              align = "center",
+              h2("Not enough sets selected")
+            ),
+            br(), br(), br(), br(), br(), br(), br(),
+     )
+     
+   }else if(length(vals$all_sets) > max_sets){
+     # CAMBIAR LA UI CUANDO HAY MAS DE 15 SET --> LISTA DE INTERSECCIONES ORDENADAS DE MAS SETS A MENOS O DE MAS ELEMTOS A MENOS
+     
+     column(12,
+            fluidRow(
+              h4(HTML(paste0("Total proteins in <b>", vals$number_of_selected_sets,"</b> sets: <b>",length(vals$total_proteins_in_sets), "</b>"))),
+            ),
+            
+            fluidRow(
+              vals$sets_table_intersections_ui
+            )
+      
+     )
+     
+
+     
+     
+   }else{  
+     
+     
+     
+     column(12,
+            fluidRow(
+              h4(HTML(paste0("Total proteins in <b>", vals$number_of_selected_sets,"</b> sets: <b>",length(vals$total_proteins_in_sets), "</b>"))),
+            ),
+            
+            
+            # UPSET PLOT
+            fluidRow(
+              align = "left",
+              h3("Upset plot"),
+              column(12,
+                     upsetjsOutput("upset_plot_interactive")
+              )
+            ),
+            
+            
+            
+            # EULER PLOT
+            fluidRow(
+              align = "left",
+              fluidRow(
+                column(12,
+                       h3("Euler plot"),
+                       
+                )
+              ),
+              fluidRow(
+                column(7,
+                       switchInput(
+                         inputId = "euler_plot_interactive",
+                         label = "Interactive", 
+                         value = F,
+                         labelWidth = "180px",
+                         onStatus = "warning"
+                       ),
+                       
+                )
+              ),
+              column(12,
+                     
+                     conditionalPanel(
+                       condition = "input.euler_plot_interactive == false",
+                       fluidRow(
+                         align = "left",
+                         # h3("Euler plot"),
+                         fluidRow(
+                           # align = "center",
+                           column(3,
+                                  materialSwitch(
+                                    inputId = "euler_plot_labels",
+                                    label = "labels",
+                                    status = "info",
+                                    value = F
+                                  )
+                           ),
+                           column(3,
+                                  materialSwitch(
+                                    inputId = "euler_plot_legend",
+                                    label = "legend",
+                                    status = "info",
+                                    value = T
+                                  )
+                           ),
+                           column(3,
+                                  materialSwitch(
+                                    inputId = "euler_plot_counts",
+                                    label = "counts",
+                                    status = "info",
+                                    value = T
+                                  )
+                           ),
+                           column(3,
+                                  materialSwitch(
+                                    inputId = "euler_plot_percent",
+                                    label = "percent",
+                                    status = "info",
+                                    value = F
+                                  )
+                           ),
+                           
+                           # column(1,
+                           #        numericInput(
+                           #          inputId = "euler_plot_trunc",
+                           #          label = "truncate",
+                           #          value = 20,
+                           #        )
+                           # ),
+                           
+                           
+                         ),
+                         column(12,
+                                plotOutput("euler_plot")
+                         )
+                       )
+                       
+                     ),
+                     conditionalPanel(
+                       condition = "input.euler_plot_interactive == true",
+                       upsetjsOutput("euler_plot_interactive")
+                       
+                     ),
+                     
+              )
+            ),
+            
+            
+            
+            
+            
+            
+            
+     )
+     # upset plot
+     # plotOutput("upset_plot")
+     # euler plot
+     # plotOutput("euler_plot")
+   }
+ })
  
  
  
-  
+ ## search ui corrections Set gene filter to null o viceversa
+
+ observeEvent(input$activeTab, ignoreInit = TRUE, {
+   
+   selected_tab <- input[["activeTab"]]
+
+   # si algunos de los elemnots es no nulo
+   empty_filters <- is.null(vals$filters) ||                     # 1. la lista completa es NULL
+     length(vals$filters) == 0 ||                 # 2. lista vacía
+     all(vapply(vals$filters,                    # 3. todos los elementos…
+                function(x) is.null(x) || length(x) == 0,
+                logical(1)))
+   
+   # cat en verde FILTERS
+   cat("\033[33mFilters for reset:\033[0m\n")
+   print(str(vals$filters))
+   cat("\033[33mEmpty filters?:\033[0m\n")
+   print(empty_filters)
+
+
+   if(!empty_filters){
+     if (selected_tab == "single_gene_query_tab" | selected_tab == "criteria_based_search_tab") {
+       shinyjs::click("perform_search")  # dispara el clic
+     }
+   }
+   
+   
+ })
+ 
+ 
+ 
+ ## MAIN INFO UI  
   observe({
     
     
@@ -4069,7 +6138,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       ## interactive plots
       # Renderizamos el gráfico
-      output$upset_plot_interactive <- renderUpsetjs({
+      output$upset_plot_interactive_old <- renderUpsetjs({
         upsetjs() %>%
           upsetjs::fromList(all_sets) %>%
           chartLayout(
@@ -4459,18 +6528,19 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   # show modal on click intersection upset plot
   
-  observeEvent(input$upset_plot_interactive_click,ignoreNULL = TRUE,{
+  observeEvent(input$upset_plot_interactive_click,ignoreNULL = TRUE,ignoreInit = T,{
+    cat("\033[32m\n\nCLICK INTERSECTION UPSET PLOT------>>\033[0m\n")
     
      clickData <- input$upset_plot_interactive_click
-  
-
-    genes_id_in_intersection <- clickData$elems
+     
+     
+    genes_id_in_intersection <- as.character(unlist(clickData$elems))
     
     genes_in_intersection_table <- genes_list_df[genes_list_df$ncbi_gene_id %in% genes_id_in_intersection,]
     
+    
     output$genes_in_intersection_table <- renderDataTable({datatable_custom(genes_in_intersection_table)})
-  
-
+    # cat en verde
     # Separa la cadena usando "&"
     elementos <- unlist(strsplit(clickData$name, "&"))
     
@@ -6275,31 +8345,33 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     shinyalert(
       title = "Neighbors vs. Cluster view",
       html  = TRUE,
-      text  = HTML("
-                   <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
-                
-                  <p><strong>Neighborhood view</strong><br>
-                     Only the <em>first-degree neighbors</em> of the selected gene are shown.  
-                     Each edge represents a significant Jaccard-similarity relationship, so the
-                     sub-network isolates the gene’s most immediate functional context and
-                     removes extra clutter.
-                  </p>
-                  <br>
-                  <p><strong>Cluster view</strong><br>
-                     Displays the entire community (cluster) that the gene belongs to, including
-                     both direct and indirect connections identified with the same Jaccard
-                     similarity measure.  
-                     This broader module reveals cooperative pathways and co-regulated groups,
-                     but it is naturally denser and less focused than the neighborhood view.
-                  </p>
-                  <br>
-          
-                  <p>
-                    Toggle between these views to move from a concise, gene-centric snapshot
-                    to a wider systems-level perspective of the network.
-                  </p>
+      text = HTML("
+                  <div style='text-align:justify; color:#333; font-size:1.1em; padding:10px;'>
+                  
+                    <p><strong>1st-layer view</strong><br>
+                       Displays only the <em>first-degree neighbors</em> of the selected gene—that is,
+                       genes directly connected by a significant Jaccard-similarity edge.
+                       This compact sub-network highlights the gene’s immediate functional context
+                       while minimizing visual clutter.
+                    </p>
+                    <br>
+                    
+                    <p><strong>2nd-layer view</strong><br>
+                       Expands the perspective to include <em>second-degree neighbors</em>:
+                       the direct neighbors <u>and</u> every gene linked to those neighbors
+                       (two hops from the selected node).  
+                       The resulting two-hop ego-network uncovers small functional modules
+                       without pulling in the entire cluster.
+                    </p>
+                    <br>
+                    
+                    <p>
+                      Toggle between these layers to move from a focused, single-hop view
+                      to a broader two-hop context as you explore the network.
+                    </p>
+                    
                   </div>
-      "),
+                "),
       size  = "m"          # small popup
     )
   })  
@@ -6604,12 +8676,12 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                radioGroupButtons(
                  inputId = "neighbors_cluster_button",
                  label   = tagList(
-                   "Visualization type",
+                   "Neighbors layer",
                    actionLink("help_vis_type", label = NULL,
                               icon  = icon("question-circle"),
                               class = "tiny-help")        # <-- icono enano
                  ),
-                 choices   = c("Neighbors", "Cluster"),
+                 choices   = list("1st layer"= "Neighbors", "2n layer" = "Cluster"),
                  justified = TRUE
                )
            )
@@ -6848,27 +8920,25 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         }else{
           print("CASO 2")
           target <- input$selected_gene_network          # gen elegido
+          
+          print(str(network_data_to_DT_renamed))
+          
+          
+          
+          target_id <- input$selected_gene_network   # gen elegido por el usuario
+          target <- genes_database[[as.character(target_id)]]$gene_symbol
 
-          network_data_to_DT_renamed %>%
-            # --- 2. quedarnos solo con las filas donde aparezca el gen ---
-            dplyr::filter(`Gene 1 symbol` == target |
-                            `Gene 2 symbol` == target) %>%
-
-            # --- 3. crear columnas vecinas ---
-            dplyr::mutate(
-              neighbor_gene_symbol = dplyr::if_else(`Gene 1 symbol` == target,
-                                                    `Gene 2 symbol`, `Gene 1 symbol`),
-
-              neighbor_gene_id     = dplyr::if_else(`Gene 1 symbol` == target,
-                                                    `Gene 2`,         `Gene 1`)
-            ) %>%
-
-            # --- 4. nos quedamos solo con lo necesario, ordenado por Jaccard ---
-            dplyr::select(Jaccard,
-                          neighbor_gene_symbol,
-                          neighbor_gene_id) %>%
-            dplyr::arrange(dplyr::desc(Jaccard)) 
-
+          row_with_target_second <- network_data_to_DT_renamed$`Gene 2 symbol` == target
+          network_data_to_DT_renamed$row_with_target_second <- row_with_target_second
+          # swap this rows 1 a 2 
+          network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
+            mutate(`Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
+                   `Gene 2` = ifelse(row_with_target_second, `Gene 1`, `Gene 2`)) %>%
+            select(-row_with_target_second)
+          
+  
+          
+          
           print(str(network_data_to_DT_renamed))
           network_data_to_DT_renamed <- network_data_to_DT_renamed %>% select(Jaccard, `Gene 2 symbol`, `Gene 2`)
         }
@@ -6902,30 +8972,57 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         
         
+        # box(
+        #   width = 12,
+        #   title =tagList(
+        #     span("Network table"),                 # texto del título
+        #     actionLink(                            # icono de ayuda
+        #       inputId = "table_help_button",
+        #       label   = NULL,
+        #       icon    = icon("question-circle"),
+        #       class   = "ml-2"                     # margen a la izquierda (Bootstrap)
+        #     )
+        #   ),# "Network table",
+        #   collapsible = T,
+        #   collapsed = F,
+        #   solidHeader = T,
+        #   status = "warning",
+        #   # fluidRow(
+        #   # uiOutput("columns_selection_ui"),
+        #   tags$div(
+        #             class = "table-wrapper",
+        #             style = "position:relative;",          # contenedor relativo
+        #           
+        #             dataTableOutput("network_datatable"),
+        #             
+        #             actionLink("table_help_button", NULL,   # icono flotante
+        #                        icon = icon("question-circle"),
+        #                        class = "tiny-help",
+        #                        style = "position:absolute; top:6px; left:380px;")
+        #           )
+        #   # dataTableOutput("network_datatable")
+        #   # )
+        # )
+        
         box(
           width = 12,
-          title = "Network table",
-          collapsible = T,
-          collapsed = F,
-          solidHeader = T,
-          status = "warning",
-          # fluidRow(
-          # uiOutput("columns_selection_ui"),
-          tags$div(
-                    class = "table-wrapper",
-                    style = "position:relative;",          # contenedor relativo
-                  
-                    dataTableOutput("network_datatable"),
-                    
-                    actionLink("table_help_button", NULL,   # icono flotante
-                               icon = icon("question-circle"),
-                               class = "tiny-help",
-                               style = "position:absolute; top:6px; left:380px;")
-                  )
-          # dataTableOutput("network_datatable")
-          # )
+          title = tagList(
+            HTML("Network&nbsp;table&nbsp;&nbsp;"),            
+            actionLink(
+              inputId = "table_help_button",
+              label   = NULL,
+              icon    = icon("question-circle"),
+              class   = "ml-3",        # más separación (≈1 rem a la izquierda)
+              style   = "font-size:80%"# icono un 20 % más pequeño
+            )
+          ),
+          collapsible = TRUE,
+          collapsed   = FALSE,
+          solidHeader = TRUE,
+          status      = "warning",
+          
+          dataTableOutput("network_datatable")
         )
-        
         
       })
       
