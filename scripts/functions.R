@@ -8,7 +8,7 @@
 library(eulerr)
 library(UpSetR)
 
-print("CORRECT FUNCION")
+print("Loading functions.R ...")
 #variables
 # RdBl pallete for bening, paleta de RdBl de seis colores pero lo quiero a partir de la paelta presexitente rdBl
 paleta_RdBl <- brewer.pal(6, "RdBu")
@@ -194,6 +194,20 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
   gene_ontology_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(gene_ontology_table,genes_color)
 
   
+  
+  # pathways
+  gene_1_pathways <- gene_1_data$kegg_pathways_id
+  gene_2_pathways <- gene_2_data$kegg_pathways_id
+  
+  pathways_table <- data.frame(
+    Gene = c(rep(gene_1_symbol, length(gene_1_pathways)), rep(gene_2_symbol, length(gene_2_pathways))),
+    Value = c(gene_1_pathways, gene_2_pathways)
+  )
+  cat("\033[33m","Estructura de la tabla pathways","\033[0m\n")
+  print(str(pathways_table))
+  pathways_comparison_ui <- comparison_ui_generator_CATEGORICAL_genes(pathways_table,genes_color)
+  
+  # all data combined
   combine_data <- function(gene_name_1, gene_name_2, expr1, expr2) {
     missing_genes <- character()
     
@@ -309,6 +323,11 @@ genes_comparison_ui_generator <- function(gene_1,gene_2){
         width = 12,
         h2("Gene Ontology Comparison", style = "text-align: left;"),
         gene_ontology_comparison_ui
+      ),
+      column(
+        width = 12,
+        h2("Pathways Comparison", style = "text-align: left;"),
+        pathways_comparison_ui
       ),
       column(
         width = 12,
@@ -1609,7 +1628,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   
   hp_logical <- any(grepl("HP", data_df_result$entry))
   go_logical <- any(grepl("GO", data_df_result$entry))
-
+  hsa_logical <- any(grepl("hsa", data_df_result$entry))
   if(hp_logical){
 
     filtered_df <- all_phenotypes %>% filter(hpo_id %in% data_df_result$entry)
@@ -1617,7 +1636,18 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   }else if(go_logical){
 
     filtered_df <- all_gene_ontology %>% filter(go_id %in% data_df_result$entry)
+    cat(" \n\n\n\n\n\n\n\n\n\n\n\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n")
+    print(str(filtered_df))
+    cat("\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n \n\n\n\n\n\n\n\n\n\n\n")
+    
     data_df_result$term <- filtered_df$go_term
+    data_df_result$subontology <- filtered_df$go_ontology
+  }else if(hsa_logical){
+    filtered_df <- all_pathways %>% filter(kegg_pathway_id %in% data_df_result$entry)
+    data_df_result$term <- filtered_df$kegg_name
+    cat("\033[33m","Estructura de la tabla filtered_df hsa_logica KEGG CATEGORIAL","\033[0m\n")
+    print(str(filtered_df))
+    print(head(data_df_result))
   }else{
 
     if(df_name == "complexes_table"){
@@ -1653,8 +1683,21 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   }
   
   # Ver el resultado
-  if(nrow(data_df_result) < 2){}else{data_df_result <- sort_by_binary_priority(data_df_result,3,4)}
-  data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
+  
+  if(nrow(data_df_result) < 2){}else{
+    if(ncol(data_df_result) == 4){
+      print("FOUR COLUMNS")
+      print(str(data_df_result))
+      data_df_result <- sort_by_binary_priority(data_df_result,3,4)
+      print(str(data_df_result))
+      data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
+    }else{
+      print("CASE situation")
+      data_df_result[-(1:2)] <- apply(data_df_result[-(1:2)], c(1, 2), function(x) gsub("0", "", gsub("1", "⬤", x)))  
+      print(str(data_df_result))
+    }
+    
+  }
   
   
   
@@ -1663,7 +1706,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   
   
   # 
-  if(!(hp_logical | go_logical)){
+  if(!(hp_logical | go_logical | hsa_logical)){
     # quitar la columna term
     data_df_result <- data_df_result %>% select(-term)
     
@@ -1674,6 +1717,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
         formatStyle(
@@ -1690,6 +1734,93 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
       
     })
     
+    
+  }else if(go_logical){
+    columns_to_color <- c(4,5)
+     
+    
+    cols <- colnames(data_df_result)
+    new_order <- c(cols[1:2],                # primeras dos columnas
+                   tail(cols, 1),            # la última columna
+                   cols[3:(length(cols)-1)]) # el resto
+    data_df_result <- data_df_result[, new_order]
+    
+    
+    # DT_table <- renderDT({
+    #   datatable(data_df_result,
+    #             options = list(
+    #               pageLength = 15, 
+    #               autoWidth = TRUE,
+    #               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #               scrollX = TRUE ),
+    #             rownames = FALSE)%>%
+    #     formatStyle(
+    #       columns = columns_to_color[1],  # Aplicar color verde a las columnas 3 y 4
+    #       `text-align` = "center",
+    #       color = styleEqual(c("",  "⬤"), c('white', genes_color[1]))
+    #     ) %>%
+    #     formatStyle(
+    #       columns = columns_to_color[2],  # Aplicar color verde a las columnas 3 y 4
+    #       `text-align` = "center",
+    #       color = styleEqual(c("",  "⬤"), c('white', genes_color[2]))
+    #       
+    #     ) 
+    #   
+    # })
+    
+    # 1. Paleta ------------------------------------------------------------------
+    ontology_pal <- c(
+      molecular_function = "#1E90FF",   # DodgerBlue
+      biological_process = "#32CD32",   # LimeGreen
+      cellular_component = "#A52A2A"    # Brown
+    )
+    
+    ## 2. Datatable ---------------------------------------------------------------
+    DT_table <- renderDT({
+      datatable(
+        data_df_result,
+        width  = "100%",              # ← ocupa todo el contenedor
+        extensions = "Buttons",
+        options = list(
+          pageLength = 15,
+          autoWidth  = TRUE,
+          buttons    = c("copy", "csv", "excel", "pdf", "print"),
+          scrollX    = TRUE
+        ),
+        rownames = FALSE
+      ) %>%
+        
+        ## 3. Colorea columnas 1-3 a partir de la columna 3 -----------------------
+      formatStyle(
+        columns      = 1:3,                  # las que quieres pintar
+        valueColumns = 3,                    # la que usas de referencia
+        color        = styleEqual(
+          names(ontology_pal),
+          ontology_pal
+        ),
+        `text-align` = "center"              # opcional: centra texto
+        # target = "row"  # ponlo si prefieres colorear toda la fila
+      ) %>%
+        
+        ## 4. Tu formato original para las columnas 4-5 ---------------------------
+      formatStyle(
+        columns      = 4,                    # 1ª columna de puntos
+        `text-align` = "center",
+        color        = styleEqual(
+          c("", "⬤"),
+          c("white", genes_color[1])
+        )
+      ) %>%
+        formatStyle(
+          columns      = 5,                    # 2ª columna de puntos
+          `text-align` = "center",
+          color        = styleEqual(
+            c("", "⬤"),
+            c("white", genes_color[2])
+          )
+        )
+    })
+    
   }else{
     columns_to_color <- c(3,4)
     
@@ -1698,6 +1829,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
         formatStyle(
@@ -2439,6 +2571,7 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
               options = list(
                 pageLength = 15, 
                 autoWidth = TRUE,
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE ),
               rownames = FALSE)%>%
       formatStyle(
@@ -3050,38 +3183,208 @@ create_presence_matrix <- function(sets_list) {
 
 library(stringr)
 
-plot_euler <- function(sets_list,legend=TRUE, labels=TRUE,counts = TRUE,percent = TRUE,trunc = 40){
-  cat("\033[33m","Ejecutando la función 'plot_euler'","\033[0m\n")
-  print(str(sets_list))
-  if(is.null(legend)){legend <- TRUE}
-  if(is.null(trunc)){trunc <- 20}
-  if(is.null(labels)){labels <- FALSE}
-  if(is.null(counts)){counts <- TRUE}
-  if(is.null(percent)){percent <- FALSE}
+# plot_euler <- function(sets_list,legend=TRUE, labels=TRUE,counts = TRUE,percent = TRUE,trunc = 40){
+#   cat("\033[33m","Ejecutando la función 'plot_euler'","\033[0m\n")
+#   # print(str(sets_list))
+#   if(is.null(legend)){legend <- TRUE}
+#   if(is.null(trunc)){trunc <- 20}
+#   if(is.null(labels)){labels <- FALSE}
+#   if(is.null(counts)){counts <- TRUE}
+#   if(is.null(percent)){percent <- FALSE}
+# 
+#   names(sets_list) <- str_trunc(names(sets_list), trunc,"center")
+# 
+# 
+#   metrics_logic <- c(counts, percent)
+#   metrics <- c("counts","percent")
+#   selected_metrics <- metrics[metrics_logic]
+# 
+#   if(length(selected_metrics)<1){selected_metrics <- c()}else{
+#     selected_metrics <- list(type = selected_metrics)}
+#   set_list_presence_matrix <- create_presence_matrix(sets_list)
+#   # print(str(set_list_presence_matrix))
+# 
+# 
+# 
+#   plot(euler(set_list_presence_matrix),
+#        quantities = selected_metrics,
+#        legend = legend,
+#        labels = labels
+#   )
+# 
+# }
+
+
+#' Safely draw an Euler diagram for a list of sets
+#'
+#' @param sets_list  named list of atomic vectors (one vector per set)
+#' @param legend     logical – show the legend?
+#' @param labels     logical – show region labels?
+#' @param counts     logical – show absolute counts?
+#' @param percent    logical – show percentages?
+#' @param trunc      integer – maximum label width before truncation
+#' @return           (invisibly) the result of plot(), or NULL if a fallback plot was drawn
+#'
+#' The function catches the common Armadillo error:
+#'   "Mat::init(): requested size is too large; suggest to enable ARMA_64BIT_WORD"
+#' and replaces it with a clear, on-screen graphic.
+plot_euler <- function(sets_list,
+                       legend  = NULL,
+                       labels  = NULL,
+                       counts  = NULL,
+                       percent = NULL,
+                       trunc   = 40) {
   
-  names(sets_list) <- str_trunc(names(sets_list), trunc,"center")
+  ## -------- Inicio: cronómetro --------
+  start_time <- proc.time()                       # punto de partida
+  on.exit({
+    elapsed <- (proc.time() - start_time)[["elapsed"]]
+    message(sprintf("\033[32mFunction 'plot_euler' ran in %.2f secs\033[0m",
+                    elapsed))
+  }, add = TRUE)
   
+  message("\033[33mRunning 'plot_euler' …\033[0m")
   
-  metrics_logic <- c(counts, percent)
-  metrics <- c("counts","percent")
-  selected_metrics <- metrics[metrics_logic]
+  ## -------- Parameters & housekeeping --------
+  legend  <- if (is.null(legend))  TRUE  else legend
+  trunc   <- if (is.null(trunc))   20    else trunc
+  labels  <- if (is.null(labels))  FALSE else labels
+  counts  <- if (is.null(counts))  TRUE  else counts
+  percent <- if (is.null(percent)) FALSE else percent
   
-  if(length(selected_metrics)<1){selected_metrics <- c()}else{
-    selected_metrics <- list(type = selected_metrics)}
-  set_list_presence_matrix <- create_presence_matrix(sets_list)
-  print(str(set_list_presence_matrix))
+  names(sets_list) <- stringr::str_trunc(names(sets_list), trunc, "center")
   
+  # Which summary metrics to display?
+  metric_flags   <- c(counts, percent)
+  metric_names   <- c("counts", "percent")
+  metrics        <- metric_names[metric_flags]
+  metric_arg     <- if (length(metrics) == 0) NULL else list(type = metrics)
   
+  ## -------- Presence matrix --------
+  presence_mat <- create_presence_matrix(sets_list)   # helper propio
+  max_cells <- prod(dim(presence_mat))
+  if (max_cells > .Machine$integer.max) {
+    warning("Presence matrix has ", format(max_cells, big.mark = ","),
+            " cells – exceeds 32-bit limit; falling back to text plot.")
+  }
   
-  plot(euler(set_list_presence_matrix), 
-       quantities = selected_metrics,
-       legend = legend,
-       labels = labels
-  )
+  ## -------- Main try-catch block --------
+  result <- tryCatch({
+    
+    plot(
+      eulerr::euler(presence_mat),
+      quantities = metric_arg,
+      legend     = legend,
+      labels     = labels
+    )
+    
+  }, error = function(e) {
+    
+    ## -------- Graceful fallback graphic --------
+    old_par <- par(no.readonly = TRUE)
+    on.exit(par(old_par), add = TRUE)
+    
+    plot.new()
+    title(main = "Euler diagram unavailable",
+          col.main = "red", font.main = 2, cex.main = 1.4)
+    text(0.5, 0.60, "Requested size is too large",  font = 2, cex = 1.1)
+    text(0.5, 0.45, "Try enabling ARMA_64BIT_WORD", font = 3, cex = 0.9)
+    text(0.5, 0.30, paste("Original error:", conditionMessage(e)),
+         col = "grey30", cex = 0.8)
+    
+    invisible(NULL)
+  })
   
+  invisible(result)                                # mantiene felices a los observers
 }
 
 
+#' plot_euler <- function(sets_list,
+#'                        legend  = TRUE,
+#'                        labels  = TRUE,
+#'                        counts  = TRUE,
+#'                        percent = TRUE,
+#'                        trunc   = 40){
+#' 
+#'   message("\033[33mRunning 'plot_euler' …\033[0m")
+#' 
+#'   ## -------- Parameters & housekeeping --------
+#'   legend  <- if (is.null(legend))  TRUE  else legend
+#'   trunc   <- if (is.null(trunc))   20    else trunc
+#'   labels  <- if (is.null(labels))  FALSE else labels
+#'   counts  <- if (is.null(counts))  TRUE  else counts
+#'   percent <- if (is.null(percent)) FALSE else percent
+#' 
+#'   names(sets_list) <- stringr::str_trunc(names(sets_list), trunc, "center")
+#' 
+#'   # Which summary metrics to display?
+#'   metric_flags   <- c(counts, percent)
+#'   metric_names   <- c("counts", "percent")
+#'   metrics        <- metric_names[metric_flags]
+#'   metric_arg     <- if (length(metrics) == 0) NULL else list(type = metrics)
+#' 
+#'   ## -------- Presence matrix --------
+#'   presence_mat <- create_presence_matrix(sets_list)   # your helper
+#'   # Optional pre-flight size check (avoids 32-bit Armadillo overflow)
+#'   max_cells <- prod(dim(presence_mat))
+#'   if (max_cells > .Machine$integer.max) {
+#'     warning("Presence matrix has ", format(max_cells, big.mark = ","),
+#'             " cells – exceeds 32-bit limit; falling back to text plot.")
+#'   }
+#' 
+#'   ## -------- Main try-catch block --------
+#'   result <- tryCatch({
+#' 
+#'     plot(
+#'       eulerr::euler(presence_mat),
+#'       quantities = metric_arg,
+#'       legend     = legend,
+#'       labels     = labels
+#'     )
+#' 
+#'   }, error = function(e) {
+#' 
+#'     ## -------- Graceful fallback graphic --------
+#'     old_par <- par(no.readonly = TRUE)     # save current graphical settings
+#'     on.exit(par(old_par), add = TRUE)
+#' 
+#'     plot.new()                             # blank canvas
+#'     title(main = "Euler diagram unavailable",
+#'           col.main = "red", font.main = 2, cex.main = 1.4)
+#'     text(0.5, 0.60, "Requested size is too large",  font = 2, cex = 1.1)
+#'     text(0.5, 0.45, "Try enabling ARMA_64BIT_WORD", font = 3, cex = 0.9)
+#'     text(0.5, 0.30, paste("Original error:", conditionMessage(e)),
+#'          col = "grey30", cex = 0.8)
+#' 
+#'     invisible(NULL)                        # nothing useful to return
+#'   })
+#' 
+#'   invisible(result)                        # keep Shiny observers happy
+#' }
+
+# ------------------------------------------------------------------
+#  Fallback rápido si plot_euler tarda demasiado
+# ------------------------------------------------------------------
+plot_too_slow <- function(
+    msg = "Computation skipped: full Euler diagram would take too long"
+) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' needed for this function to work.")
+  }
+  library(ggplot2)
+  
+  ggplot() +
+    theme_void() +                      # Sin ejes, ticks ni fondo
+    annotate(
+      "text",
+      x = 0.5, y = 0.5,                 # Centro del lienzo
+      label = msg,
+      size = 6,                         # ≈ 20 pt
+      fontface = "bold",
+      colour = "firebrick",
+      hjust = 0.5, vjust = 0.5
+    )
+}
 
 # Required packages
 if (!requireNamespace("eulerr", quietly = TRUE)) install.packages("eulerr")
@@ -3115,12 +3418,18 @@ plot_euler_edge_jaccard <- function(sets_list, counts = TRUE, percent = FALSE, t
   
   # Matriz de presencia
   create_presence_matrix <- function(sets_list) {
+    message("\033[33mRunning 'create_presence_matrix' …\033[0m")
+    
     unique_elements <- unique(unlist(sets_list))
     presence_matrix <- sapply(sets_list, function(set) unique_elements %in% set)
     rownames(presence_matrix) <- unique_elements
-    as.data.frame(presence_matrix)
+    presence_matrix <- as.data.frame(presence_matrix)
+    message("\033[33mRan 'create_presence_matrix' …\033[0m")
+    return(presence_matrix)
   }
-  
+
+  cat("\033[33m", "Creating presence matrix …\033[0m\n")
+  print(str(sets_list))
   set_list_presence_matrix <- create_presence_matrix(sets_list)
   print(str(set_list_presence_matrix))
   
@@ -3138,6 +3447,8 @@ plot_euler_edge_jaccard <- function(sets_list, counts = TRUE, percent = FALSE, t
     }
   }
   fills <- unlist(fills)
+  
+  
   
   # Crear objeto Euler
   euler_obj <- euler(set_list_presence_matrix)
@@ -3288,79 +3599,89 @@ join_df_from_name <- function(lista, nombres,field) {
 
 # freq
 
-# join_df_from_name_freqs <- function(lista, nombres,field) {
-#   # Filtrar la lista para obtener solo los elementos cuyos nombres están en el vector de nombres
-#   elementos_seleccionados <- lista[nombres]
-#   # Extraer y unir los data frames 'go'
-#   lista_elementos <- lapply(elementos_seleccionados, function(x) x[[field]])
-#   
-#   ## sin frecuencias
-#   # if (any(sapply(lista_elementos, is.data.frame))) {
-#   #   resultado <- unique(do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]])))
-#   # }else{    
-#   #   resultado <- unique(unlist(lapply(elementos_seleccionados, function(x) x[[field]])))
-#   # }
-#   
-#   ## con frecuencias
-#   if (any(sapply(lista_elementos, is.data.frame))) {
-#     resultado <- do.call(rbind, lapply(elementos_seleccionados, function(x) x[[field]]))
-#   }else{
-#     resultado <- unlist(lapply(elementos_seleccionados, function(x) x[[field]]))   
-#   }
-#   
-#   if(is.null(resultado) || nrow(resultado) == 0 ){return(NULL)
-#     break}
-#   freq <- as.data.frame(table(resultado[1]))
-#   
-#   resultado_unique <- unique(resultado)
-#   resultado_final <- merge(resultado_unique, freq, by.x = colnames(resultado_unique)[1], by.y = colnames(freq)[1], all.x = TRUE)
-#   
-#   resultado_final <- resultado_final[order(resultado_final$Freq,decreasing = TRUE),]
-#   
-#   return(resultado_final)
-# }
 
 join_df_from_name_freqs <- function(list_input, selected_names, field) {
   # Filter the list to get only the elements whose names are in selected_names
   selected_elements <- list_input[selected_names]
-  
+
   # Extract the specified field from each selected element
   extracted_fields <- lapply(selected_elements, function(x) x[[field]])
-  
+
   # Check if any of the extracted elements is a data frame
   has_dataframes <- any(sapply(extracted_fields, is.data.frame))
-  
+
   if (has_dataframes) {
     # Combine all data frames into one
     combined_df <- do.call(rbind, extracted_fields)
-    
+
     # Assume only one column is relevant
     colname <- colnames(combined_df)[1]
-    
+
     # Calculate frequencies
     freq <- as.data.frame(table(combined_df[[colname]]))
     colnames(freq) <- c(colname, "Freq")
-    
+
     # Get unique rows to merge with frequencies
     unique_df <- unique(combined_df)
-    
+
     # Merge and sort by frequency
     final_result <- merge(unique_df, freq, by = colname, all.x = TRUE)
     final_result <- final_result[order(final_result$Freq, decreasing = TRUE), ]
   } else {
     # Combine all vectors into one
     combined_vec <- unlist(extracted_fields)
-    
+
     # Calculate frequencies
     freq <- as.data.frame(table(combined_vec))
     colnames(freq) <- c("value", "Freq")
-    
+
     # Sort by frequency
     final_result <- freq[order(freq$Freq, decreasing = TRUE), ]
   }
-  
+
   return(final_result)
 }
+# join_df_from_name_freqs <- function(list_input, selected_names, field) {
+#   selected_elements <- list_input[selected_names]
+#   
+#   ## 1  Descartar campos ausentes/null antes de seguir
+#   extracted_fields <- lapply(selected_elements, \(x) x[[field]])
+#   extracted_fields <- extracted_fields[!vapply(extracted_fields, is.null, logical(1))]
+#   
+#   ## Si todo quedó vacío, devuelvo un data frame vacío coherente
+#   if (length(extracted_fields) == 0)
+#     return(data.frame(value = character(), Freq = integer()))
+#   
+#   all_dfs <- all(vapply(extracted_fields, is.data.frame, logical(1)))
+#   
+#   if (all_dfs) {
+#     combined_df <- do.call(rbind, extracted_fields)
+#     if (nrow(combined_df) == 0)
+#       return(data.frame(value = character(), Freq = integer()))
+#     
+#     colname <- names(combined_df)[1]
+#     freq <- as.data.frame(table(combined_df[[colname]]))
+#     
+#     ## Sólo renombro si realmente hay dos columnas
+#     if (ncol(freq) == 2)
+#       names(freq) <- c(colname, "Freq")
+#     
+#     unique_df  <- unique(combined_df)
+#     final_result <- merge(unique_df, freq, by = colname, all.x = TRUE)
+#     final_result <- final_result[order(final_result$Freq, decreasing = TRUE), ]
+#   } else {
+#     combined_vec <- unlist(extracted_fields)
+#     
+#     if (length(combined_vec) == 0)
+#       return(data.frame(value = character(), Freq = integer()))
+#     
+#     freq <- as.data.frame(table(combined_vec))
+#     names(freq) <- c("value", "Freq")
+#     final_result <- freq[order(freq$Freq, decreasing = TRUE), ]
+#   }
+#   
+#   final_result
+# }
 
 
 

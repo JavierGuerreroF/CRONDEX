@@ -5,6 +5,7 @@ print("Loading tabs.R ...")
 
 ## UI elements --
 
+print("loading cover_tab_ui ...")
 cover_tab_ui <- tagList(
   tags$head(
     tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
@@ -157,15 +158,7 @@ cover_tab_ui <- tagList(
 
 
 
-  ### ---------- renderUI ----------
-  output$cover_info <- renderUI({
-    ## La clase cover-info-box se usa para anular el borde del box
-    box(width = 12, class = "cover-info-box",
-        title = NULL, status = "primary",
-        solidHeader = FALSE, collapsible = FALSE,
-        cover_tab_ui
-    )
-  })
+
   
 
 
@@ -275,7 +268,6 @@ input_list_genes_with_phenotypes_CHOICES <- as.list(all_genes_with_phenotypes$EN
 names(input_list_genes_with_phenotypes_CHOICES) <- all_genes_with_phenotypes$SYMBOL
 
 input_list_genes_with_phenotypes_style <- rep("color: black",nrow(input_list_genes_with_phenotypes))
-
 
 
 
@@ -441,6 +433,7 @@ sidebar_menu_ui <-     sidebarMenu(id="tabs",
                                               #            class = "tiny-help")        # <-- icono enano
                                             ),
                                             choices   = list("Union"= "union", "Intersection" = "intersection"),
+                                            selected = "intersection",
                                             justified = TRUE
                                           )
                                       ),

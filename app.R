@@ -28,6 +28,7 @@ library(scales)   # para styleColorBar()
 library(grid)
 library(purrr)
 library(htmltools)   # htmlEscape
+library(R.utils)
 
 # library(renv)
 # refresh()
@@ -43,20 +44,16 @@ genes_database <- readRDS("data/genes_database.rds")
 # genes_database_new <- readRDS("data/genes_database.rds")
 phenotypic_abnormality_subtree_db <- read.csv("data/network_data/phenotypic_abnormality_subtree_db.csv")
 
-
 file_format_help <- readChar("data/file_format_help.txt", file.info("data/file_format_help.txt")$size)
 
 network_genes_data <<- read.csv("data/network_data/network_genes_data_names.csv")
-cat("\n\n\033[32mNetwork genes data loaded\033[0m\n\n")
-print(str(network_genes_data))
+
 df_frecuencias_children <<- read.csv("data/network_data/df_frecuencias_children.csv")
 
 # children and parent phenotypes
 children_phenotypes <<- df_frecuencias_children$ID
 parent_phenotypes <<- setdiff(phenotypic_abnormality_subtree_db$ID,children_phenotypes)
 
-print(str(children_phenotypes))
-print(str(parent_phenotypes))
 
 # Filter db deleting NO NDD diseases asociated
 sysndd_ndd_phenotype <- read.csv("data/sysndd_ndd_phenotype.csv")
@@ -101,6 +98,7 @@ all_gene_ontology <<- all_gene_ontology[order(all_gene_ontology$go_term),]
 all_pathways <<- join_df_from_name(genes_database,names(genes_database),"kegg_pathways")
 all_pathways <<- all_pathways[order(all_pathways$kegg_name),]
 
+
 # genees list dataframe 
 genes_list_df <- do.call(rbind, lapply(genes_database, function(x) {
   data.frame(
@@ -116,7 +114,6 @@ genes_list_df <- do.call(rbind, lapply(genes_database, function(x) {
 # load precomputed tables 
 
 all_tables_list_precomputed <- readRDS("data/all_tables_list_precomputed.rds")
-print(str(all_tables_list_precomputed))
 
 # # remove highlevel phenotypes
 # table_freq_phe <- all_tables_list_precomputed$all_table_phenotypes_freqs
@@ -830,8 +827,16 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  
+  ##·· cover tab output
+  ### ---------- renderUI ----------
+  output$cover_info <- renderUI({
+    ## La clase cover-info-box se usa para anular el borde del box
+    box(width = 12, class = "cover-info-box",
+        title = NULL, status = "primary",
+        solidHeader = FALSE, collapsible = FALSE,
+        cover_tab_ui
+    )
+  })
   # reactive values
   vals <- reactiveValues()
   tables <- reactiveValues()
@@ -2548,6 +2553,45 @@ server <- function(input, output, session) {
             # }
         ## ---- when too many sets are selected ---------------------------------
         ## --- Too many sets selected -----------------------------------------
+        
+        
+        ## 1. Calcula la intersección una sola vez
+        observe({
+          req(all_sets)                               # asegúrate de que exista
+          vals$total_intersection <- Reduce(intersect,
+                                            lapply(all_sets, unname))
+        })
+        
+        ## 2. Construye el texto que quieres mostrar
+        output$intersection_msg <- renderUI({
+          int <- vals$total_intersection
+          
+          if (length(int) == 0) {
+            tags$span(style = "color:#dc3545;",         # soft red
+                      "No gene is present in all sets.")
+            
+          } else if (length(int) == 1) {
+            tags$span(
+              HTML(sprintf(
+                "The intersection is the gene with ID <strong>%s</strong>.",
+                int[1]
+              ))
+            )
+            
+          } else {
+            tags$span(
+              HTML(
+                paste0(
+                  "There are <strong>", length(int),
+                  "</strong> genes in the intersection: ",
+                  paste(int, collapse = ", ")
+                )
+              )
+            )
+          }
+        })
+        
+        ## 3. Inserta ese mensaje en tu tarjeta
         if (length(all_sets) > vals$max_sets) {
           
           sets_table_intersections_ui <- tagList(
@@ -2555,21 +2599,19 @@ server <- function(input, output, session) {
               column(
                 width = 12,
                 tags$div(
-                  # simple coloured banner
                   style = "
             margin-top: 2rem;
             padding: 18px;
             border-radius: 6px;
-            background-color: #fff3cd;   /* soft yellow */
+            background-color: #fff3cd;
             border: 1px solid #ffecb5;
             font-size: 1.65rem;",
                   
                   tags$h4(
-                    style = "margin-top: 0; color: #856404;font-size: 2rem;",
+                    style = "margin-top: 0; color: #856404; font-size: 2rem;",
                     "Too many sets selected"
                   ),
                   
-                  # main message
                   HTML(sprintf(
                     "You selected <strong>%d</strong> sets, but the limit for a full ",
                     length(all_sets)
@@ -2577,11 +2619,13 @@ server <- function(input, output, session) {
                   HTML(sprintf(
                     "intersection calculation is <strong>%d</strong>. ", vals$max_sets
                   )),
-                  
-                  # explanatory sentence
                   "To keep the app responsive and avoid exhausting memory, ",
                   "intersections are computed only when the number of sets ",
-                  "is within that limit."
+                  "is within that limit.",
+                  
+                  ## Aquí va el mensaje con la intersección
+                  tags$hr(),
+                  uiOutput("intersection_msg")
                 )
               )
             )
@@ -2589,6 +2633,54 @@ server <- function(input, output, session) {
           
           vals$sets_table_intersections_ui <- sets_table_intersections_ui
         }
+        
+        
+        
+        
+        
+        
+        
+        # if (length(all_sets) > vals$max_sets) {
+        #   
+        #   sets_table_intersections_ui <- tagList(
+        #     fluidRow(
+        #       column(
+        #         width = 12,
+        #         tags$div(
+        #           # simple coloured banner
+        #           style = "
+        #     margin-top: 2rem;
+        #     padding: 18px;
+        #     border-radius: 6px;
+        #     background-color: #fff3cd;   /* soft yellow */
+        #     border: 1px solid #ffecb5;
+        #     font-size: 1.65rem;",
+        #           
+        #           tags$h4(
+        #             style = "margin-top: 0; color: #856404;font-size: 2rem;",
+        #             "Too many sets selected"
+        #           ),
+        #           
+        #           # main message
+        #           HTML(sprintf(
+        #             "You selected <strong>%d</strong> sets, but the limit for a full ",
+        #             length(all_sets)
+        #           )),
+        #           HTML(sprintf(
+        #             "intersection calculation is <strong>%d</strong>. ", vals$max_sets
+        #           )),
+        #           
+        #           # explanatory sentence
+        #           "To keep the app responsive and avoid exhausting memory, ",
+        #           "intersections are computed only when the number of sets ",
+        #           "is within that limit."
+        #         )
+        #       )
+        #     )
+        #   )
+        #   
+        #   vals$sets_table_intersections_ui <- sets_table_intersections_ui
+        # }
         
         
       
@@ -2613,11 +2705,21 @@ server <- function(input, output, session) {
       print(length(vals$all_sets))
       # print("upset ")
       # print(str(all_sets))
-      if(length(vals$all_sets) > 1 && length(vals$all_sets) < 16){
+      if(length(vals$all_sets) > 1 && length(vals$all_sets) < vals$max_sets){
         # upset plot
         # plotOutput("upset_plot")
+        cat("\033[31m\n\nINTERESECTIONS SCRipT <-------------\033[0m\n")
         
+        
+        cat("\033[31m\n\n<<------UPSER INTERSECT\033[0m\n")
+        
+        # cacular cunto tarda en correr la funcion
+        start_time <- Sys.time()
         upset_plot <- plot_UpSetR(all_sets)
+        end_time <- Sys.time()
+        elapsed_time <- end_time - start_time
+        cat(sprintf("\033[32m\n\nUPSET PLOT RENDERED IN: %.8f seconds\033[0m\n", as.numeric(elapsed_time)))
+        
         output$upset_plot <- renderPlot({
           upset_plot
         })
@@ -2632,19 +2734,79 @@ server <- function(input, output, session) {
         
         # print(euler_intersections)
         cat("\033[31m\n\n<<------EULER INTERSECT\033[0m\n")
+        # 
+        # # cacular cunto tarda en correr la funcion
+        # start_time <- Sys.time()
+        # euler_plot <- plot_euler(all_sets,
+        #                          input$euler_plot_legend,
+        #                          input$euler_plot_labels,
+        #                          input$euler_plot_counts,
+        #                          input$euler_plot_percent) #,input$euler_plot_trunc)        end_time <- Sys.time()
+        # end_time <- Sys.time()
+        # elapsed_time <- end_time - start_time
+        # cat(sprintf("\033[32m\n\nUPSET PLOT RENDERED IN: %.2f seconds\033[0m\n", as.numeric(elapsed_time)))
+        
+        MAX_SECONDS <- 5
+        
+        start_time <- Sys.time()
+        
+        # withTimeout interrumpe la llamada si dura más de MAX_SECONDS
+        euler_plot <- withTimeout({
+          plot_euler(
+            all_sets,
+            input$euler_plot_legend,
+            input$euler_plot_labels,
+            input$euler_plot_counts,
+            input$euler_plot_percent
+          )
+        }, timeout = MAX_SECONDS, onTimeout = "silent")  # "silent" evita error en pantalla
+        
+        end_time <- Sys.time()
+        elapsed_time <- end_time - start_time
+        cat(sprintf("\033[32m\n\nUPSET PLOT RENDERED IN: %.2f seconds\033[0m\n", as.numeric(elapsed_time)))
+
+        too_slow_euler_plot <- F
+        vals$all_sets <- all_sets
+        if (is.null(euler_plot)) {
+          cat("\033[36mPlot aborted after 5 s; switching to fallback...\033[0m\n")
+          # euler_plot <- plot_euler_simple(all_sets)
+          euler_plot <- plot_too_slow()
+          too_slow_euler_plot <- TRUE
+        }
+        vals$too_slow_euler_plot <- too_slow_euler_plot
+        cat("\033[35m\n\n<<-----too_slow_euler_plot\033[0m\n")
+        print(vals$too_slow_euler_plot)
         
         
-        euler_plot <- plot_euler(all_sets,
-                                 input$euler_plot_legend,
-                                 input$euler_plot_labels,
-                                 input$euler_plot_counts,
-                                 input$euler_plot_percent) #,input$euler_plot_trunc)
-        output$euler_plot <- renderPlot({
-          euler_plot
-        })
+        vals$euler_plot <- euler_plot
         
-        ## interactive plots
-        # Renderizamos el gráfico
+        
+        
+        
+        # output$upset_plot_interactive <- renderUpsetjs({
+        #   req(vals$all_sets)                     # asegura que hay datos
+        # 
+        #   n_sets    <- length(vals$all_sets)     # nº de conjuntos
+        #   height_px <- max(1000, 35 * n_sets)     # regla de altura
+        # 
+        #   upsetjs(height = height_px) %>%        # widget con altura dinámica
+        #     upsetjs::fromList(vals$all_sets) %>%
+        #     chartLayout(width.ratios = c(0.1, 0.3, 0.6)) %>%
+        #     chartFontSizes(                      # ← dentro del pipe
+        #       font.family = NULL,
+        #       chart.label = NULL,
+        #       set.label   = NULL,
+        #       axis.tick   = "14px",
+        #       bar.label   = "14px",
+        #       legend      = NULL,
+        #       title       = NULL,
+        #       description = NULL,
+        #       export.label= NULL,
+        #       value.label = NULL
+        #     ) %>%
+        #     generateDistinctIntersections() %>%
+        #     interactiveChart()
+        # })
         output$upset_plot_interactive <- renderUpsetjs({
           upsetjs() %>%
             upsetjs::fromList(all_sets) %>%
@@ -2667,42 +2829,293 @@ server <- function(input, output, session) {
             interactiveChart()  # Gráfico interactivo
         })
         
-        output$euler_plot_interactive <- renderUpsetjs({
-          upsetjsEulerDiagram() %>%
-            upsetjs::fromList(all_sets) %>%
-            interactiveChart()  # Gráfico interactivo
+        
+        output$upset_plot_interactive_ui <- renderUI({
+          
+          # Suponiendo que all_sets es reactivo; use req() si procede
+          n_sets  <- length(all_sets)      # cuántos conjuntos tiene el usuario
+          base_h  <- 250                     # altura base (px)
+          extra_h <- 40 * n_sets             # píxeles extra por cada conjunto
+          my_h    <- paste0(base_h + extra_h, "px")
+          
+        
+          
+          cat("\033[35m\n\nUPSET PLOT INTERACTIVE UI RENDERED\033[0m\n")
+          tagList(
+            br(),
+            # UpsetJS con altura calculada
+            upsetjsOutput(
+              outputId = "upset_plot_interactive",
+              height   = my_h,                 # <- altura dinámica
+              width    = "100%"                # opcional
+            ),
+            br()
+          )
         })
         
+        # output$euler_plot_interactive <- renderUpsetjs({
+        #   upsetjsEulerDiagram() %>%
+        #     upsetjs::fromList(all_sets) %>%
+        #     interactiveChart()  # Gráfico interactivo
+        # })
         
+        
+        cat("\033[31m\n\n<<------EULER INTERSECT END\033[0m\n")
         
       }
       
-      
-      
-      
-      
-      
-      
-    # }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+      # if(length(vals$all_sets) >= vals$max_sets){
+        #         
+        total_intersection <- Reduce(intersect, vals$all_sets)
+        cat("\033[31m\n\n<<------TOTAL INTERSECTION\033[0m\n")
+        
+        ## total_intersection: vector de IDs que ya calculaste
+        ## genes_database    : tu lista principal
+        
+        # 1. Asegúrate de que los IDs sean caracteres para indexar la lista
+        ids_chr <- as.character(total_intersection)
+        
+        # 2. Extrae el símbolo de cada ID
+        symbols <- vapply(
+          ids_chr,
+          function(id) genes_database[[id]]$gene_symbol,
+          FUN.VALUE = character(1),
+          USE.NAMES = FALSE           # no necesitamos nombres
+        )
+        
+        # 3. Combina "SYMBOL (ID)"
+        labels <- sprintf("%s (%s)", symbols, ids_chr)
+        
+        # 4. Guarda o muestra
+        vals$total_intersection_labels <- labels
+        
+        cat("\033[31m\n\n<<------TOTAL INTERSECTION\033[0m\n")
+        total_intersection <- labels
+
+        vals$total_intersection <- total_intersection
+      # }
+
+
     
     
     
   })
+ 
+ # euler plot UI output
+ 
+ # observeEvent(input$plot_euler,ignoreNULL = T,ignoreInit = T, {
+ #   cat("\033[35m\n\nPLOT EULER BUTTON CLICKED\033[0m\n")
+ #   
+ #   
+ #  shinyalert::shinyalert(
+ #    title = "Plotting Euler",
+ #    text = "This may take a while ( > 5 mins )",
+ #    type = "warning",
+ #    showConfirmButton = T,
+ #    timer = 6000)
+ #   
+ #   euler_plot <- plot_euler(
+ #     vals$all_sets,
+ #     input$euler_plot_legend,
+ #     input$euler_plot_labels,
+ #     input$euler_plot_counts,
+ #     input$euler_plot_percent
+ #   )
+ #   
+ #   vals$euler_plot <- euler_plot
+ #   
+ # }
+ # 
+ # )
+ 
+ 
+ 
+ # observeEvent(input$plot_euler,ignoreNULL = TRUE,ignoreInit  = TRUE,{
+ #   
+ #   cat("\033[35m\n\nPLOT EULER BUTTON CLICKED\033[0m\n")
+ #   
+ #   # 1. Timestamp before the heavy work starts
+ #   t0 <- Sys.time()
+ #   
+ #   # 1st alert: let the user know it might take a while
+ #   shinyalert::shinyalert(
+ #     title               = "Generating Euler Plot",
+ #     text                = "Please wait – this can take several minutes…",
+ #     type                = "warning",
+ #     showConfirmButton   = FALSE,
+ #     closeOnEsc          = FALSE,
+ #     closeOnClickOutside = FALSE,
+ #     timer             = 5000       # auto-close after 6 s (optional)
+ #     
+ #   )
+ #   
+ #   # 2. Heavy computation (blocking in the main R thread)
+ #   euler_plot <- plot_euler(
+ #     vals$all_sets,
+ #     input$euler_plot_legend,
+ #     input$euler_plot_labels,
+ #     input$euler_plot_counts,
+ #     input$euler_plot_percent
+ #   )
+ #   vals$euler_plot <- euler_plot
+ #   
+ #   # 3. Compute elapsed time in seconds
+ #   elapsed <- difftime(Sys.time(), t0, units = "secs") |> as.numeric()
+ #   
+ #   # 4. 2nd alert with elapsed time
+ #   shinyalert::shinyalert(
+ #     title             = "Done!",
+ #     text              = sprintf("The plot was generated in %.1f seconds.", elapsed),
+ #     type              = "success",
+ #     timer             = 6000,        # auto-close after 6 s (optional)
+ #     showConfirmButton = TRUE
+ #   )
+ #   }
+ # )
+ 
+ 
+ 
+ 
+ 
+ # -------------------------------------------------------------------------
+ #  Shiny observer + renderPlot for Euler diagram (refactored)
+ # -------------------------------------------------------------------------
+ 
+ # -------------------------------------------------------------------------
+ # 1. Observer: generates the Euler diagram when the button is clicked
+ # -------------------------------------------------------------------------
+ observeEvent(input$plot_euler, ignoreNULL = TRUE, ignoreInit = TRUE, {
+   cat("\033[35m\n\nPLOT EULER BUTTON CLICKED\033[0m\n")
+   
+   # 1) Timestamp before the heavy work starts
+   t0 <- Sys.time()
+   
+   # 2) Let the user know it might take a while
+   shinyalert::shinyalert(
+     title               = "Generating Euler Plot",
+     text                = "Please wait – this can take several minutes…",
+     type                = "warning",
+     showConfirmButton   = T,
+     closeOnEsc          = FALSE,
+     closeOnClickOutside = FALSE
+     # timer               = 5000   # auto‑close after 5 s
+   )
+   
+   # ---------------------------------------------------------------------
+   # 3) Data sanitisation: remove NA/empty values and check for emptiness
+   # ---------------------------------------------------------------------
+   clean_sets <- lapply(vals$all_sets, function(x) x[!is.na(x) & x != ""])
+   
+   if (all(vapply(clean_sets, length, integer(1)) == 0L)) {
+     shinyalert::shinyalert(
+       title = "Empty Sets",
+       text  = "There are no valid elements to build the Euler diagram.",
+       type  = "error"
+     )
+     return()
+   }
+   
+   # ---------------------------------------------------------------------
+   # 4) Heavy computation wrapped in tryCatch → capture impossible fits
+   # ---------------------------------------------------------------------
+   euler_plot <- tryCatch(
+     {
+       plot_euler(
+         clean_sets,
+         input$euler_plot_legend,
+         input$euler_plot_labels,
+         input$euler_plot_counts,
+         input$euler_plot_percent
+       )
+     },
+     error = function(e) {
+       shinyalert::shinyalert(
+         title = "Fit Failed",
+         text  = "The chosen set sizes cannot be displayed with a proportional Euler diagram.",
+         type  = "error"
+       )
+       NULL
+     }
+   )
+   
+   vals$euler_plot <- euler_plot
+   
+   # 5) Compute elapsed time
+   elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+   
+   # 6) Notify the user when done
+   shinyalert::shinyalert(
+     title             = "Done!",
+     text              = sprintf("The plot was generated in %.1f seconds.", elapsed),
+     type              = "success",
+     timer             = 6000,   # auto‑close after 6 s
+     showConfirmButton = TRUE
+   )
+ })
+ 
+ # -------------------------------------------------------------------------
+ # 2. Renderer: draws the Euler diagram in the UI
+ # -------------------------------------------------------------------------
+ output$euler_plot <- renderPlot({
+   # Wait until a valid object is available
+   req(vals$euler_plot, cancelOutput = TRUE)
+   
+   # Validate the structure and numeric content
+   validate(
+     need(
+       inherits(vals$euler_plot, "euler") &&
+         !anyNA(unlist(vals$euler_plot$ellipses)),
+       "Unable to generate a valid Euler diagram with the current data."
+     )
+   )
+   
+   # Finally draw the plot
+   plot(vals$euler_plot)
+   cat("\033[35m\n\nEULER PLOT RENDERED\033[0m\n")
+ })
+ 
+ output$euler_plot <- renderPlot({
+   plot(vals$euler_plot)
+   
+   cat("\033[35m\n\nEULER PLOT RENDERED\033[0m\n")
+ })
+ 
+ 
+ output$euler_plot_ui <- renderUI({
+   cat("\033[35m\n\nEULER PLOT UI RENDERED\033[0m\n")
+   cat("\033[35m\n\n<<-----too_slow_euler_plot\033[0m\n")
+   print(vals$too_slow_euler_plot)
+   if (!vals$too_slow_euler_plot) {
+     tagList(
+       br(),
+       plotOutput("euler_plot"),
+       br()
+     )
+    
+     
+   } else {
+     tagList(
+         br(),
+         plotOutput("euler_plot"),
+         br(),
+         fluidRow(
+           column(
+             width = 12,
+             actionBttn("plot_euler",
+                        label = "Plot Euler",
+                        style = "fill",
+                        color = "primary",
+                        icon = icon("chart-area"),
+                        size = "md",
+                        class = "btn-block"
+           )
+         )
+         )
+     )
+   }
+
+   
+ })
  
  
  
@@ -4415,7 +4828,8 @@ output$table_phenotypes <- renderDataTable({
               align = "left",
               h3("Upset plot"),
               column(12,
-                     upsetjsOutput("upset_plot_interactive")
+                     # upsetjsOutput("upset_plot_interactive")
+                     uiOutput("upset_plot_interactive_ui")
               )
             ),
             
@@ -4430,83 +4844,142 @@ output$table_phenotypes <- renderDataTable({
                        
                 )
               ),
-              fluidRow(
-                column(7,
-                       switchInput(
-                         inputId = "euler_plot_interactive",
-                         label = "Interactive", 
-                         value = F,
-                         labelWidth = "180px",
-                         onStatus = "warning"
-                       ),
-                       
-                )
-              ),
+              # fluidRow(
+              #   column(7,
+              #          switchInput(
+              #            inputId = "euler_plot_interactive",
+              #            label = "Interactive", 
+              #            value = F,
+              #            labelWidth = "180px",
+              #            onStatus = "warning"
+              #          ),
+              #          
+              #   )
+              # ),
               column(12,
-                     
-                     conditionalPanel(
-                       condition = "input.euler_plot_interactive == false",
+                     fluidRow(
+                       align = "left",
+                       # h3("Euler plot"),
                        fluidRow(
-                         align = "left",
-                         # h3("Euler plot"),
-                         fluidRow(
-                           # align = "center",
-                           column(3,
-                                  materialSwitch(
-                                    inputId = "euler_plot_labels",
-                                    label = "labels",
-                                    status = "info",
-                                    value = F
-                                  )
-                           ),
-                           column(3,
-                                  materialSwitch(
-                                    inputId = "euler_plot_legend",
-                                    label = "legend",
-                                    status = "info",
-                                    value = T
-                                  )
-                           ),
-                           column(3,
-                                  materialSwitch(
-                                    inputId = "euler_plot_counts",
-                                    label = "counts",
-                                    status = "info",
-                                    value = T
-                                  )
-                           ),
-                           column(3,
-                                  materialSwitch(
-                                    inputId = "euler_plot_percent",
-                                    label = "percent",
-                                    status = "info",
-                                    value = F
-                                  )
-                           ),
-                           
-                           # column(1,
-                           #        numericInput(
-                           #          inputId = "euler_plot_trunc",
-                           #          label = "truncate",
-                           #          value = 20,
-                           #        )
-                           # ),
-                           
-                           
+                         # align = "center",
+                         column(3,
+                                materialSwitch(
+                                  inputId = "euler_plot_labels",
+                                  label = "labels",
+                                  status = "info",
+                                  value = F
+                                )
                          ),
-                         column(12,
-                                plotOutput("euler_plot")
-                         )
+                         column(3,
+                                materialSwitch(
+                                  inputId = "euler_plot_legend",
+                                  label = "legend",
+                                  status = "info",
+                                  value = T
+                                )
+                         ),
+                         column(3,
+                                materialSwitch(
+                                  inputId = "euler_plot_counts",
+                                  label = "counts",
+                                  status = "info",
+                                  value = T
+                                )
+                         ),
+                         column(3,
+                                materialSwitch(
+                                  inputId = "euler_plot_percent",
+                                  label = "percent",
+                                  status = "info",
+                                  value = F
+                                )
+                         ),
+                         
+                         # column(1,
+                         #        numericInput(
+                         #          inputId = "euler_plot_trunc",
+                         #          label = "truncate",
+                         #          value = 20,
+                         #        )
+                         # ),
+                         
+                         
+                       ),
+                       column(12,
+                              uiOutput("euler_plot_ui")
+                              # plotOutput("euler_plot")
                        )
-                       
-                     ),
-                     conditionalPanel(
-                       condition = "input.euler_plot_interactive == true",
-                       upsetjsOutput("euler_plot_interactive")
-                       
-                     ),
+                     )
                      
-              )
+                     ),
+              
+              
+              # column(12,
+              #        
+              #        conditionalPanel(
+              #          condition = "input.euler_plot_interactive == false",
+              #          fluidRow(
+              #            align = "left",
+              #            # h3("Euler plot"),
+              #            fluidRow(
+              #              # align = "center",
+              #              column(3,
+              #                     materialSwitch(
+              #                       inputId = "euler_plot_labels",
+              #                       label = "labels",
+              #                       status = "info",
+              #                       value = F
+              #                     )
+              #              ),
+              #              column(3,
+              #                     materialSwitch(
+              #                       inputId = "euler_plot_legend",
+              #                       label = "legend",
+              #                       status = "info",
+              #                       value = T
+              #                     )
+              #              ),
+              #              column(3,
+              #                     materialSwitch(
+              #                       inputId = "euler_plot_counts",
+              #                       label = "counts",
+              #                       status = "info",
+              #                       value = T
+              #                     )
+              #              ),
+              #              column(3,
+              #                     materialSwitch(
+              #                       inputId = "euler_plot_percent",
+              #                       label = "percent",
+              #                       status = "info",
+              #                       value = F
+              #                     )
+              #              ),
+              #              
+              #              # column(1,
+              #              #        numericInput(
+              #              #          inputId = "euler_plot_trunc",
+              #              #          label = "truncate",
+              #              #          value = 20,
+              #              #        )
+              #              # ),
+              #              
+              #              
+              #            ),
+              #            column(12,
+              #                   uiOutput("euler_plot_ui")
+              #                   # plotOutput("euler_plot")
+              #            )
+              #          )
+              #          
+              #        ),
+              #        conditionalPanel(
+              #          condition = "input.euler_plot_interactive == true",
+              #          upsetjsOutput("euler_plot_interactive")
+              #          
+              #        ),
+              #        
+              # )
             ),
             
             
@@ -6035,143 +6508,143 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
 
   
   # GET SUBSET AND PLOTS
-  observeEvent(input$plot_subset,{
-    cat("\n\nPLOTTING SUBSET\n")
-    # print("PLOTTING SUBSET")
-    # print(input$gene_subset_selection)
-    print(input$source_subset_selection)
-    print(input$phenotype_subset_selection)
-    print(input$disease_subset_selection)
-    print(input$gene_ontology_subset_selection)
-    print(input$pathway_subset_selection)
-    # subset
-    # gene_subset <- input$gene_subset_selection
-    source_subset <- input$source_subset_selection
-    phenotype_subset <- input$phenotype_subset_selection
-    disease_subset <- input$disease_subset_selection
-    gene_ontology_subset <- input$gene_ontology_subset_selection
-    gene_ontology_subontology_subset <- input$gene_ontology_subontology_subset_selection
-    pathway_subset <- input$pathway_subset_selection
-    
-    full_list <- c(source_subset, phenotype_subset, disease_subset, gene_ontology_subset, gene_ontology_subontology_subset)
-    print("full list")
-    print(full_list)
-    if(length(full_list) < 16){
-      
-    
-    # print(source_subset)
-    
-    source_sets <- field_to_genes(vals$gene_database_filtered,source_subset,"source")
-    
-    phenotype_sets <- field_to_genes(vals$gene_database_filtered,phenotype_subset,"phenotypes_id")
-    names(phenotype_sets) <- setNames(all_phenotypes$hpo_name, all_phenotypes$hpo_id )[names(phenotype_sets)]
-      
-    disease_sets <- field_to_genes(vals$gene_database_filtered,disease_subset,"diseases_id")
-    names(disease_sets) <- setNames(all_diseases$disease_name, all_diseases$disease_id )[names(disease_sets)]    
-
-    gene_ontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subset,"gene_ontology_id")
-    names(gene_ontology_sets) <- setNames(all_gene_ontology$go_term, all_gene_ontology$go_id )[names(gene_ontology_sets)]
-    
-    gene_ontology_subontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subontology_subset,"gene_ontology_subontology")
-    
-    pathway_sets <- field_to_genes(vals$gene_database_filtered,pathway_subset,"kegg_pathways_id")
-    names(pathway_sets) <- setNames(all_pathways$kegg_name, all_pathways$kegg_pathway_id )[names(pathway_sets)]
-    
-    # Crear una lista de todas las listas obtenidas
-    all_sets <- c(source_sets, phenotype_sets, disease_sets, gene_ontology_sets, gene_ontology_subontology_sets,pathway_sets)
-    vals$number_of_selected_sets <- length(all_sets)
-    }else{
-      all_sets <- rep(1,16)
-    }
-    
-    
-    
-    vals$all_sets <- all_sets
-    # print(str(all_sets))
-    
-    
-    vals$total_proteins_in_sets <- unique(unlist(all_sets))
-    # upset plot
-    # plots$upset_plot <- plot_UpSetR(vals$subset)
-    
-    # euler plot
-    # plots$euler_plot <- plot(euler(create_presence_matrix(vals$subset)), 
-    #                          quantities = selected_metrics,
-    #                          legend = legend,
-    #                          labels = labels
-    # )
-    
-    if(is.null(vals$all_sets)){vals$all_sets <- list()}
-    # plots
-    print(length(vals$all_sets))
-    # print("upset ")
-    # print(str(all_sets))
-    if(length(vals$all_sets) > 1 && length(vals$all_sets) < 16){
-      # upset plot
-      # plotOutput("upset_plot")
-      
-      upset_plot <- plot_UpSetR(all_sets)
-      output$upset_plot <- renderPlot({
-        upset_plot
-      })
-      
-      
-      # euler plot
-      # plotOutput("euler_plot")
-      # cat en color verde "euler inter"
-      # cat("\033[31m\n\nEULER INTERSECT------>>\033[0m\n")
-      # euler_intersections <- euler_intersections(all_sets)
-      # cat("\033[31m\n\n<<------>>\033[0m\n")
-      
-      # print(euler_intersections)
-      cat("\033[31m\n\n<<------EULER INTERSECT\033[0m\n")
-
-      
-      euler_plot <- plot_euler(all_sets,
-                               input$euler_plot_legend,
-                               input$euler_plot_labels,
-                               input$euler_plot_counts,
-                               input$euler_plot_percent) #,input$euler_plot_trunc)
-      output$euler_plot <- renderPlot({
-        euler_plot
-      })
-      
-      ## interactive plots
-      # Renderizamos el gráfico
-      output$upset_plot_interactive_old <- renderUpsetjs({
-        upsetjs() %>%
-          upsetjs::fromList(all_sets) %>%
-          chartLayout(
-            width.ratios = c(0.1, 0.3, 0.6)
-                      ) %>%
-          chartFontSizes(
-            font.family = NULL,
-            chart.label = NULL,
-            set.label = NULL,
-            axis.tick = "14px",
-            bar.label = "14px",
-            legend = NULL,
-            title = NULL,
-            description = NULL,
-            export.label = NULL,
-            value.label = NULL
-          ) %>%
-          generateDistinctIntersections() %>%
-          interactiveChart()  # Gráfico interactivo
-      })
-      
-      output$euler_plot_interactive <- renderUpsetjs({
-        upsetjsEulerDiagram() %>%
-          upsetjs::fromList(all_sets) %>%
-          interactiveChart()  # Gráfico interactivo
-      })
-      
-      
-      
-    }
-    
-    
-  })
+  # observeEvent(input$plot_subset,{
+  #   cat("\n\nPLOTTING SUBSET\n")
+  #   # print("PLOTTING SUBSET")
+  #   # print(input$gene_subset_selection)
+  #   print(input$source_subset_selection)
+  #   print(input$phenotype_subset_selection)
+  #   print(input$disease_subset_selection)
+  #   print(input$gene_ontology_subset_selection)
+  #   print(input$pathway_subset_selection)
+  #   # subset
+  #   # gene_subset <- input$gene_subset_selection
+  #   source_subset <- input$source_subset_selection
+  #   phenotype_subset <- input$phenotype_subset_selection
+  #   disease_subset <- input$disease_subset_selection
+  #   gene_ontology_subset <- input$gene_ontology_subset_selection
+  #   gene_ontology_subontology_subset <- input$gene_ontology_subontology_subset_selection
+  #   pathway_subset <- input$pathway_subset_selection
+  #   
+  #   full_list <- c(source_subset, phenotype_subset, disease_subset, gene_ontology_subset, gene_ontology_subontology_subset)
+  #   print("full list")
+  #   print(full_list)
+  #   if(length(full_list) < 16){
+  #     
+  #   
+  #   # print(source_subset)
+  #   
+  #   source_sets <- field_to_genes(vals$gene_database_filtered,source_subset,"source")
+  #   
+  #   phenotype_sets <- field_to_genes(vals$gene_database_filtered,phenotype_subset,"phenotypes_id")
+  #   names(phenotype_sets) <- setNames(all_phenotypes$hpo_name, all_phenotypes$hpo_id )[names(phenotype_sets)]
+  #     
+  #   disease_sets <- field_to_genes(vals$gene_database_filtered,disease_subset,"diseases_id")
+  #   names(disease_sets) <- setNames(all_diseases$disease_name, all_diseases$disease_id )[names(disease_sets)]    
+  # 
+  #   gene_ontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subset,"gene_ontology_id")
+  #   names(gene_ontology_sets) <- setNames(all_gene_ontology$go_term, all_gene_ontology$go_id )[names(gene_ontology_sets)]
+  #   
+  #   gene_ontology_subontology_sets <- field_to_genes(vals$gene_database_filtered,gene_ontology_subontology_subset,"gene_ontology_subontology")
+  #   
+  #   pathway_sets <- field_to_genes(vals$gene_database_filtered,pathway_subset,"kegg_pathways_id")
+  #   names(pathway_sets) <- setNames(all_pathways$kegg_name, all_pathways$kegg_pathway_id )[names(pathway_sets)]
+  #   
+  #   # Crear una lista de todas las listas obtenidas
+  #   all_sets <- c(source_sets, phenotype_sets, disease_sets, gene_ontology_sets, gene_ontology_subontology_sets,pathway_sets)
+  #   vals$number_of_selected_sets <- length(all_sets)
+  #   }else{
+  #     all_sets <- rep(1,16)
+  #   }
+  #   
+  #   
+  #   
+  #   vals$all_sets <- all_sets
+  #   # print(str(all_sets))
+  #   
+  #   
+  #   vals$total_proteins_in_sets <- unique(unlist(all_sets))
+  #   # upset plot
+  #   # plots$upset_plot <- plot_UpSetR(vals$subset)
+  #   
+  #   # euler plot
+  #   # plots$euler_plot <- plot(euler(create_presence_matrix(vals$subset)), 
+  #   #                          quantities = selected_metrics,
+  #   #                          legend = legend,
+  #   #                          labels = labels
+  #   # )
+  #   
+  #   if(is.null(vals$all_sets)){vals$all_sets <- list()}
+  #   # plots
+  #   print(length(vals$all_sets))
+  #   # print("upset ")
+  #   # print(str(all_sets))
+  #   if(length(vals$all_sets) > 1 && length(vals$all_sets) < 16){
+  #     # upset plot
+  #     # plotOutput("upset_plot")
+  #     
+  #     upset_plot <- plot_UpSetR(all_sets)
+  #     output$upset_plot <- renderPlot({
+  #       upset_plot
+  #     })
+  #     
+  #     
+  #     # euler plot
+  #     # plotOutput("euler_plot")
+  #     # cat en color verde "euler inter"
+  #     # cat("\033[31m\n\nEULER INTERSECT------>>\033[0m\n")
+  #     # euler_intersections <- euler_intersections(all_sets)
+  #     # cat("\033[31m\n\n<<------>>\033[0m\n")
+  #     
+  #     # print(euler_intersections)
+  #     cat("\033[31m\n\n<<------EULER INTERSECT\033[0m\n")
+  # 
+  #     
+  #     euler_plot <- plot_euler(all_sets,
+  #                              input$euler_plot_legend,
+  #                              input$euler_plot_labels,
+  #                              input$euler_plot_counts,
+  #                              input$euler_plot_percent) #,input$euler_plot_trunc)
+  #     output$euler_plot <- renderPlot({
+  #       euler_plot
+  #     })
+  #     
+  #     ## interactive plots
+  #     # Renderizamos el gráfico
+  #     output$upset_plot_interactive_old <- renderUpsetjs({
+  #       upsetjs() %>%
+  #         upsetjs::fromList(all_sets) %>%
+  #         chartLayout(
+  #           width.ratios = c(0.1, 0.3, 0.6)
+  #                     ) %>%
+  #         chartFontSizes(
+  #           font.family = NULL,
+  #           chart.label = NULL,
+  #           set.label = NULL,
+  #           axis.tick = "14px",
+  #           bar.label = "14px",
+  #           legend = NULL,
+  #           title = NULL,
+  #           description = NULL,
+  #           export.label = NULL,
+  #           value.label = NULL
+  #         ) %>%
+  #         generateDistinctIntersections() %>%
+  #         interactiveChart()  # Gráfico interactivo
+  #     })
+  #     
+  #     output$euler_plot_interactive <- renderUpsetjs({
+  #       upsetjsEulerDiagram() %>%
+  #         upsetjs::fromList(all_sets) %>%
+  #         interactiveChart()  # Gráfico interactivo
+  #     })
+  #     
+  #     
+  #     
+  #   }
+  #   
+  #   
+  # })
   
   
   # RENDERED PLOT OUTPUT OLD <---------------------------------------------------------
@@ -6365,165 +6838,166 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   # })
   
   # interactive UPSET and EULER PLOTS
-  output$rendered_interactive_plots <- renderUI({
-    if(is.null(vals$all_sets) ){
-      
-      column(12,
-             br(), br(), br(), br(), br(), br(), br(),
-             fluidRow(
-               align = "center",
-               h2("No rendered plots yet")
-             ),
-             br(), br(), br(), br(), br(), br(), br(),
-      )
-      
-      # return(NULL)
-    }else if(length(vals$all_sets) < 2){
-      
-      column(12,
-             br(), br(), br(), br(), br(), br(), br(),
-             fluidRow(
-               align = "center",
-               h2("Not enough sets selected")
-             ),
-             br(), br(), br(), br(), br(), br(), br(),
-      )
-      
-    }else if(length(vals$all_sets) > 15){
-      
-      column(12,
-             br(), br(), br(), br(), br(), br(), br(),
-             fluidRow(
-               align = "center",
-               h2("Too much sets selected"),
-               h3("Please, select less than 15 sets")
-             ),
-             br(), br(), br(), br(), br(), br(), br(),
-      )
-      
-      
-    }else{  
-      
-
-      
-      column(12,
-             fluidRow(
-               h4(HTML(paste0("Total proteins in <b>", vals$number_of_selected_sets,"</b> sets: <b>",length(vals$total_proteins_in_sets), "</b>"))),
-             ),
-             
-             
-             # UPSET PLOT
-             fluidRow(
-               align = "left",
-               h3("Upset plot"),
-               column(12,
-                      upsetjsOutput("upset_plot_interactive")
-               )
-             ),
-             
-             
-             
-             # EULER PLOT
-             fluidRow(
-               align = "left",
-               fluidRow(
-                 column(12,
-                        h3("Euler plot"),
-                        
-                        )
-                 ),
-               fluidRow(
-                 column(7,
-                        switchInput(
-                          inputId = "euler_plot_interactive",
-                          label = "Interactive", 
-                          value = F,
-                          labelWidth = "180px",
-                          onStatus = "warning"
-                        ),
-                        
-                        )
-               ),
-               column(12,
-                      
-                      conditionalPanel(
-                        condition = "input.euler_plot_interactive == false",
-                        fluidRow(
-                          align = "left",
-                          # h3("Euler plot"),
-                          fluidRow(
-                            # align = "center",
-                            column(3,
-                                   materialSwitch(
-                                     inputId = "euler_plot_labels",
-                                     label = "labels",
-                                     status = "info",
-                                     value = F
-                                   )
-                            ),
-                            column(3,
-                                   materialSwitch(
-                                     inputId = "euler_plot_legend",
-                                     label = "legend",
-                                     status = "info",
-                                     value = T
-                                   )
-                            ),
-                            column(3,
-                                   materialSwitch(
-                                     inputId = "euler_plot_counts",
-                                     label = "counts",
-                                     status = "info",
-                                     value = T
-                                   )
-                            ),
-                            column(3,
-                                   materialSwitch(
-                                     inputId = "euler_plot_percent",
-                                     label = "percent",
-                                     status = "info",
-                                     value = F
-                                   )
-                            ),
-                            
-                            # column(1,
-                            #        numericInput(
-                            #          inputId = "euler_plot_trunc",
-                            #          label = "truncate",
-                            #          value = 20,
-                            #        )
-                            # ),
-                            
-                            
-                          ),
-                          column(12,
-                                 plotOutput("euler_plot")
-                          )
-                        )
-                        
-                      ),
-                      conditionalPanel(
-                        condition = "input.euler_plot_interactive == true",
-                        upsetjsOutput("euler_plot_interactive")
-                        
-                      ),
-                      
-               )
-             ),
-             
-
-             
-
-             
-             
-             
-      )
-      # upset plot
-      # plotOutput("upset_plot")
-      # euler plot
-      # plotOutput("euler_plot")
-    }
-  })
+  # output$rendered_interactive_plots <- renderUI({
+  #   if(is.null(vals$all_sets) ){
+  #     
+  #     column(12,
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #            fluidRow(
+  #              align = "center",
+  #              h2("No rendered plots yet")
+  #            ),
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #     )
+  #     
+  #     # return(NULL)
+  #   }else if(length(vals$all_sets) < 2){
+  #     
+  #     column(12,
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #            fluidRow(
+  #              align = "center",
+  #              h2("Not enough sets selected")
+  #            ),
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #     )
+  #     
+  #   }else if(length(vals$all_sets) > 15){
+  #     
+  #     column(12,
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #            fluidRow(
+  #              align = "center",
+  #              h2("Too much sets selected"),
+  #              h3("Please, select less than 15 sets")
+  #            ),
+  #            br(), br(), br(), br(), br(), br(), br(),
+  #     )
+  #     
+  #     
+  #   }else{  
+  #     
+  # 
+  #     
+  #     column(12,
+  #            fluidRow(
+  #              h4(HTML(paste0("Total proteins in <b>", vals$number_of_selected_sets,"</b> sets: <b>",length(vals$total_proteins_in_sets), "</b>"))),
+  #            ),
+  #            
+  #            
+  #            # UPSET PLOT
+  #            fluidRow(
+  #              align = "left",
+  #              h3("Upset plot"),
+  #              column(12,
+  #                     upsetjsOutput("upset_plot_interactive")
+  #              )
+  #            ),
+  #            
+  #            
+  #            
+  #            # EULER PLOT
+  #            fluidRow(
+  #              align = "left",
+  #              fluidRow(
+  #                column(12,
+  #                       h3("Euler plot"),
+  #                       
+  #                       )
+  #                ),
+  #              fluidRow(
+  #                column(7,
+  #                       switchInput(
+  #                         inputId = "euler_plot_interactive",
+  #                         label = "Interactive",
+  #                         value = F,
+  #                         labelWidth = "180px",
+  #                         onStatus = "warning"
+  #                       ),
+  # 
+  #                       )
+  #              ),
+  #              column(12,
+  #                     
+  #                     conditionalPanel(
+  #                       condition = "input.euler_plot_interactive == false",
+  #                       fluidRow(
+  #                         align = "left",
+  #                         # h3("Euler plot"),
+  #                         fluidRow(
+  #                           # align = "center",
+  #                           column(3,
+  #                                  materialSwitch(
+  #                                    inputId = "euler_plot_labels",
+  #                                    label = "labels",
+  #                                    status = "info",
+  #                                    value = F
+  #                                  )
+  #                           ),
+  #                           column(3,
+  #                                  materialSwitch(
+  #                                    inputId = "euler_plot_legend",
+  #                                    label = "legend",
+  #                                    status = "info",
+  #                                    value = T
+  #                                  )
+  #                           ),
+  #                           column(3,
+  #                                  materialSwitch(
+  #                                    inputId = "euler_plot_counts",
+  #                                    label = "counts",
+  #                                    status = "info",
+  #                                    value = T
+  #                                  )
+  #                           ),
+  #                           column(3,
+  #                                  materialSwitch(
+  #                                    inputId = "euler_plot_percent",
+  #                                    label = "percent",
+  #                                    status = "info",
+  #                                    value = F
+  #                                  )
+  #                           ),
+  #                           
+  #                           # column(1,
+  #                           #        numericInput(
+  #                           #          inputId = "euler_plot_trunc",
+  #                           #          label = "truncate",
+  #                           #          value = 20,
+  #                           #        )
+  #                           # ),
+  #                           
+  #                           
+  #                         ),
+  #                         column(12,
+  #                                # plotOutput("euler_plot")
+  #                                uiOutput("euler_plot_ui")
+  #                         )
+  #                       )
+  #                       
+  #                     ),
+  #                     conditionalPanel(
+  #                       condition = "input.euler_plot_interactive == true",
+  #                       upsetjsOutput("euler_plot_interactive")
+  #                       
+  #                     ),
+  #                     
+  #              )
+  #            ),
+  #            
+  # 
+  #            
+  # 
+  #            
+  #            
+  #            
+  #     )
+  #     # upset plot
+  #     # plotOutput("upset_plot")
+  #     # euler plot
+  #     # plotOutput("euler_plot")
+  #   }
+  # })
   
   
   # show modal on click intersection upset plot
@@ -6542,10 +7016,23 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     output$genes_in_intersection_table <- renderDataTable({datatable_custom(genes_in_intersection_table)})
     # cat en verde
     # Separa la cadena usando "&"
-    elementos <- unlist(strsplit(clickData$name, "&"))
     
-    # Limpia espacios extra
-    elementos <- trimws(elementos)
+    # 2. Fuerza el tipo character (evita factors, NULL, etc.)
+    nombre_chr <- as.character(clickData$name)
+    
+    # 3. Solo divide si el string no está vacío
+    if (nzchar(nombre_chr)) {
+      elementos <- strsplit(nombre_chr, "&")[[1]]
+      elementos <- trimws(elementos)            # quita espacios
+    } else {
+      elementos <- character(0)                 # vector vacío si no hay nada
+    }
+    # 
+    
+    # elementos <- unlist(strsplit(clickData$name, "&"))
+    # 
+    # # Limpia espacios extra
+    # elementos <- trimws(elementos)
     
     # Genera la lista HTML
     
@@ -9063,12 +9550,27 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                       # genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
                       
                       
+                      # output$network_datatable_selected_row_ui <- renderUI({
+                      #   genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
+                      #  modal_comparison_ui <- tagList(
+                      #    genes_comparison_ui
+                      #    
+                      #  )
+                      #  
+                      #   return(modal_comparison_ui)
+                      # })
                       output$network_datatable_selected_row_ui <- renderUI({
                         genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
-                       modal_comparison_ui <- tagList(
-                         genes_comparison_ui
-                         
-                       )
+                        # modal_comparison_ui <- tagList(
+                        #   genes_comparison_ui
+                        #   
+                        # )
+                        
+                        modal_comparison_ui <- fluidRow(
+                          align = "center",
+                          genes_comparison_ui            
+                        )
+                        
                         return(modal_comparison_ui)
                       })
                       
@@ -9099,7 +9601,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                               max-width: 90% !important;
                               width: 90% !important;
                             }
-                          ")))
+                          "))),
+                        
                       ))
                       
                     })
@@ -9589,14 +10092,21 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         output$network_clicked_pair_ui <- renderUI({
           genes_comparison_ui <- genes_comparison_ui_generator(gene_1, gene_2)
-          modal_comparison_ui <- tagList(
-            genes_comparison_ui
-            
+          # modal_comparison_ui <- tagList(
+          #   genes_comparison_ui
+          #   
+          # )
+          
+          modal_comparison_ui <- fluidRow(
+            align = "center",
+            genes_comparison_ui            
           )
+          
           return(modal_comparison_ui)
         })
         
         
+        # mark modal
         showModal(modalDialog(
           # title=tagList(
           #   div(style = "display: flex; justify-content: space-between; align-items: center; width: 100%;",
@@ -9623,7 +10133,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                               max-width: 90% !important;
                               width: 90% !important;
                             }
-                          ")))
+                          "))),
+          
+       
         ))
         
 
@@ -10058,13 +10570,21 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                    font-size: 15px;
                    color: #333;
                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
+          # HTML('
+          #   <strong>Tip:</strong> You can click 
+          #   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
+          #   <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
+          #   </svg>
+          #   on the <b>edges</b> in the network or the <b>rows</b> in the table below to explore the full <b>gene-to-gene comparison</b>.
+          # ')
           HTML('
-            <strong>Tip:</strong> You can click 
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
-            <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
-            </svg>
-            on the <b>edges</b> in the network or the <b>rows</b> in the table below to explore the full <b>gene-to-gene comparison</b>.
-          ')
+              <strong>Tip:</strong> You can click 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
+                <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
+              </svg>
+              on the <b>rows in the table below</b> to explore the full <b>gene-to-gene comparison</b>.
+            ')
+          
         ),
         network_ui_ouput
         )
