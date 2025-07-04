@@ -37,7 +37,15 @@ library(R.utils)
 source("scripts/functions.R",local = TRUE)
 print("Scripts loaded")
 
+# button all
 
+btns_all_pages <<- lapply(
+  c("copy", "csv", "excel", "pdf", "print"),
+  \(btn) list(
+    extend        = btn,
+    exportOptions = list(modifier = list(page = "all"))
+  )
+)
 
 # load data
 genes_database <- readRDS("data/genes_database.rds")
@@ -2203,14 +2211,14 @@ server <- function(input, output, session) {
       cat("\033[35mMEAN EXPRESSION BY ONTOLOGY\033[0m\n")
       print(str(mean_expression_by_ontology))
       
-      output$tissue_expression_table <- renderDataTable({
+      output$tissue_expression_table <- renderDataTable(server=FALSE,{
         datatable(
           mean_expression_by_ontology,
           rownames = F,
           extensions = 'Buttons',
           options = list(
             dom = 'Bfrtip',
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
             scrollX = TRUE
           )
         ) %>% formatStyle('mean_expression',
@@ -3222,7 +3230,7 @@ datatable_custom <- function(table){
       extensions = 'Buttons',
       options = list(
         dom = 'Bfrtip',
-        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = TRUE
       )
     ) %>% formatStyle('Freq',
@@ -3238,7 +3246,7 @@ datatable_custom <- function(table){
       extensions = 'Buttons',
       options = list(
         dom = 'Bfrtip',
-        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = TRUE
       )
     )
@@ -3251,7 +3259,7 @@ datatable_custom <- function(table){
  # SINGLE PROTEINS
   # tables 
 
-output$table_phenotypes <- renderDataTable({
+output$table_phenotypes <- renderDataTable(server = FALSE,{
   
   table_phenotypes <- tables$table_phenotypes
   
@@ -3277,37 +3285,37 @@ output$table_phenotypes <- renderDataTable({
 })
 
  
- output$table_diseases <- renderDataTable({
+ output$table_diseases <- renderDataTable(server=FALSE,{
    datatable_custom(
      tables$table_diseases
    )
  }) 
  
- output$table_complexes <- renderDataTable({
+ output$table_complexes <- renderDataTable(server=FALSE,{
    datatable_custom(
      tables$table_complexes
    )
  })
  
- output$table_modifications <- renderDataTable({
+ output$table_modifications <- renderDataTable(server=FALSE,{
    datatable_custom(
      tables$table_modifications
    )
  })
  
- output$table_diseases_HPO <- renderDataTable({
+ output$table_diseases_HPO <- renderDataTable(server=FALSE,{
    datatable_custom(
      tables$table_diseases_HPO
    )
  }) 
 
- output$table_gene_ontology <- renderDataTable({
+ output$table_gene_ontology <- renderDataTable(server=FALSE,{
   datatable_custom(
     tables$table_gene_ontology
   )
  })
  
- output$table_kegg_pathways <- renderDataTable({
+ output$table_kegg_pathways <- renderDataTable(server=FALSE,{
    datatable_custom(
      tables$table_kegg_pathways
    )
@@ -3320,7 +3328,7 @@ output$table_phenotypes <- renderDataTable({
  # print(tables$gene_selection_df)
  # 
  # })
- # output$gene_selection_df <- renderDataTable({datatable(tables$gene_selection_df,rownames = F)})
+ # output$gene_selection_df <- renderDataTable(server=FALSE,{datatable(tables$gene_selection_df,rownames = F)})
  # 
 # MULTIPROTEINS 
  # plots
@@ -5658,7 +5666,7 @@ output$table_phenotypes <- renderDataTable({
     tables$genes_list_df_selected <- genes_list_df[genes_list_df$gene_symbol %in% vals$proteins_list,]
   })
   
-  output$genes_list_df_selected <- renderDataTable({
+  output$genes_list_df_selected <- renderDataTable(server=FALSE,{
     datatable(
       tables$genes_list_df_selected,
       rownames = F
@@ -7013,7 +7021,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     genes_in_intersection_table <- genes_list_df[genes_list_df$ncbi_gene_id %in% genes_id_in_intersection,]
     
     
-    output$genes_in_intersection_table <- renderDataTable({datatable_custom(genes_in_intersection_table)})
+    output$genes_in_intersection_table <- renderDataTable(server=FALSE,{datatable_custom(genes_in_intersection_table)})
     # cat en verde
     # Separa la cadena usando "&"
     
@@ -7069,7 +7077,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     genes_in_intersection_table <- genes_list_df[genes_list_df$ncbi_gene_id %in% genes_id_in_intersection,]
     
-    output$genes_in_intersection_table <- renderDataTable({datatable_custom(genes_in_intersection_table)})
+    output$genes_in_intersection_table <- renderDataTable(server=FALSE,{datatable_custom(genes_in_intersection_table)})
     
     
     # Separa la cadena usando "&"
@@ -7153,9 +7161,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     type_freq <- as.data.frame(table(tables$clinvar_variants_filtered$variant_type))
     type_freq <- type_freq[order(type_freq$Freq,decreasing = T),]
 
-    output$pathogenicity_freq <- renderDataTable({datatable_custom( pathogenicity_freq)})
-    output$review_freq <- renderDataTable({datatable_custom( review_freq)})
-    output$type_freq <- renderDataTable({datatable_custom( type_freq)})
+    output$pathogenicity_freq <- renderDataTable(server=FALSE,{datatable_custom( pathogenicity_freq)})
+    output$review_freq <- renderDataTable(server=FALSE,{datatable_custom( review_freq)})
+    output$type_freq <- renderDataTable(server=FALSE,{datatable_custom( type_freq)})
 
     # pie chart
     # pie chart function
@@ -7384,14 +7392,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   
   output$scatter_plot <- renderPlot({plots$scatter_plot})
-  output$scatter_plot_table <- renderDataTable({
+  output$scatter_plot_table <- renderDataTable(server=FALSE,{
     datatable(
       tables$df_summary,
       rownames = F,
       extensions = 'Buttons',
       options = list(
         dom = 'Bfrtip',
-        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
         scrollX = T
         # autoWidth = TRUE,
         # columnDefs = list(list(width = '50px', targets = "_all"))
@@ -7401,7 +7409,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
   
   
   output$clinvar_variants_filtered <-
-    renderDataTable({
+    renderDataTable(server=FALSE,{
       datatable(
         tables$clinvar_variants_filtered,
         filter = "top",
@@ -7409,7 +7417,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         extensions = 'Buttons',
         options = list(
           dom = 'Bfrtip',
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+          buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
           scrollX = TRUE
         )
       )
@@ -9325,7 +9333,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       
 
-      # output$network_datatable <- renderDataTable({
+      # output$network_datatable <- renderDataTable(server=FALSE,{
       #   
       #   # 1. Renombrar la columna y (opcionalmente) redondear
       #   network_data_to_DT_renamed <- network_data_to_DT %>% 
@@ -9369,14 +9377,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       #     formatRound("distance (Jaccard)", digits = 3)
       # })
       
-      # output$tissue_expression_table <- renderDataTable({
+      # output$tissue_expression_table <- renderDataTable(server=FALSE,{
       #   datatable(
       #     mean_expression_by_ontology,
       #     rownames = F,
       #     extensions = 'Buttons',
       #     options = list(
       #       dom = 'Bfrtip',
-      #       buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #       buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
       #       scrollX = TRUE
       #     )
       #   ) %>% formatStyle('mean_expression',
@@ -9392,7 +9400,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       
       
-      output$network_datatable <- renderDataTable({
+      output$network_datatable <- renderDataTable(server=FALSE,{
         
         # reordenar por la collumna Jaccard con el sort
 
@@ -9440,7 +9448,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           selection = "single",
           options = list(
             dom = 'Bfrtip',
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
             scrollX = TRUE,
             pageLength = 100
           )
@@ -10301,14 +10309,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       #   
       #   # 6. Render tables in the server
       #   
-      #   output$table_gen1_only <- renderDataTable({
+      #   output$table_gen1_only <- renderDataTable(server=FALSE,{
       #     datatable(
       #       table_gen1_only,
       #       rownames = F,
       #       extensions = 'Buttons',
       #       options = list(
       #         dom = 'Bfrtip',
-      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
       #         scrollX = TRUE
       #       )
       #     )  %>% formatStyle(
@@ -10319,14 +10327,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       #     
       #   })
       #   
-      #   output$table_intersection <- renderDataTable({
+      #   output$table_intersection <- renderDataTable(server=FALSE,{
       #     datatable(
       #       table_intersection,
       #       rownames = F,
       #       extensions = 'Buttons',
       #       options = list(
       #         dom = 'Bfrtip',
-      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
       #         scrollX = TRUE
       #       )
       #     ) %>% formatStyle(
@@ -10337,14 +10345,14 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       #     
       #   })
       #   
-      #   output$table_gen2_only <- renderDataTable({
+      #   output$table_gen2_only <- renderDataTable(server=FALSE,{
       #     datatable(
       #       table_gen2_only,
       #       rownames = F,
       #       extensions = 'Buttons',
       #       options = list(
       #         dom = 'Bfrtip',
-      #         buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #         buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
       #         scrollX = TRUE
       #       )
       #     ) %>% formatStyle(

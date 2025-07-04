@@ -598,14 +598,14 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
 
           # 6. Render tables in the server
 
-          output$table_gen1_only <- renderDataTable({
+          output$table_gen1_only <- renderDataTable(server=FALSE,{
             datatable(
               table_gen1_only,
               rownames = F,
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE
               )
             )  %>% formatStyle(
@@ -616,14 +616,14 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
 
           })
 
-          output$table_intersection <- renderDataTable({
+          output$table_intersection <- renderDataTable(server=FALSE,{
             datatable(
               table_intersection,
               rownames = F,
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE
               )
             ) %>% formatStyle(
@@ -634,14 +634,14 @@ jaccard_comparison_ui_generator <- function(gene_1,gene_2){
 
           })
 
-          output$table_gen2_only <- renderDataTable({
+          output$table_gen2_only <- renderDataTable(server=FALSE,{
             datatable(
               table_gen2_only,
               rownames = F,
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE
               )
             ) %>% formatStyle(
@@ -1717,7 +1717,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
-                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                  buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
         formatStyle(
@@ -1751,7 +1751,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
     #             options = list(
     #               pageLength = 15, 
     #               autoWidth = TRUE,
-    #               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    #               buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
     #               scrollX = TRUE ),
     #             rownames = FALSE)%>%
     #     formatStyle(
@@ -1829,7 +1829,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
-                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                  buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
         formatStyle(
@@ -2571,7 +2571,7 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
               options = list(
                 pageLength = 15, 
                 autoWidth = TRUE,
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE ),
               rownames = FALSE)%>%
       formatStyle(
