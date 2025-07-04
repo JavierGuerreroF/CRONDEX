@@ -26,6 +26,7 @@ install.packages(c("UpSetR",
                    "tidyverse",
                    "DT", 
                    "shinyWidgets",
-                   "shinydashboard", 
+                   "shinydashboard",
+                   "R.utils",
                    "shiny",
                    "shinyjs"))
