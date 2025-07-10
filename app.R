@@ -2833,8 +2833,18 @@ server <- function(input, output, session) {
               export.label = NULL,
               value.label = NULL
             ) %>%
-            generateDistinctIntersections() %>%
-            interactiveChart()  # Gráfico interactivo
+            ##  ELIGE **UNO** DE LOS SIGUIENTES -----------------
+          generateIntersections(
+            min    = 2,          # mínimo nº de sets en la combinación
+            # max    = 4,          # máximo nº de sets
+            empty  = FALSE,      # mostrar (o no) intersecciones vacías
+            order.by = "degree", # "cardinality", "degree" o "name"
+            # limit  = 20          # mostrar solo las N más grandes
+          )  %>%         # modo inclusivo
+          # generateDistinctIntersections()   %>%# modo exclusivo
+          # generateUnions()  %>%                # uniones
+          ## --------------------------------------------------
+          interactiveChart()  # Gráfico interactivo
         })
         
         
