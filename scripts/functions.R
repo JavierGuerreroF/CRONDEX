@@ -1593,9 +1593,22 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   
   # hp_logical <- any(grepl("HP", data_df$Value))
   
+  # ─────────────────────────────────────────
+  if (nrow(data_df)  > 0 && ncol(data_df) > 1) {
+    # cat("\033[32m", "Hay filas y columnas suficientes para unir", "\033[0m\n")
+  } else {
+    # cat("\033[31m", "No hay filas o columnas suficientes para unir", "\033[0m\n")
+    # Mantener estructura consistente aunque no haya datos que unir
+    data_df <- data.frame(
+      Gene = c("Gene_1","Gene_2"),# columna 'entry' vacía
+      Value = c("No data for these genes","No data for these genes")
+    )
+  }
   
 
   print(str(data_df))
+
+  
   transform_to_matrix <- function(df) {
     # Crear una tabla cruzada con Disease + Value como filas y Gene como columnas
     binary_matrix <- table(df$Value, df$Gene)
@@ -1611,11 +1624,47 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   }
   
   
+
+  
   binary_matrix <- transform_to_matrix(data_df)
-  cat("\033[33m","Estructura de la tabla binary_matrix","\033[0m\n")
+  
+  cat("\033[33m", "Estructura de la tabla binary_matrix", "\033[0m\n")
   print(str(binary_matrix))
-  data_with_intersection <- binary_matrix %>%
-    unite(col = "intersection", -c("entry"), sep = "")
+  
+  # ─────────────────────────────────────────
+  # 1. Comprobar que haya filas  y ≥ 2 columnas
+  #    (entry + al menos otra). Si no, se crea
+  #    la columna 'intersection' vacía para
+  #    evitar el fallo en tidyr::unite().
+  # ─────────────────────────────────────────
+  if (nrow(binary_matrix)  > 0 &&
+      ncol(binary_matrix) > 1) {
+    # cat("\033[32m", "Hay filas y columnas suficientes para unir", "\033[0m\n")
+    data_with_intersection <- binary_matrix %>% 
+      unite(
+        col    = "intersection",   # nombre de la nueva columna
+        -entry,                    # todas excepto 'entry'
+        sep    = "",               # sin separador
+        remove = FALSE             # conserva las columnas originales
+      )
+    
+  } else {
+    # cat("\033[31m", "No hay filas o columnas suficientes para unir", "\033[0m\n")
+    # Mantener estructura consistente aunque no haya datos que unir
+    data_with_intersection <- data.frame(
+      entry = character(0),       # columna 'entry' vacía
+      intersection = character(0)
+    )
+  }
+  
+
+  # A partir de aquí puedes continuar tu flujo normal
+  cat("\033[33m", "Estructura de la tabla data_with_intersection", "\033[0m\n")
+  print(str(data_with_intersection))  
+  # 
+  # data_with_intersection <- binary_matrix %>%
+  #   unite(col = "intersection", -c("entry"), sep = "")
+  
   data_with_intersection <- data_with_intersection[order(data_with_intersection$intersection,decreasing = T),]
   data_with_intersection$ones_count <- sapply(data_with_intersection$intersection, function(x) sum(strsplit(x, "")[[1]] == "1"))
   data_with_intersection <- data_with_intersection[order(data_with_intersection$ones_count,decreasing = T),]

@@ -223,7 +223,6 @@ ui_dash <- dashboardPage(
     sidebar_menu_ui
   ),
   dashboardBody(
-  
     shinyjs::useShinyjs(),
     withMathJax(),  # Activa MathJax en la UI
     tags$script(HTML("
@@ -2999,8 +2998,19 @@ server <- function(input, output, session) {
  output$genes_in_intersection_table_big <- renderDataTable(server=FALSE,{
    datatable(
      tables$genes_in_intersection_table_big,
-     rownames = F
+     filter = "top",
+     rownames = F,
+     extensions = 'Buttons',
+     options = list(
+       dom = 'Bfrtip',
+       buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
+       scrollX = TRUE
+     )
+    
    )
+   
+   
+
  })
  #
  
