@@ -1585,12 +1585,17 @@ comparison_ui_generator <- function(data_list, output, diseases_color,term_to_co
 ## CATEGORICAL GENES
 
 comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
+  cat("\n\n\n\n\n\033[34m","Ejecutando la función 'comparison_ui_generator_CATEGORICAL_genes'","\033[0m\n")
   df_name <- deparse(substitute(data_df))
   print("CATEGORICAL")  
   # escribe un cata de colorines que difa el nombre del df
   cat("\033[36m","df_name: ", df_name,"\033[0m\n")
   
+  # hp_logical <- any(grepl("HP", data_df$Value))
   
+  
+
+  print(str(data_df))
   transform_to_matrix <- function(df) {
     # Crear una tabla cruzada con Disease + Value como filas y Gene como columnas
     binary_matrix <- table(df$Value, df$Gene)
@@ -1607,7 +1612,8 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   
   
   binary_matrix <- transform_to_matrix(data_df)
-  
+  cat("\033[33m","Estructura de la tabla binary_matrix","\033[0m\n")
+  print(str(binary_matrix))
   data_with_intersection <- binary_matrix %>%
     unite(col = "intersection", -c("entry"), sep = "")
   data_with_intersection <- data_with_intersection[order(data_with_intersection$intersection,decreasing = T),]
@@ -1624,44 +1630,162 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
   # print(grepl("HP", data_df_result$entry))
   # print(any(grepl("HP", data_df_result$entry)))
   # # Comprobar si hay valores que contienen "HP" en la columna Value
-  print(str(data_df_result))
   
+  
+  
+  
+
+  cat("\033[33m","Estructura de la tabla data_df_result","\033[0m\n")
+  print(str(data_df_result))
+
+  
+  # ORI START
+  # hp_logical <- any(grepl("HP", data_df_result$entry))
+  # go_logical <- any(grepl("GO", data_df_result$entry))
+  # hsa_logical <- any(grepl("hsa", data_df_result$entry))
+  # if(hp_logical){
+  # 
+  #   filtered_df <- all_phenotypes %>% filter(hpo_id %in% data_df_result$entry)
+  #   data_df_result$term <- filtered_df$hpo_name
+  # }else if(go_logical){
+  # 
+  #   filtered_df <- all_gene_ontology %>% filter(go_id %in% data_df_result$entry)
+  #   cat(" \n\n\n\n\n\n\n\n\n\n\n\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n")
+  #   print(str(filtered_df))
+  #   cat("\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n \n\n\n\n\n\n\n\n\n\n\n")
+  # 
+  #   data_df_result$term <- filtered_df$go_term
+  #   data_df_result$subontology <- filtered_df$go_ontology
+  # }else if(hsa_logical){
+  #   filtered_df <- all_pathways %>% filter(kegg_pathway_id %in% data_df_result$entry)
+  #   data_df_result$term <- filtered_df$kegg_name
+  #   cat("\033[33m","Estructura de la tabla filtered_df hsa_logica KEGG CATEGORIAL","\033[0m\n")
+  #   print(str(filtered_df))
+  #   print(head(data_df_result))
+  # }else{
+  # 
+  #   if(df_name == "complexes_table"){
+  #     print(str(all_complexes))
+  #     # complexes
+  #     filtered_df <- all_complexes %>% filter(complex_name %in% data_df_result$entry)
+  #     data_df_result$term <- filtered_df$complex_name
+  #   }else{
+  #     # modificactions
+  #     filtered_df <- all_modifications %>% filter(modification_name %in% data_df_result$entry)
+  #     data_df_result$term <- filtered_df$modification_name
+  # 
+  #   }
+  # }
+  # 
+  
+  ## ORI END
+  
+  
+  ## new
   hp_logical <- any(grepl("HP", data_df_result$entry))
   go_logical <- any(grepl("GO", data_df_result$entry))
   hsa_logical <- any(grepl("hsa", data_df_result$entry))
   if(hp_logical){
 
-    filtered_df <- all_phenotypes %>% filter(hpo_id %in% data_df_result$entry)
-    data_df_result$term <- filtered_df$hpo_name
+    cat("\033[36m","hp_logical: \033[35m", hp_logical,"\033[0m\n")
+   
+
+    ## ── HP ────────────────────────────────────────────────────────────────
+    data_df_result <- data_df_result %>%
+      left_join(
+        all_phenotypes %>% select(hpo_id, hpo_name),
+        by = c("entry" = "hpo_id")
+      ) %>% rename(
+        term = hpo_name
+      )
+    # filtering
+    all_phe_list <- unique(data_df_result$entry)
+    all_phe_list_filtered <- all_phe_list[all_phe_list %in% phenotypic_abnormality_subtree_db$ID  ]
+    # FILTER DATA_DF
+    data_df_result <- data_df_result %>%
+      filter(entry %in% all_phe_list_filtered)
+
+
+
+
+    
   }else if(go_logical){
 
-    filtered_df <- all_gene_ontology %>% filter(go_id %in% data_df_result$entry)
-    cat(" \n\n\n\n\n\n\n\n\n\n\n\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n")
-    print(str(filtered_df))
-    cat("\033[33m","Estructura de la tabla filtered_df GO CATEGORIAL","\033[0m\n \n\n\n\n\n\n\n\n\n\n\n")
     
-    data_df_result$term <- filtered_df$go_term
-    data_df_result$subontology <- filtered_df$go_ontology
-  }else if(hsa_logical){
-    filtered_df <- all_pathways %>% filter(kegg_pathway_id %in% data_df_result$entry)
-    data_df_result$term <- filtered_df$kegg_name
-    cat("\033[33m","Estructura de la tabla filtered_df hsa_logica KEGG CATEGORIAL","\033[0m\n")
-    print(str(filtered_df))
-    print(head(data_df_result))
-  }else{
+    cat("\033[36m","go_logical: \033[35m", go_logical,"\033[0m\n")
 
+    ## ── GO ────────────────────────────────────────────────────────────────
+    data_df_result <- data_df_result %>%
+      left_join(
+        all_gene_ontology %>% select(go_id, go_term, go_ontology),
+        by = c("entry" = "go_id")
+      )
+
+
+    
+    data_df_result <- data_df_result %>%
+      rename(
+        term = go_term,
+        subontology = go_ontology
+      )
+
+  }else if(hsa_logical){
+
+
+    cat("\033[36m","hsa_logical: \033[35m", hsa_logical,"\033[0m\n")
+    ## ── KEGG (hsa_) ───────────────────────────────────────────────────────
+    data_df_result <- data_df_result %>%
+      left_join(
+        all_pathways %>% select(kegg_pathway_id, kegg_name),
+        by = c("entry" = "kegg_pathway_id")
+      )
+    data_df_result <- data_df_result %>%
+      rename(
+        term = kegg_name
+      )
+
+  }else{
+    
     if(df_name == "complexes_table"){
-      print(str(all_complexes))
-      # complexes
-      filtered_df <- all_complexes %>% filter(complex_name %in% data_df_result$entry)
-      data_df_result$term <- filtered_df$complex_name
+    
+      data_df_result$term <- data_df_result$entry
+      # cat("\033[33m","Estructura de la tabla all_complexes","\033[0m\n")
+      # print(str(all_complexes))
+      # # complexes
+      # cat("\033[33m","Estructura de la tabla data_df_result COMPLEXES CATEGORIAL","\033[0m\n")
+      # print(str(data_df_result))
+      # filtered_df <- all_complexes %>% filter(complex_name %in% data_df_result$entry)
+      # data_df_result$term <- filtered_df$complex_name
+      # cat("\033[33m","Estructura de la tabla data_df_result COMPLEXES CATEGORIAL","\033[0m\n")
+      # print(str(data_df_result))
+
+      
     }else{
       # modificactions
-      filtered_df <- all_modifications %>% filter(modification_name %in% data_df_result$entry)
-      data_df_result$term <- filtered_df$modification_name
-        
-      }
+      # filtered_df <- all_modifications %>% filter(modification_name %in% data_df_result$entry)
+      # cat("\033[33m","Estructura de la tabla filtered_df MODIFICATIONS CATEGORIAL","\033[0m\n")
+      # print(str(data_df_result))
+      # data_df_result$term <- filtered_df$modification_name
+      # cat("\033[33m","Estructura de la tabla data_df_result MODIFICATIONS CATEGORIAL","\033[0m\n")
+      # print(str(data_df_result))
+      # 
+      data_df_result$term <- data_df_result$entry
+      
+      # data_df_result <- data_df_result %>% rename(
+      #   term = entry
+      # )
+    }
+    
+    
+
   }
+  
+  
+  
+  
+  
+  
+  
   cat("\033[33m","Estructura de la tabla data_df_result","\033[0m\n")
   print(str(data_df_result)) 
   
@@ -1717,6 +1841,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
+                  dom = 'Bfrtip',
                   buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
@@ -1784,6 +1909,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
         options = list(
           pageLength = 15,
           autoWidth  = TRUE,
+          dom = 'Bfrtip',
           buttons    = c("copy", "csv", "excel", "pdf", "print"),
           scrollX    = TRUE
         ),
@@ -1829,6 +1955,7 @@ comparison_ui_generator_CATEGORICAL_genes <- function(data_df,genes_color){
                 options = list(
                   pageLength = 15, 
                   autoWidth = TRUE,
+                  dom = 'Bfrtip',
                   buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                   scrollX = TRUE ),
                 rownames = FALSE)%>%
@@ -2571,6 +2698,7 @@ comparison_ui_generator_CATEGORICAL <- function(data_df,diseases_color){
               options = list(
                 pageLength = 15, 
                 autoWidth = TRUE,
+                dom = 'Bfrtip',
                 buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
                 scrollX = TRUE ),
               rownames = FALSE)%>%

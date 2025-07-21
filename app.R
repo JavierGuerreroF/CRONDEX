@@ -2262,10 +2262,10 @@ server <- function(input, output, session) {
           annotate("text",
                    x = 0.5, y = 0.5, label = "No data available",
                    size = 6, color = "grey50") +
-          theme_void() +                       # sin ejes ni fondo
+          theme_minimal() +                       # sin ejes ni fondo
           xlim(0, 1) + ylim(0, 1)              # coord. normalizadas
         
-        ggplotly(p_empty) %>%                  # quitar ejes en plotly también
+        ggplotly(tissue_expression_plot) %>%                  # quitar ejes en plotly también
           layout(xaxis = list(visible = FALSE),
                  yaxis = list(visible = FALSE))
       }
@@ -2691,6 +2691,7 @@ server <- function(input, output, session) {
         # }
         
         
+        
       
       vals$all_sets <- all_sets
       cat("\033[35m\n\n<<------ALL SETS\033[0m\n")
@@ -2758,14 +2759,38 @@ server <- function(input, output, session) {
         
         start_time <- Sys.time()
         
+        if(!is.null(input$euler_plot_legend | 
+           input$euler_plot_labels | 
+           input$euler_plot_counts | 
+           input$euler_plot_percent)){
+          
+          euler_plot_legend_input <- input$euler_plot_legend
+          euler_plot_labels <- input$euler_plot_labels
+          euler_plot_counts <- input$euler_plot_counts
+          euler_plot_percent <- input$euler_plot_percent
+          
+          
+          
+          
+        }else{
+          euler_plot_legend_input <- F
+          euler_plot_labels <- F
+          euler_plot_counts <- T
+          euler_plot_percent <- F
+          
+          
+        }
+     
+        
+       
         # withTimeout interrumpe la llamada si dura más de MAX_SECONDS
         euler_plot <- withTimeout({
           plot_euler(
             all_sets,
-            input$euler_plot_legend,
-            input$euler_plot_labels,
-            input$euler_plot_counts,
-            input$euler_plot_percent
+            euler_plot_legend_input,
+            euler_plot_labels,
+            euler_plot_counts,
+            euler_plot_percent
           )
         }, timeout = MAX_SECONDS, onTimeout = "silent")  # "silent" evita error en pantalla
         
@@ -2915,9 +2940,77 @@ server <- function(input, output, session) {
 
 
     
-    
+        if(!is.null(vals$all_sets) | !length(vals$all_sets) == 0){
+          
+          
+          cat("\033[35m\n\n<<------INTERSECT OBSERVER\033[0m\n")
+          cat("\033[35m\n\nALL SETS IN INTERSECT OBSERVER\033[0m\n")
+          print(str(vals$all_sets))
+          
+          if(length(vals$all_sets) == 1){
+            genes_in_intersection <- vals$all_sets[[1]]
+            intersection_message <- h2(HTML(paste0("Only one set selected: <b><em>", length(genes_in_intersection),"</b></em>. Genes in set :<b>", length(genes_in_intersection),"</b>")))
+            
+          }else{
+            genes_in_intersection <- Reduce(intersect, vals$all_sets)
+            intersection_message <- h2(HTML(paste0("Genes in intersection: <b>", length(genes_in_intersection),"</b>")))
+          }
+          cat("\033[35m\n\nGENES IN INTERSECTION\033[0m\n")
+          genes_in_intersection <- as.character(genes_in_intersection)
+          print(str(genes_in_intersection))
+          
+          if(is.null(genes_in_intersection) | length(genes_in_intersection) == 0){
+            intersection_message <- h2( HTML("No genes in this intersection. Please click on <em>'Show Deeper Analysis'</em>"))
+          }
+          
+          tables$genes_in_intersection_table_big <- genes_list_df[genes_list_df$ncbi_gene_id %in% genes_in_intersection,]
+          
+          proteins_in_intersection_ui <- tagList(
+            fluidRow(
+              align = "left",
+              column(12,
+                     intersection_message
+              )
+            ),
+            fluidRow(
+              align = "center",
+              column(12,
+                     dataTableOutput("genes_in_intersection_table_big")
+              )
+              
+              
+            )
+            
+          )
+          
+          vals$proteins_in_intersection_ui <- proteins_in_intersection_ui
+          
+        }else{
+          vals$proteins_in_intersection_ui <- tagList()
+          tables$genes_in_intersection_table <- data.frame()
+        }
     
   })
+ 
+ 
+
+
+ 
+ output$genes_in_intersection_table_big <- renderDataTable(server=FALSE,{
+   datatable(
+     tables$genes_in_intersection_table_big,
+     rownames = F
+   )
+ })
+ #
+ 
+ output$proteins_in_intersection_ui <- renderUI({
+   vals$proteins_in_intersection_ui
+ })
+ 
+ 
+ 
+ 
  
  # euler plot UI output
  
@@ -4609,8 +4702,12 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
          if(vals$database_size > 1) {
            
            
+           
+           
+           
+           
            # MULTIPLE PROTEINS
-           box(title = "Multiple proteins",
+           box(title = "Proteins in intersection",
                width = 12,
                solidHeader = FALSE,
                collapsible = FALSE,
@@ -4618,58 +4715,47 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
                # PROTEIN LIST
                fluidRow(
                  # align = "center",
-                 column(2,
-                        div(
-                          style = "margin: 10px;",  # Ajusta el valor según necesites
-                          h2(paste0(length(vals$proteins_list))),
-                          p(" Proteins selected")
-                        ),
-                 ),
-                 column(2,
-                        div(
-                          style = "margin: 10px;",
-                          actionBttn(
-                            inputId = "show_genes_list_modal",
-                            label = "Show genes list",
-                            style = "bordered",
-                            color = "primary",
-                            # icon = icon("sliders")
-                          )
-                          # Ajusta el valor según necesites
+                 column(12,
+                        uiOutput("proteins_in_intersection_ui")
+                 )
+               
+               ),
+               hr(),
+               fluidRow(
+                 align = "center",
+                 column(12,
+                        switchInput(
+                          inputId = "show_plots",
+                          label = "Show Deeper Analysis", 
+                          onLabel = "ON", 
+                          offLabel = "OFF",
+                          size = "large",
+                          labelWidth  = "300px",
+                          value = FALSE
                         )
                         
-                 ),
-                 column(width = 8,
-                        # h2("Protein information"),
-                        fluidRow(
-                          align = "left",
-                          div(
-                            style = "margin: 10px;",  # Ajusta el valor según necesites
-                            h3(vals$selected_proteins_list_text)
+                        )
+               ),
+             
+               
+               conditionalPanel(
+                 condition = "input.show_plots == true",
+                 fluidRow(
+                   column(12,
+                          shinycssloaders::withSpinner(
+                            # uiOutput("rendered_interactive_plots"),
+                            uiOutput("intersection_search_ui"),
+                            type = 6, color = "#f39c12", size = 1
                           )
                           
-                        )
-                        
+                   )
+                   
+                   
+                   
                  )
-               ),
-               
-               
-               
-               hr(),
-           
-               fluidRow(
-                 column(12,
-                        shinycssloaders::withSpinner(
-                          # uiOutput("rendered_interactive_plots"),
-                          uiOutput("intersection_search_ui"),
-                          type = 6, color = "#f39c12", size = 1
-                        )
-                        
-                 )
-                 
-                 
                  
                )
+               
                
                # subset selection
                
@@ -4680,6 +4766,79 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
                
                # Aquí puedes añadir más contenido para múltiples proteínas
            )
+           
+           
+           # MULTIPLE PROTEINS ( OLD UI )
+           # box(title = "Multiple proteins",
+           #     width = 12,
+           #     solidHeader = FALSE,
+           #     collapsible = FALSE,
+           #     
+           #     # PROTEIN LIST
+           #     fluidRow(
+           #       # align = "center",
+           #       column(2,
+           #              div(
+           #                style = "margin: 10px;",  # Ajusta el valor según necesites
+           #                h2(paste0(length(vals$proteins_list))),
+           #                p(" Proteins selected")
+           #              ),
+           #       ),
+           #       column(2,
+           #              div(
+           #                style = "margin: 10px;",
+           #                actionBttn(
+           #                  inputId = "show_genes_list_modal",
+           #                  label = "Show genes list",
+           #                  style = "bordered",
+           #                  color = "primary",
+           #                  # icon = icon("sliders")
+           #                )
+           #                # Ajusta el valor según necesites
+           #              )
+           #              
+           #       ),
+           #       column(width = 8,
+           #              # h2("Protein information"),
+           #              fluidRow(
+           #                align = "left",
+           #                div(
+           #                  style = "margin: 10px;",  # Ajusta el valor según necesites
+           #                  h3(vals$selected_proteins_list_text)
+           #                )
+           #                
+           #              )
+           #              
+           #       )
+           #     ),
+           #     
+           #     
+           #     
+           #     hr(),
+           # 
+           #     fluidRow(
+           #       column(12,
+           #              shinycssloaders::withSpinner(
+           #                # uiOutput("rendered_interactive_plots"),
+           #                uiOutput("intersection_search_ui"),
+           #                type = 6, color = "#f39c12", size = 1
+           #              )
+           #              
+           #       )
+           #       
+           #       
+           #       
+           #     )
+           #     
+           #     # subset selection
+           #     
+           #     
+           #     
+           #     
+           #     
+           #     
+           #     # Aquí puedes añadir más contenido para múltiples proteínas
+           # )
          }else{
            
            
@@ -4878,51 +5037,53 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
                      fluidRow(
                        align = "left",
                        # h3("Euler plot"),
-                       fluidRow(
-                         # align = "center",
-                         column(3,
-                                materialSwitch(
-                                  inputId = "euler_plot_labels",
-                                  label = "labels",
-                                  status = "info",
-                                  value = F
-                                )
-                         ),
-                         column(3,
-                                materialSwitch(
-                                  inputId = "euler_plot_legend",
-                                  label = "legend",
-                                  status = "info",
-                                  value = T
-                                )
-                         ),
-                         column(3,
-                                materialSwitch(
-                                  inputId = "euler_plot_counts",
-                                  label = "counts",
-                                  status = "info",
-                                  value = T
-                                )
-                         ),
-                         column(3,
-                                materialSwitch(
-                                  inputId = "euler_plot_percent",
-                                  label = "percent",
-                                  status = "info",
-                                  value = F
-                                )
-                         ),
-                         
-                         # column(1,
-                         #        numericInput(
-                         #          inputId = "euler_plot_trunc",
-                         #          label = "truncate",
-                         #          value = 20,
-                         #        )
+                       
+                         # fluidRow(
+                         #   # align = "center",
+                         #   column(3,
+                         #          materialSwitch(
+                         #            inputId = "euler_plot_labels",
+                         #            label = "labels",
+                         #            status = "info",
+                         #            value = F
+                         #          )
+                         #   ),
+                         #   column(3,
+                         #          materialSwitch(
+                         #            inputId = "euler_plot_legend",
+                         #            label = "legend",
+                         #            status = "info",
+                         #            value = T
+                         #          )
+                         #   ),
+                         #   column(3,
+                         #          materialSwitch(
+                         #            inputId = "euler_plot_counts",
+                         #            label = "counts",
+                         #            status = "info",
+                         #            value = T
+                         #          )
+                         #   ),
+                         #   column(3,
+                         #          materialSwitch(
+                         #            inputId = "euler_plot_percent",
+                         #            label = "percent",
+                         #            status = "info",
+                         #            value = F
+                         #          )
+                         #   ),
+                         #   
+                         #   # column(1,
+                         #   #        numericInput(
+                         #   #          inputId = "euler_plot_trunc",
+                         #   #          label = "truncate",
+                         #   #          value = 20,
+                         #   #        )
+                         #   # ),
+                         #   
+                         #   
                          # ),
-                         
-                         
-                       ),
+                       
                        column(12,
                               uiOutput("euler_plot_ui")
                               # plotOutput("euler_plot")
