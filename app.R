@@ -2948,7 +2948,7 @@ server <- function(input, output, session) {
           
           if(length(vals$all_sets) == 1){
             genes_in_intersection <- vals$all_sets[[1]]
-            intersection_message <- h2(HTML(paste0("Only one set selected: <b><em>", length(genes_in_intersection),"</b></em>. Genes in set :<b>", length(genes_in_intersection),"</b>")))
+            intersection_message <- h2(HTML(paste0("Only one set selected: <b><em>", names(vals$all_sets),"</b></em>. Genes in set :<b>", length(genes_in_intersection),"</b>")))
             
           }else{
             genes_in_intersection <- Reduce(intersect, vals$all_sets)
@@ -2994,26 +2994,23 @@ server <- function(input, output, session) {
  
 
 
- 
- output$genes_in_intersection_table_big <- renderDataTable(server=FALSE,{
+ output$genes_in_intersection_table_big <- renderDataTable(server = FALSE, {
    datatable(
      tables$genes_in_intersection_table_big,
      filter = "top",
-     rownames = F,
+     rownames = FALSE,
      extensions = 'Buttons',
      options = list(
-       dom = 'Bfrtip',
-       buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
-       scrollX = TRUE
+       dom = 'Blfrtip',        # <-- añade 'l' para el selector de filas por página
+       buttons = btns_all_pages,
+       scrollX = TRUE,
+       lengthChange = TRUE,    # (por defecto TRUE, lo dejo explícito)
+       pageLength = 10         # filas iniciales por página
      )
-    
    )
-   
-   
-
  })
- #
  
+
  output$proteins_in_intersection_ui <- renderUI({
    vals$proteins_in_intersection_ui
  })

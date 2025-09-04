@@ -3783,27 +3783,45 @@ join_df_from_name_freqs <- function(list_input, selected_names, field) {
 
   # Extract the specified field from each selected element
   extracted_fields <- lapply(selected_elements, function(x) x[[field]])
-
+  cat("\033[33m", "Extracted fields:", "\033[0m\n")
+print(str(extracted_fields))
   # Check if any of the extracted elements is a data frame
   has_dataframes <- any(sapply(extracted_fields, is.data.frame))
 
   if (has_dataframes) {
     # Combine all data frames into one
     combined_df <- do.call(rbind, extracted_fields)
-
+    
     # Assume only one column is relevant
     colname <- colnames(combined_df)[1]
 
     # Calculate frequencies
     freq <- as.data.frame(table(combined_df[[colname]]))
-    colnames(freq) <- c(colname, "Freq")
-
-    # Get unique rows to merge with frequencies
-    unique_df <- unique(combined_df)
-
-    # Merge and sort by frequency
-    final_result <- merge(unique_df, freq, by = colname, all.x = TRUE)
-    final_result <- final_result[order(final_result$Freq, decreasing = TRUE), ]
+    # cat en verde ERROR en join...
+    cat("\033[32m", "Frequencies calculated for column: ERRROR\033[0m\n")
+    print(str(combined_df))
+    print(str(freq))
+    print(str(colname))
+    if(nrow(combined_df) == 0){
+      final_result <- data.frame(
+        value = "no data",
+        Freq  = 0L,               # 0L para mantener tipo integer
+        stringsAsFactors = FALSE
+      )
+    }else{
+      colnames(freq) <- c(colname, "Freq")
+      
+      # Get unique rows to merge with frequencies
+      unique_df <- unique(combined_df)
+      
+      # Merge and sort by frequency
+      final_result <- merge(unique_df, freq, by = colname, all.x = TRUE)
+      final_result <- final_result[order(final_result$Freq, decreasing = TRUE), ]
+ 
+    }
+    cat("\033[32m", "Final result with frequencies for data frames:\033[0m\n")
+    print(str(final_result)) 
+  
   } else {
     # Combine all vectors into one
     combined_vec <- unlist(extracted_fields)

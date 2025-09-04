@@ -143,7 +143,7 @@
         "Package": "BiocManager",
         "Title": "Access the Bioconductor Project Package Repository",
         "Description": "A convenient tool to install and update Bioconductor packages.",
-        "Version": "1.30.25",
+        "Version": "1.30.26",
         "Authors@R": "c(\n    person(\"Martin\", \"Morgan\", email = \"martin.morgan@roswellpark.org\",\n        role = \"aut\", comment = c(ORCID = \"0000-0002-5874-8148\")),\n    person(\"Marcel\", \"Ramos\", email = \"marcel.ramos@sph.cuny.edu\",\n        role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-3242-0582\")))",
         "Imports": "utils",
         "Suggests": "BiocVersion, BiocStyle, remotes, rmarkdown, testthat, withr,\ncurl, knitr",
@@ -152,14 +152,21 @@
         "VignetteBuilder": "knitr",
         "License": "Artistic-2.0",
         "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.1",
+        "RoxygenNote": "7.3.2",
         "NeedsCompilation": "no",
-        "Packaged": "2024-08-27 21:44:40 UTC; mr148",
-        "Author": "Martin Morgan [aut] (<https://orcid.org/0000-0002-5874-8148>),\n  Marcel Ramos [aut, cre] (<https://orcid.org/0000-0002-3242-0582>)",
+        "Packaged": "2025-06-05 20:17:54 UTC; mramos",
+        "Author": "Martin Morgan [aut] (ORCID: <https://orcid.org/0000-0002-5874-8148>),\n  Marcel Ramos [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-3242-0582>)",
         "Maintainer": "Marcel Ramos <marcel.ramos@sph.cuny.edu>",
         "Repository": "CRAN",
-        "Date/Publication": "2024-08-28 14:20:02 UTC",
-        "Built": "R 4.4.1; ; 2025-01-24 20:19:40 UTC; unix"
+        "Date/Publication": "2025-06-05 21:30:02 UTC",
+        "Built": "R 4.4.1; ; 2025-06-05 21:44:45 UTC; unix",
+        "RemoteType": "standard",
+        "RemotePkgRef": "BiocManager",
+        "RemoteRef": "BiocManager",
+        "RemoteRepos": "https://cran.rstudio.com",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "aarch64-apple-darwin20",
+        "RemoteSha": "1.30.26"
       }
     },
     "BiocVersion": {
@@ -5033,10 +5040,16 @@
   },
   "files": {
     ".RData": {
-      "checksum": "0268ef71716fc87b46cad929e6de327a"
+      "checksum": "61a30e4814809a572390ac50684a8049"
+    },
+    ".Rprofile": {
+      "checksum": "1c4201c5963ec446d7669af338058d9c"
+    },
+    ".rscignore.txt": {
+      "checksum": "af0e346d13aa4ce2a31c921686209762"
     },
     "app.R": {
-      "checksum": "4939ab4b750d02bce6b560dc0ca6da4c"
+      "checksum": "1a6830931bcbfbcc3c213d81ead689d6"
     },
     "data/.DS_Store": {
       "checksum": "48918be72cc9ab965f988b62ee3e8c96"
@@ -5132,10 +5145,10 @@
       "checksum": "f867c57e7adfd53bc7ab4793c7e06a5f"
     },
     "scripts/.DS_Store": {
-      "checksum": "e5e5ead5b794fcdc729925252da056de"
+      "checksum": "56693247d55bd832f1dba9b8bb0dc33e"
     },
     "scripts/functions.R": {
-      "checksum": "a6c0711550b1f3b8b577ccdcde5e306b"
+      "checksum": "d4c12d1d6b5db8f293329100e4a56973"
     },
     "scripts/modules/interactive_euler.R": {
       "checksum": "8139fd2cae9f77a092c56b6d372fb757"
