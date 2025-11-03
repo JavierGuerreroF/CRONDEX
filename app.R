@@ -9578,42 +9578,109 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       
       
       
-      output$network_datatable <- renderDataTable(server=FALSE,{
+      # output$network_datatable <- renderDataTable(server=FALSE,{
+      #   
+      #   # reordenar por la collumna Jaccard con el sort
+      # 
+      #   network_data_to_DT_renamed <- network_data_to_DT %>%
+      #     rename(`distance (Jaccard)` = Jaccard)
+      # 
+      #   network_data_to_DT_renamed <- network_data_to_DT %>% 
+      #     arrange(desc(Jaccard))  #
+      #   
+      #   if(is.null(input$selected_gene_network) || input$selected_gene_network == "full_net"){
+      #     print("CASO 1")
+      #   }else{
+      #     print("CASO 2")
+      #     target <- input$selected_gene_network          # gen elegido
+      #     
+      #     print(str(network_data_to_DT_renamed))
+      #     
+      #     
+      #     
+      #     target_id <- input$selected_gene_network   # gen elegido por el usuario
+      #     target <- genes_database[[as.character(target_id)]]$gene_symbol
+      # 
+      #     row_with_target_second <- network_data_to_DT_renamed$`Gene 2 symbol` == target
+      #     network_data_to_DT_renamed$row_with_target_second <- row_with_target_second
+      #     # swap this rows 1 a 2 
+      #     network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
+      #       mutate(`Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
+      #              `Gene 2` = ifelse(row_with_target_second, `Gene 1`, `Gene 2`)) %>%
+      #       select(-row_with_target_second)
+      #     
+      # 
+      #     
+      #     
+      #     print(str(network_data_to_DT_renamed))
+      #     network_data_to_DT_renamed <- network_data_to_DT_renamed %>% select(Jaccard, `Gene 2 symbol`, `Gene 2`)
+      #   }
+      #   
+      #   cat("\033[32m\n\nnetwork_data_to_DT_renamed------>\033[0m\n")
+      #   print(str(network_data_to_DT_renamed))
+      #   
+      #   datatable(
+      #     network_data_to_DT_renamed,
+      #     rownames = F,
+      #     extensions = 'Buttons',
+      #     selection = "single",
+      #     options = list(
+      #       dom = 'Bfrtip',
+      #       buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
+      #       scrollX = TRUE,
+      #       pageLength = 100
+      #     )
+      #   )%>% formatStyle('Jaccard',
+      #                    background = styleColorBar(dplyr::select(network_data_to_DT_renamed,Jaccard), '#99c0ff',angle=-90),
+      #                    backgroundSize = '98% 88%',
+      #                    backgroundRepeat = 'no-repeat',
+      #                    backgroundPosition = 'center') %>%
+      #    formatSignif(columns = c("Jaccard"), digits = 3)
+      # 
+      # })
+      
+      
+      output$network_datatable <- renderDataTable(server = FALSE, {
         
-        # reordenar por la collumna Jaccard con el sort
-
+        # Ordenar por Jaccard (manteniendo el nombre "Jaccard" para el formatStyle)
         network_data_to_DT_renamed <- network_data_to_DT %>%
-          rename(`distance (Jaccard)` = Jaccard)
-
-        network_data_to_DT_renamed <- network_data_to_DT %>% 
-          arrange(desc(Jaccard))  #
+          dplyr::arrange(dplyr::desc(Jaccard))
         
-        if(is.null(input$selected_gene_network) || input$selected_gene_network == "full_net"){
+        if (is.null(input$selected_gene_network) || input$selected_gene_network == "full_net") {
+          # ---- CASO 1 ----
           print("CASO 1")
-        }else{
+          
+          # Renombrar columnas 4 y 5 → "Gene 1 NCBI ID" y "Gene 2 NCBI ID"
+          if (ncol(network_data_to_DT_renamed) >= 5) {
+            colnames(network_data_to_DT_renamed)[4:5] <- c("Gene 1 NCBI ID", "Gene 2 NCBI ID")
+          }
+          
+        } else {
+          # ---- CASO 2 ----
           print("CASO 2")
-          target <- input$selected_gene_network          # gen elegido
           
-          print(str(network_data_to_DT_renamed))
-          
-          
-          
-          target_id <- input$selected_gene_network   # gen elegido por el usuario
+          target_id <- input$selected_gene_network
           target <- genes_database[[as.character(target_id)]]$gene_symbol
-
+          
+          # Si el target aparece en "Gene 2 symbol", intercambiamos columnas para que quede en "Gene 2"
           row_with_target_second <- network_data_to_DT_renamed$`Gene 2 symbol` == target
           network_data_to_DT_renamed$row_with_target_second <- row_with_target_second
-          # swap this rows 1 a 2 
+          
           network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
-            mutate(`Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
-                   `Gene 2` = ifelse(row_with_target_second, `Gene 1`, `Gene 2`)) %>%
-            select(-row_with_target_second)
+            dplyr::mutate(
+              `Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
+              `Gene 2`        = ifelse(row_with_target_second, `Gene 1`,        `Gene 2`)
+            ) %>%
+            dplyr::select(-row_with_target_second)
           
-  
+          # Nos quedamos con 3 columnas (Jaccard, símbolo y NCBI del gene "2")
+          network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
+            dplyr::select(Jaccard, `Gene 2 symbol`, `Gene 2`)
           
-          
-          print(str(network_data_to_DT_renamed))
-          network_data_to_DT_renamed <- network_data_to_DT_renamed %>% select(Jaccard, `Gene 2 symbol`, `Gene 2`)
+          # Renombrar columnas 2 y 3 → "Gene symbol" y "Gene NCB ID"
+          if (ncol(network_data_to_DT_renamed) >= 3) {
+            colnames(network_data_to_DT_renamed)[2:3] <- c("Gene symbol", "Gene NCB ID")
+          }
         }
         
         cat("\033[32m\n\nnetwork_data_to_DT_renamed------>\033[0m\n")
@@ -9621,22 +9688,24 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
         
         datatable(
           network_data_to_DT_renamed,
-          rownames = F,
+          rownames = FALSE,
           extensions = 'Buttons',
           selection = "single",
           options = list(
             dom = 'Bfrtip',
-            buttons = btns_all_pages,#c('copy', 'csv', 'excel', 'pdf', 'print'),
+            buttons = btns_all_pages,
             scrollX = TRUE,
             pageLength = 100
           )
-        )%>% formatStyle('Jaccard',
-                         background = styleColorBar(dplyr::select(network_data_to_DT_renamed,Jaccard), '#99c0ff',angle=-90),
-                         backgroundSize = '98% 88%',
-                         backgroundRepeat = 'no-repeat',
-                         backgroundPosition = 'center') %>%
-         formatSignif(columns = c("Jaccard"), digits = 3)
-
+        ) %>%
+          formatStyle(
+            'Jaccard',
+            background = styleColorBar(dplyr::select(network_data_to_DT_renamed, Jaccard), '#99c0ff', angle = -90),
+            backgroundSize = '98% 88%',
+            backgroundRepeat = 'no-repeat',
+            backgroundPosition = 'center'
+          ) %>%
+          formatSignif(columns = c("Jaccard"), digits = 3)
       })
       
 

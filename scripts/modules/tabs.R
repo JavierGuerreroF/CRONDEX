@@ -119,14 +119,14 @@ cover_tab_ui <- tagList(
       div(class = "card-row",
           div(class = "card-lg card-blue",   br(),br(),
               div(icon("search"), class = "icon-lg text-blue"),
-              div("Gene of Interest Query", class = "card-title text-blue"),
+              div("Gene-Based Query", class = "card-title text-blue"),
               p("Find genes with similar clinical phenotypes based on a gene of interest.",
                 class = "card-desc"),
               actionButton("btn_gene_query", "Go to Tool", class = "btn-primary")   ,br(),br()
           ),
           div(class = "card-lg card-green",   br(),br(),
               div(icon("sliders"), class = "icon-lg text-green"),
-              div("Criteria-Based Search", class = "card-title text-green"),
+              div("Criteria-Based Query", class = "card-title text-green"),
               p("Retrieve genes based on GO terms, KEGG pathways, and other annotations.",
                 class = "card-desc"),
               actionButton("btn_criteria", "Go to Tool", class = "btn-primary"),br(),br()
