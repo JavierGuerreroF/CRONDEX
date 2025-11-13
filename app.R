@@ -2278,6 +2278,7 @@ server <- function(input, output, session) {
     
     # shiny alerts
     
+    # shinyalert messages genes found
     if(!is.null(text_data())){
       if(is.null(error_message)){
         shinyalert("Success!", "File readed.", type = "success")
@@ -2285,12 +2286,12 @@ server <- function(input, output, session) {
         shinyalert("Oops!", error_message, type = "error")
       }
     }else{
-      if(vals$database_size == 0){
-        shinyalert("Warning", "No matches found the database available.", type = "warning")
-      }else{
-        shinyalert("Success!", paste0("Search performed successfully.<br> <b>",vals$database_size, "</b> genes found."),    html = TRUE, type = "success")
-        
-      }
+      # if(vals$database_size == 0){
+      #   shinyalert("Warning", "No matches found the database available.", type = "warning")
+      # }else{
+      #   shinyalert("Success!", paste0("Search performed successfully.<br> <b>",vals$database_size, "</b> genes found."),    html = TRUE, type = "success")
+      #   
+      # }
       
     }
 
@@ -4848,17 +4849,7 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
            # )
          }else{
            
-           
-           # box(title = NULL,
-           #     width = 12,
-           #     solidHeader = FALSE,
-           #     collapsible = FALSE,
-           #     br(), br(), br(), br(), br(), br(), br(),
-           #     fluidRow(align = "center", h2("Not enough data available")),
-           #     fluidRow(align = "center", h3("Please, perform a search to render the plots")),
-           #     br(), br(), br(), br(), br(), br(), br(),
-           #     
-           # )
+           # criteria based search
            
            box(
              title = NULL,
@@ -4866,51 +4857,176 @@ output$table_phenotypes <- renderDataTable(server = FALSE,{
              solidHeader = FALSE,
              collapsible = FALSE,
              
-             # Spacing for a clean layout
              br(), br(),
              
-             # 📢 Title: Not Enough Data Available
+             ## Header – presentation view
              fluidRow(
                align = "center",
-               column(12,
-                      div(style = "text-align: center;",
-                          tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
-                          h1("Not Enough Data Available", style = "color: #993232; font-size: 2.5em;"),
-                          h3("Please perform a search using the filters in the left sidebar to generate plots.", style = "color: #555;")
-                      )
+               column(
+                 12,
+                 div(
+                   style = "text-align: center;",
+                   
+                   # Central illustration (puedes cambiarla si quieres)
+                   fluidRow(
+                     align = "center",
+                     column(12,
+                            tags$img(
+                              src = "icons/empty_search.svg",
+                              width = "150px",
+                              style = "opacity: 0.9; margin-bottom: 16px;"
+                            )
+                            
+                            )
+                   ),
+                   br(),
+                   # Green panel with icon + tool name
+                   fluidRow(
+                     align = "center",
+                     column(12,
+                            div(
+                              style = paste(
+                                "display: inline-flex; align-items: center; justify-content: center; gap: 12px;",
+                                "background: #16A34A; color: #ffffff;",
+                                "padding: 16px 40px; border-radius: 18px;",        # esquinas suaves, no píldora
+                                "font-size: 1.5em; font-weight: 600;",
+                                "margin: 0 auto 18px;",                            # centrado tipo panel
+                                "border: 1px solid rgba(0,0,0,0.08);",             # borde suave de tarjeta
+                                "box-shadow: none;"                                # sin sombra de botón flotante
+                              ),
+                              icon("sliders-h"),
+                              span("Criteria-Based Query")
+                            )
+                            
+                     )
+                   ),
+                
+                   # Short subtitle
+                   p(
+                     "Use clinical and functional annotations to define a gene set ",
+                     "and explore how different categories overlap across your selection.",
+                     style = "color: #555; font-size: 1.1em;
+                   max-width: 820px; margin: 8px auto 0;"
+                   )
+                 )
                )
              ),
              
              br(),
              
-             # 📌 What This Tab Does
+             ## Very short feature summary
              fluidRow(
-               column(12,
-                      div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
-                          h3("📊 Visualizing Annotation Intersections"),
-                          p("This tab allows you to analyze how different gene annotations intersect, using:"),
-                          tags$ul(
-                            tags$li("🔹 ", tags$strong("UpSet Plots:"), " Show complex intersections between multiple annotation sets (e.g., genes annotated with both GO terms and diseases)."),
-                            tags$li("🔹 ", tags$strong("Euler Diagrams:"), " Provide a Venn-like representation of overlapping categories (e.g., shared pathways among selected genes)."),
-                            tags$li("🔹 ", tags$strong("Custom Filtering:"), " Use the sidebar filters to refine your selection based on gene annotations.")
-                          )
-                      )
+               column(
+                 12,
+                 div(
+                   style = "display: flex; flex-wrap: wrap; justify-content: center;
+                 gap: 18px; max-width: 900px; margin: 0 auto;",
+                   div(
+                     style = "flex: 1 1 220px; background: #f8fffb; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d5f5e3;",
+                     strong("UpSet plots"), br(),
+                     span("Visualize intersections between multiple annotation sets ",
+                          "(e.g., genes sharing phenotypes and diseases).")
+                   ),
+                   div(
+                     style = "flex: 1 1 220px; background: #f8fffb; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d5f5e3;",
+                     strong("Euler diagrams"), br(),
+                     span("Venn-like view of overlapping categories among selected genes.")
+                   ),
+                   div(
+                     style = "flex: 1 1 220px; background: #f8fffb; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d5f5e3;",
+                     strong("Custom filters"), br(),
+                     span("Build your gene set using the sidebar filters on the left.")
+                   )
+                 )
                )
              ),
              
              br(),
              
-             # 🖱️ Button to Guide User to the Sidebar
+             ## Clear instruction + button to highlight sidebar
              fluidRow(
                align = "center",
-               actionButton(
-                 "highlight_sidebar", "🔍 Where to Search?",
-                 style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+               column(
+                 12,
+                 div(
+                   style = "text-align: center; margin-top: 4px;",
+                   p(
+                     "Use the filters in the left sidebar and click ",
+                     tags$b("Perform search"),
+                     " to generate the plots.",
+                     style = "color: #555; font-size: 1em; margin-bottom: 12px;"
+                   ),
+                   actionButton(
+                     "highlight_sidebar",
+                     label = tagList("Show me the filters", icon("arrow-right")),
+                     style = paste(
+                       "background: #16A34A; color: white; font-size: 1.1em;",
+                       "padding: 10px 24px; border-radius: 30px; border: none;"
+                     )
+                   )
+                 )
                )
              ),
              
              br()
            )
+           
+           
+          
+           # box(
+           #   title = NULL,
+           #   width = 12,
+           #   solidHeader = FALSE,
+           #   collapsible = FALSE,
+           #   
+           #   # Spacing for a clean layout
+           #   br(), br(),
+           #   
+           #   # 📢 Title: Not Enough Data Available
+           #   fluidRow(
+           #     align = "center",
+           #     column(12,
+           #            div(style = "text-align: center;",
+           #                tags$img(src = "icons/empty_search.svg", width = "150px", style = "opacity: 0.7;"),
+           #                h1("Not Enough Data Available", style = "color: #993232; font-size: 2.5em;"),
+           #                h3("Please perform a search using the filters in the left sidebar to generate plots.", style = "color: #555;")
+           #            )
+           #     )
+           #   ),
+           #   
+           #   br(),
+           #   
+           #   # 📌 What This Tab Does
+           #   fluidRow(
+           #     column(12,
+           #            div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+           #                h3("📊 Visualizing Annotation Intersections"),
+           #                p("This tab allows you to analyze how different gene annotations intersect, using:"),
+           #                tags$ul(
+           #                  tags$li("🔹 ", tags$strong("UpSet Plots:"), " Show complex intersections between multiple annotation sets (e.g., genes annotated with both GO terms and diseases)."),
+           #                  tags$li("🔹 ", tags$strong("Euler Diagrams:"), " Provide a Venn-like representation of overlapping categories (e.g., shared pathways among selected genes)."),
+           #                  tags$li("🔹 ", tags$strong("Custom Filtering:"), " Use the sidebar filters to refine your selection based on gene annotations.")
+           #                )
+           #            )
+           #     )
+           #   ),
+           #   
+           #   br(),
+           #   
+           #   # 🖱️ Button to Guide User to the Sidebar
+           #   fluidRow(
+           #     align = "center",
+           #     actionButton(
+           #       "highlight_sidebar", "🔍 Where to Search?",
+           #       style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+           #     )
+           #   ),
+           #   
+           #   br()
+           # )
            
          }
        # })
@@ -6455,6 +6571,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     # vamos a comprobar si el bottleneck de tiempo estan en los llapay esto y en lugar de eso vamos a hcer que las choices sean siempre las lsitas entereas de opciones,
     #y no subseteado
  
+    # old tab / deprecated
     output$plots_info <- renderUI({
      
         if(vals$database_size > 1) {
@@ -8928,7 +9045,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                
                actionBttn(
                  inputId = "display_network",
-                 label = "Display network",
+                 label = "Perform search",#"Display network",
                  style = "unite",
                  color = "warning"
                )
@@ -9111,59 +9228,193 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     #                                     br(), br(), br(), br(), br(), br(), br()
     #                                   )
     # 
+    
+    
+    
+    
     vals$network_ui_ouput <- tagList(
       # box(
-      # title = NULL,
-      # width = 12,
-      # solidHeader = FALSE,
-      # collapsible = FALSE,
+      #   title = NULL,
+      #   width = 12,
+      #   solidHeader = FALSE,
+      #   collapsible = FALSE,
+        
+        br(), br(),
+        
+        ## Header – presentation view
+        fluidRow(
+          align = "center",
+          column(
+            12,
+            div(
+              style = "text-align: center;",
+              
+              # Central illustration (cámbialo por tu icono de red si hace falta)
+              fluidRow(
+                align = "center",
+                column(
+                  12,
+                  tags$img(
+                    src = "icons/network_placeholder.svg",   # o el que uses ahora
+                    width = "150px",
+                    style = "opacity: 0.9; margin-bottom: 16px;"
+                  )
+                )
+              ),
+              br(),
+              # Blue panel with icon + tool name
+              fluidRow(
+                align = "center",
+                column(
+                  12,
+                  div(
+                    style = paste(
+                      "display: inline-flex; align-items: center; justify-content: center; gap: 12px;",
+                      "background: #1E6AFF; color: #ffffff;",
+                      "padding: 16px 40px; border-radius: 18px;",
+                      "font-size: 1.5em; font-weight: 600;",
+                      "margin: 0 auto 18px;",
+                      "border: 1px solid rgba(0,0,0,0.08);",
+                      "box-shadow: none;"
+                    ),
+                    icon("project-diagram"),            # cambia el icono si quieres
+                    span("Gene & Phenotype Network")
+                  )
+                )
+              ),
+              
+              # Short subtitle
+              p(
+                "Interactively explore similarity relationships between genes, ",
+                "phenotypes, and diseases in a network view.",
+                style = "color: #555; font-size: 1.1em;
+                   max-width: 820px; margin: 8px auto 0;"
+              )
+            )
+          )
+        ),
+        
+        br(),
+        
+        ## Very short feature summary
+        fluidRow(
+          column(
+            12,
+            div(
+              style = "display: flex; flex-wrap: wrap; justify-content: center;
+                 gap: 18px; max-width: 900px; margin: 0 auto;",
+              
+              div(
+                style = "flex: 1 1 220px; background: #f7f9ff; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d6e4ff;",
+                strong("Gene similarity network"), br(),
+                span("Connects genes based on shared phenotypic annotations.")
+              ),
+              
+              div(
+                style = "flex: 1 1 220px; background: #f7f9ff; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d6e4ff;",
+                strong("Interactive exploration"), br(),
+                span("Click and hover on nodes to inspect related genes and features.")
+              ),
+              
+              div(
+                style = "flex: 1 1 220px; background: #f7f9ff; border-radius: 12px;
+                   padding: 16px 18px; border: 1px solid #d6e4ff;",
+                strong("Filtering & export"), br(),
+                span("Adjust similarity thresholds and download the network for further analysis.")
+              )
+            )
+          )
+        ),
+        
+        br(),
+        
+        ## Clear instruction + helper button
+        fluidRow(
+          align = "center",
+          column(
+            12,
+            div(
+              style = "text-align: center; margin-top: 4px;",
+              p(
+                "Choose a gene or similarity threshold on the left and click ",
+                tags$b("Display Network"),
+                " to generate the graph.",
+                style = "color: #555; font-size: 1em; margin-bottom: 12px;"
+              ),
+              # actionButton(
+              #   "highlight_network_controls",
+              #   label = tagList("Show me the controls", icon("arrow-right")),
+              #   style = paste(
+              #     "background: #1E6AFF; color: white; font-size: 1.1em;",
+              #     "padding: 10px 24px; border-radius: 30px; border: none;"
+              #   )
+              # )
+            )
+          )
+        ),
+        
+        br()
+       # )
       
-      # Spacing for a clean layout
-      br(), br(),
-      
-      # 🌐 Title: Network Not Displayed Yet
-      fluidRow(
-        align = "center",
-        column(12,
-               div(style = "text-align: center;",
-                   tags$img(src = "icons/network_placeholder.svg", width = "180px", style = "opacity: 0.7;"),
-                   h1("Network Not Displayed", style = "color: #993232; font-size: 2.5em;"),
-                   h3("Click on 'Display Network' to generate the graph.", style = "color: #555;")
-               )
-        )
-      ),
-      
-      br(),
-      
-      # 📌 What This Tab Does
-      fluidRow(
-        column(12,
-               div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
-                   h3("🌐 Visualizing Gene & Phenotype Networks"),
-                   p("This tab allows you to explore the relationships between genes, phenotypes, and diseases."),
-                   tags$ul(
-                     tags$li("🔹 ", tags$strong("Gene Similarity Network:"), " Displays genes connected based on shared phenotypic annotations."),
-                     tags$li("🔹 ", tags$strong("Interactive Visualization:"), " Click on nodes to explore related genes."),
-                     tags$li("🔹 ", tags$strong("Filtering Options:"), " Adjust similarity thresholds to refine the network."),
-                     tags$li("🔹 ", tags$strong("Export Options:"), " Download the network graph for further analysis.")
-                   )
-               )
-        )
-      ),
-      
-      br(),
-      
-      # 🖱️ Button to Guide User to Display the Network
-      fluidRow(
-        align = "center",
-        actionButton(
-          "display_network", "🌐 Display Network",
-          style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
-        )
-      ),
-      
-      br()
     )
+    
+    
+    # vals$network_ui_ouput_old <- tagList(
+    #   # box(
+    #   # title = NULL,
+    #   # width = 12,
+    #   # solidHeader = FALSE,
+    #   # collapsible = FALSE,
+    #   
+    #   
+    #   # Spacing for a clean layout
+    #   br(), br(),
+    #   
+    #   # 🌐 Title: Network Not Displayed Yet
+    #   fluidRow(
+    #     align = "center",
+    #     column(12,
+    #            div(style = "text-align: center;",
+    #                tags$img(src = "icons/network_placeholder.svg", width = "180px", style = "opacity: 0.7;"),
+    #                h1("Network Not Displayed", style = "color: #993232; font-size: 2.5em;"),
+    #                h3("Click on 'Display Network' to generate the graph.", style = "color: #555;")
+    #            )
+    #     )
+    #   ),
+    #   
+    #   br(),
+    #   
+    #   # 📌 What This Tab Does
+    #   fluidRow(
+    #     column(12,
+    #            div(style = "background: #f9f9f9; padding: 20px; border-radius: 10px; font-size: 1.2em;",
+    #                h3("🌐 Visualizing Gene & Phenotype Networks"),
+    #                p("This tab allows you to explore the relationships between genes, phenotypes, and diseases."),
+    #                tags$ul(
+    #                  tags$li("🔹 ", tags$strong("Gene Similarity Network:"), " Displays genes connected based on shared phenotypic annotations."),
+    #                  tags$li("🔹 ", tags$strong("Interactive Visualization:"), " Click on nodes to explore related genes."),
+    #                  tags$li("🔹 ", tags$strong("Filtering Options:"), " Adjust similarity thresholds to refine the network."),
+    #                  tags$li("🔹 ", tags$strong("Export Options:"), " Download the network graph for further analysis.")
+    #                )
+    #            )
+    #     )
+    #   ),
+    #   
+    #   br(),
+    #   
+    #   # 🖱️ Button to Guide User to Display the Network
+    #   fluidRow(
+    #     align = "center",
+    #     actionButton(
+    #       "display_network", "🌐 Display Network",
+    #       style = "background: #3498db; color: white; font-size: 1.3em; padding: 12px 22px; border-radius: 30px;"
+    #     )
+    #   ),
+    #   
+    #   br()
+    # )
     
     observe({
       
@@ -9654,6 +9905,9 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
           if (ncol(network_data_to_DT_renamed) >= 5) {
             colnames(network_data_to_DT_renamed)[4:5] <- c("Gene 1 NCBI ID", "Gene 2 NCBI ID")
           }
+          # reordenar las colmnas la 2 pasar a ser la 3 y la 3 la 2
+          network_data_to_DT_renamed <-
+            network_data_to_DT_renamed[, c(1, 3, 2, 4:ncol(network_data_to_DT_renamed))]
           
         } else {
           # ---- CASO 2 ----

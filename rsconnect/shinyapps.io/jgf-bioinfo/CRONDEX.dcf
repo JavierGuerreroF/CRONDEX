@@ -5,7 +5,7 @@ account: jgf-bioinfo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14813634
-bundleId: 10648631
+bundleId: 11172122
 url: https://jgf-bioinfo.shinyapps.io/CRONDEX/
 version: 1
 asMultiple: FALSE
