@@ -8995,7 +8995,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             inputId = "selected_gene_network",
                             label = tags$span("Genes", style = "font-weight: bold; font-size: 16px;"),
                             choices = c(
-                              "<i< - Show full network -</i>" = "full_net",  # Opción vacía, marcada visualmente
+                              # "<i< - Show full network -</i>" = "full_net",  # Opción vacía, marcada visualmente
+                              "<i< - Select a gene -</i>" = "full_net",  # Opción vacía, marcada visualmente
                               input_list_genes_with_phenotypes_CHOICES
                             ),
                             options = list(
@@ -9006,7 +9007,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
                             multiple = FALSE,
                             choicesOpt = list(
                               content = c(
-                                HTML("<i style='color:gray;'>  - Show full network -</i>"),
+                                # HTML("<i style='color:gray;'>  - Show full network -</i>"),
+                                HTML("<i style='color:gray;'>  - Select a gene -</i>"),
                                 input_list_genes_with_phenotypes$GENE_LABELS_HTML  # ← si ya tienes etiquetas HTML aquí
                               ),
                               subtext = c(
@@ -9070,7 +9072,11 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
              
       ),
       column(9,
-          
+         
+             
+             fluidRow(
+               uiOutput("network_table_ui")
+             ),
              box(title = NULL,
                  width = NULL,
                  solidHeader = FALSE,
@@ -9083,12 +9089,8 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
              )
              
       )
-    ),
-    hr(),
-    
-    fluidRow(
-      uiOutput("network_table_ui")
     )
+ 
     # 
     # 
     
@@ -9744,6 +9746,7 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
     
     # DATATABLE 
     observeEvent(vals$network_data_to_DT,{
+      
       vals$network_columns_selected <- input$network_columns_selected
       if(is.null(vals$network_columns_selected)){vals$network_columns_selected <- vals$network_columns}
       
@@ -9890,115 +9893,73 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # 
       # })
       
+      # Ordenar por Jaccard (manteniendo el nombre "Jaccard" para el formatStyle)
+      network_data_to_DT_renamed <- network_data_to_DT %>%
+        dplyr::arrange(dplyr::desc(Jaccard))
       
-      output$network_datatable <- renderDataTable(server = FALSE, {
+      if (is.null(input$selected_gene_network) || input$selected_gene_network == "full_net") {
+        # ---- CASO 1 ----
+        print("CASO 1")
         
-        # Ordenar por Jaccard (manteniendo el nombre "Jaccard" para el formatStyle)
-        network_data_to_DT_renamed <- network_data_to_DT %>%
-          dplyr::arrange(dplyr::desc(Jaccard))
-        
-        if (is.null(input$selected_gene_network) || input$selected_gene_network == "full_net") {
-          # ---- CASO 1 ----
-          print("CASO 1")
-          
-          # Renombrar columnas 4 y 5 → "Gene 1 NCBI ID" y "Gene 2 NCBI ID"
-          if (ncol(network_data_to_DT_renamed) >= 5) {
-            colnames(network_data_to_DT_renamed)[4:5] <- c("Gene 1 NCBI ID", "Gene 2 NCBI ID")
-          }
-          # reordenar las colmnas la 2 pasar a ser la 3 y la 3 la 2
-          network_data_to_DT_renamed <-
-            network_data_to_DT_renamed[, c(1, 3, 2, 4:ncol(network_data_to_DT_renamed))]
-          
-        } else {
-          # ---- CASO 2 ----
-          print("CASO 2")
-          
-          target_id <- input$selected_gene_network
-          target <- genes_database[[as.character(target_id)]]$gene_symbol
-          
-          # Si el target aparece en "Gene 2 symbol", intercambiamos columnas para que quede en "Gene 2"
-          row_with_target_second <- network_data_to_DT_renamed$`Gene 2 symbol` == target
-          network_data_to_DT_renamed$row_with_target_second <- row_with_target_second
-          
-          network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
-            dplyr::mutate(
-              `Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
-              `Gene 2`        = ifelse(row_with_target_second, `Gene 1`,        `Gene 2`)
-            ) %>%
-            dplyr::select(-row_with_target_second)
-          
-          # Nos quedamos con 3 columnas (Jaccard, símbolo y NCBI del gene "2")
-          network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
-            dplyr::select(Jaccard, `Gene 2 symbol`, `Gene 2`)
-          
-          # Renombrar columnas 2 y 3 → "Gene symbol" y "Gene NCB ID"
-          if (ncol(network_data_to_DT_renamed) >= 3) {
-            colnames(network_data_to_DT_renamed)[2:3] <- c("Gene symbol", "Gene NCB ID")
-          }
+        # Renombrar columnas 4 y 5 → "Gene 1 NCBI ID" y "Gene 2 NCBI ID"
+        if (ncol(network_data_to_DT_renamed) >= 5) {
+          colnames(network_data_to_DT_renamed)[4:5] <- c("Gene 1 NCBI ID", "Gene 2 NCBI ID")
         }
+        # reordenar las colmnas la 2 pasar a ser la 3 y la 3 la 2
+        network_data_to_DT_renamed <-
+          network_data_to_DT_renamed[, c(1, 3, 2, 4:ncol(network_data_to_DT_renamed))]
         
-        cat("\033[32m\n\nnetwork_data_to_DT_renamed------>\033[0m\n")
-        print(str(network_data_to_DT_renamed))
+      } else {
+        # ---- CASO 2 ----
+        print("CASO 2")
         
-        datatable(
-          network_data_to_DT_renamed,
-          rownames = FALSE,
-          extensions = 'Buttons',
-          selection = "single",
-          options = list(
-            dom = 'Bfrtip',
-            buttons = btns_all_pages,
-            scrollX = TRUE,
-            pageLength = 100
-          )
-        ) %>%
-          formatStyle(
-            'Jaccard',
-            background = styleColorBar(dplyr::select(network_data_to_DT_renamed, Jaccard), '#99c0ff', angle = -90),
-            backgroundSize = '98% 88%',
-            backgroundRepeat = 'no-repeat',
-            backgroundPosition = 'center'
+        target_id <- input$selected_gene_network
+        target <- genes_database[[as.character(target_id)]]$gene_symbol
+        
+        # Si el target aparece en "Gene 2 symbol", intercambiamos columnas para que quede en "Gene 2"
+        row_with_target_second <- network_data_to_DT_renamed$`Gene 2 symbol` == target
+        network_data_to_DT_renamed$row_with_target_second <- row_with_target_second
+        
+        network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
+          dplyr::mutate(
+            `Gene 2 symbol` = ifelse(row_with_target_second, `Gene 1 symbol`, `Gene 2 symbol`),
+            `Gene 2`        = ifelse(row_with_target_second, `Gene 1`,        `Gene 2`)
           ) %>%
-          formatSignif(columns = c("Jaccard"), digits = 3)
-      })
+          dplyr::select(-row_with_target_second)
+        
+        # Nos quedamos con 3 columnas (Jaccard, símbolo y NCBI del gene "2")
+        network_data_to_DT_renamed <- network_data_to_DT_renamed %>%
+          dplyr::select(Jaccard, `Gene 2 symbol`, `Gene 2`)
+        
+        # Renombrar columnas 2 y 3 → "Gene symbol" y "Gene NCB ID"
+        if (ncol(network_data_to_DT_renamed) >= 3) {
+          colnames(network_data_to_DT_renamed)[2:3] <- c("Gene symbol", "Gene NCB ID")
+        }
+      }
       
+      cat("\033[32m\n\nnetwork_data_to_DT_renamed------>\033[0m\n")
+      print(str(network_data_to_DT_renamed))
+      
+      
+      # estado de colapso de la caja
+      collapse_network_box <- reactiveVal(T)
+      
+      # cuando se pulsa el botón, la abrimos (o alternamos)
+      observeEvent(input$display_network, ignoreNULL = T,{
+        collapse_network_box(F)   # o: collapse_network_box(!collapse_network_box())
+        cat("\n\n\n\n\n\n\n")
+        print("Opening network box upon search...")
+        print(collapse_network_box())
+        cat("\n\n\n\n\n\n\n")
 
-      
+      })
+
       output$network_table_ui <- renderUI({
         
         
         
-        # box(
-        #   width = 12,
-        #   title =tagList(
-        #     span("Network table"),                 # texto del título
-        #     actionLink(                            # icono de ayuda
-        #       inputId = "table_help_button",
-        #       label   = NULL,
-        #       icon    = icon("question-circle"),
-        #       class   = "ml-2"                     # margen a la izquierda (Bootstrap)
-        #     )
-        #   ),# "Network table",
-        #   collapsible = T,
-        #   collapsed = F,
-        #   solidHeader = T,
-        #   status = "warning",
-        #   # fluidRow(
-        #   # uiOutput("columns_selection_ui"),
-        #   tags$div(
-        #             class = "table-wrapper",
-        #             style = "position:relative;",          # contenedor relativo
-        #           
-        #             dataTableOutput("network_datatable"),
-        #             
-        #             actionLink("table_help_button", NULL,   # icono flotante
-        #                        icon = icon("question-circle"),
-        #                        class = "tiny-help",
-        #                        style = "position:absolute; top:6px; left:380px;")
-        #           )
-        #   # dataTableOutput("network_datatable")
-        #   # )
-        # )
+        # if(input$selected_gene_network == "full_net"){collapse_network_box <- TRUE}else{ collapse_network_box <- FALSE}
+   
         
         box(
           width = 12,
@@ -10013,13 +9974,44 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
             )
           ),
           collapsible = TRUE,
-          collapsed   = FALSE,
+          collapsed   = collapse_network_box(),
           solidHeader = TRUE,
           status      = "warning",
           
+          fluidRow(
+            column(12,
+                   div(
+                     style = "background-color: #fcba3f; 
+                   border-left: 5px solid #0345c0;
+                   padding: 12px 16px; 
+                   margin-bottom: 12px;
+                   border-radius: 8px; 
+                   font-size: 15px;
+                   color: #333;
+                   box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
+                     # HTML('
+                     #   <strong>Tip:</strong> You can click 
+                     #   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
+                     #   <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
+                     #   </svg>
+                     #   on the <b>edges</b> in the network or the <b>rows</b> in the table below to explore the full <b>gene-to-gene comparison</b>.
+                     # ')
+                     HTML('
+              <strong>Tip:</strong> You can click 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
+                <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
+              </svg>
+              on the <b>rows in the table below</b> to explore the full <b>gene-to-gene comparison</b>.
+            ')
+                     
+                   )
+                   
+                   )
+            
+          ),
           dataTableOutput("network_datatable")
         )
-        
+         
       })
       
 
@@ -10027,9 +10019,49 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       # server.R  (o dentro de la función server)
       
    
+      vals$network_data_to_DT_renamed <- network_data_to_DT_renamed
       
       
       
+    })
+    
+    
+    observeEvent(input$display_network,{
+      vals$network_datatable_to_render <- vals$network_data_to_DT_renamed 
+    })
+    
+    output$network_datatable <- renderDataTable(server = FALSE, {
+      
+      network_data_to_DT_renamed <- vals$network_datatable_to_render
+      
+      datatable(
+        network_data_to_DT_renamed,
+        rownames = FALSE,
+        extensions = 'Buttons',
+        selection = "single",
+        options = list(
+          dom = 'Blfrtip',
+          buttons = btns_all_pages,
+          scrollX = TRUE,
+          pageLength = 10,  # valor inicial
+          lengthMenu = list(
+            c(10, 30, 50, 100, -1),        # valores reales
+            c('10', '30', '50', '100', 'All')  # etiquetas mostradas
+          )
+        )
+      ) %>%
+        formatStyle(
+          'Jaccard',
+          background = styleColorBar(
+            dplyr::select(network_data_to_DT_renamed, Jaccard),
+            '#99c0ff',
+            angle = -90
+          ),
+          backgroundSize = '98% 88%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatSignif(columns = c("Jaccard"), digits = 3)
       
     })
     
@@ -11070,31 +11102,6 @@ observeEvent(input$display_network_neighborhood,ignoreNULL = T,{
       }
 
       network_ui_ouput<- tagList(   
-        div(
-          style = "background-color: #fcba3f; 
-                   border-left: 5px solid #0345c0;
-                   padding: 12px 16px; 
-                   margin-bottom: 12px;
-                   border-radius: 8px; 
-                   font-size: 15px;
-                   color: #333;
-                   box-shadow: 0 1px 3px rgba(0,0,0,0.1);",
-          # HTML('
-          #   <strong>Tip:</strong> You can click 
-          #   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
-          #   <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
-          #   </svg>
-          #   on the <b>edges</b> in the network or the <b>rows</b> in the table below to explore the full <b>gene-to-gene comparison</b>.
-          # ')
-          HTML('
-              <strong>Tip:</strong> You can click 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16">
-                <path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/>
-              </svg>
-              on the <b>rows in the table below</b> to explore the full <b>gene-to-gene comparison</b>.
-            ')
-          
-        ),
         network_ui_ouput
         )
       vals$network_ui_ouput <- network_ui_ouput
