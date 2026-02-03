@@ -1,6 +1,6 @@
 # CRONDEX: A Platform for Chromatin-Related NDDs
 
-**CRONDEX** is a web-based platform developed to explore the relationships between chromatin-related genes and neurodevelopmental disorders (NDDs). This tool accompanies the research presented in **Guerrero et al. (2025)**: *"CRONDEX: a web-based platform for exploring links between chromatin-related genes and neurodevelopmental disorders"*.
+**CRONDEX** is a web-based platform developed to explore the relationships between chromatin-related genes and neurodevelopmental disorders (NDDs). This tool accompanies the research presented in **Guerrero et al. (2026)**: *"CRONDEX: a web-based platform for exploring links between chromatin-related genes and neurodevelopmental disorders"*.
 
 The platform integrates data from **SysNDD** and **EpiFactors** to allow researchers to identify biologically coherent gene modules and formulate hypothesis-driven questions about the molecular basis of NDDs.
 
@@ -66,7 +66,7 @@ If you prefer to run the application locally (e.g., for reproducible research or
 
 If you use CRONDEX in your research, please cite:
 
-> **Guerrero, J., Viegas, B.S., Martínez-Balbás, M., & de la Cruz, X. (2025).** *CRONDEX: a web-based platform for exploring links between chromatin-related genes and neurodevelopmental disorders*. Research (VHIR), Universitat Autònoma de Barcelona.
+> **Guerrero, J., Viegas, B.S., Martínez-Balbás, M., & de la Cruz, X. (2026).** *CRONDEX: a web-based platform for exploring links between chromatin-related genes and neurodevelopmental disorders*. Research (VHIR), Universitat Autònoma de Barcelona.
 
 ## License
 
